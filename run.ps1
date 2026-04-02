@@ -20,7 +20,9 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [int]$I
+    [int]$I,
+
+    [switch]$Merge
 )
 
 $ErrorActionPreference = "Stop"
@@ -70,4 +72,7 @@ Write-Host "  [ RUN   ] " -ForegroundColor Magenta -NoNewline
 Write-Host "Executing: $($scriptDir.Name)\run.ps1"
 Write-Host ""
 
-& $scriptFile
+$scriptArgs = @{}
+if ($Merge) { $scriptArgs["Merge"] = $true }
+
+& $scriptFile @scriptArgs

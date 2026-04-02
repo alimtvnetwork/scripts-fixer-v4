@@ -7,10 +7,21 @@
     settings.json, keybindings.json, and installs extensions via the CLI.
     Supports both Stable and Insiders editions. Backs up existing files before overwriting.
 
+    Use -Merge to deep-merge new settings into existing settings.json instead of replacing.
+
+.PARAMETER Merge
+    When set, deep-merges incoming settings into existing settings.json rather than
+    replacing. Top-level keys from the incoming file overwrite existing ones, but
+    keys only present in the existing file are preserved.
+
 .NOTES
     Author : Lovable AI
-    Version: 2.0.0
+    Version: 3.0.0
 #>
+
+param(
+    [switch]$Merge
+)
 
 # ── Helpers ──────────────────────────────────────────────────────────
 function Write-Log {
@@ -61,6 +72,41 @@ function Backup-File {
         Write-Log "No existing $( Split-Path $FilePath -Leaf ) to back up" "skip"
         return $true
     }
+}
+
+function Merge-JsonDeep {
+    param(
+        [Parameter(Mandatory)]
+        [hashtable]$Base,
+        [Parameter(Mandatory)]
+        [hashtable]$Override
+    )
+
+    $result = $Base.Clone()
+    foreach ($key in $Override.Keys) {
+        if ($result.ContainsKey($key) -and
+            $result[$key] -is [hashtable] -and
+            $Override[$key] -is [hashtable]) {
+            $result[$key] = Merge-JsonDeep -Base $result[$key] -Override $Override[$key]
+        } else {
+            $result[$key] = $Override[$key]
+        }
+    }
+    return $result
+}
+
+function ConvertTo-OrderedHashtable {
+    param([Parameter(Mandatory)][PSCustomObject]$InputObject)
+
+    $ht = [ordered]@{}
+    foreach ($prop in $InputObject.PSObject.Properties) {
+        if ($prop.Value -is [PSCustomObject]) {
+            $ht[$prop.Name] = ConvertTo-OrderedHashtable -InputObject $prop.Value
+        } else {
+            $ht[$prop.Name] = $prop.Value
+        }
+    }
+    return $ht
 }
 
 # ── Main ─────────────────────────────────────────────────────────────
@@ -173,6 +219,11 @@ $enabledEditions = $Config.enabledEditions
 $totalSuccess    = $true
 
 Write-Log "Enabled editions: $($enabledEditions -join ', ')" "info"
+if ($Merge) {
+    Write-Log "Merge mode enabled — settings will be deep-merged, not replaced" "info"
+} else {
+    Write-Log "Replace mode — existing settings will be backed up and replaced" "info"
+}
 Write-Host ""
 
 # ── Process each edition ─────────────────────────────────────────────
@@ -217,13 +268,30 @@ foreach ($editionName in $enabledEditions) {
     $backupOk = Backup-File -FilePath $destSettings -BackupSuffix $Config.backupSuffix
 
     if ($backupOk) {
-        Write-Log $script:LogMessages.steps.applySettings
-        try {
-            Copy-Item -Path $srcSettings -Destination $destSettings -Force
-            Write-Log "settings.json applied to $settingsDir" "ok"
-        } catch {
-            Write-Log "$($script:LogMessages.errors.copyFail) $_" "fail"
-            $totalSuccess = $false
+        if ($Merge -and (Test-Path $destSettings)) {
+            Write-Log "Merge mode: deep-merging into existing settings.json" "info"
+            try {
+                $existingObj = Get-Content $destSettings -Raw | ConvertFrom-Json
+                $incomingObj = Get-Content $srcSettings -Raw | ConvertFrom-Json
+                $existingHt  = ConvertTo-OrderedHashtable -InputObject $existingObj
+                $incomingHt  = ConvertTo-OrderedHashtable -InputObject $incomingObj
+                $merged      = Merge-JsonDeep -Base $existingHt -Override $incomingHt
+                $merged | ConvertTo-Json -Depth 20 | Out-File -FilePath $destSettings -Encoding utf8 -Force
+                Write-Log "settings.json merged into $settingsDir" "ok"
+            } catch {
+                Write-Log "Merge failed: $_ — falling back to replace" "warn"
+                Copy-Item -Path $srcSettings -Destination $destSettings -Force
+                Write-Log "settings.json replaced in $settingsDir" "ok"
+            }
+        } else {
+            Write-Log $script:LogMessages.steps.applySettings
+            try {
+                Copy-Item -Path $srcSettings -Destination $destSettings -Force
+                Write-Log "settings.json applied to $settingsDir" "ok"
+            } catch {
+                Write-Log "$($script:LogMessages.errors.copyFail) $_" "fail"
+                $totalSuccess = $false
+            }
         }
     } else {
         $totalSuccess = $false

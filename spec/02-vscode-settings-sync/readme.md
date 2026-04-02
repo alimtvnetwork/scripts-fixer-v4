@@ -104,8 +104,11 @@ Only `extensions` (enabled) are installed. The `disabled` list is kept for refer
 ## How to Run
 
 ```powershell
-# From the project root:
+# From the project root (backup & replace, default):
 .\run.ps1 -I 2
+
+# Deep-merge settings into existing settings.json:
+.\run.ps1 -I 2 -Merge
 ```
 
 ## Design Decisions
