@@ -35,7 +35,9 @@ scripts/
 └── 01-vscode-context-menu-fix/
     ├── config.json                  # Paths & settings (user-editable)
     ├── log-messages.json            # All display strings & banners
-    └── run.ps1                      # Main script
+    ├── run.ps1                      # Main script
+    └── logs/                        # Auto-created runtime log folder (gitignored)
+        └── run-<timestamp>.log      # Timestamped execution log
 
 spec/
 └── 01-vscode-context-menu-fix/
@@ -66,14 +68,24 @@ spec/
 
 ## Execution Flow
 
-1. Load `log-messages.json` → display banner
-2. Verify Administrator privileges
-3. Load `config.json` → resolve VS Code exe path
-4. Validate that the exe exists (with auto-fallback to the other install type)
-5. Map `HKCR:` PSDrive if not already mapped
-6. Create three registry entries (file, directory, background)
-7. Verify each entry exists
-8. Display summary footer
+1. Clean and recreate `logs/` subfolder in the script directory
+2. Start logging all output to `logs/run-<timestamp>.log`
+3. Load `log-messages.json` → display banner
+4. Verify Administrator privileges
+5. Load `config.json` → resolve VS Code exe path
+6. Validate that the exe exists (with auto-fallback to the other install type)
+7. Map `HKCR:` PSDrive if not already mapped
+8. Create three registry entries (file, directory, background) with `-Confirm:$false`
+9. Verify each entry exists
+10. Display summary footer
+
+## Logging
+
+- Each run creates a `logs/` subfolder inside the script directory
+- The `logs/` folder is cleaned (deleted and recreated) at the start of every run
+- A timestamped log file (`run-YYYYMMDD-HHmmss.log`) captures all terminal output
+- The `logs` folder is already gitignored by the project-level `.gitignore`
+- All `New-Item` and `Set-ItemProperty` calls use `-Confirm:$false` to prevent hangs
 
 ## Prerequisites
 
@@ -99,3 +111,6 @@ cd scripts\vscode-context-menu-fix
 | Auto-fallback path detection | Reduces user friction if wrong type is selected |
 | Colored status badges | Clear visual feedback in the terminal |
 | Verification step | Confirms entries were actually written |
+| Plain ASCII banners | Avoids Unicode alignment bugs in terminals |
+| Per-run log files | Debugging aid; cleaned each run to avoid clutter |
+| -Confirm:$false on all registry ops | Prevents interactive prompts that hang the script |

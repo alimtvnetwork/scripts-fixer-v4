@@ -43,7 +43,9 @@ scripts/
     ├── keybindings.json               # Extracted/provided keybindings
     ├── extensions.json                # Extension IDs (enabled & disabled)
     ├── *.code-profile                 # (Optional) VS Code profile export
-    └── run.ps1                        # Main script
+    ├── run.ps1                        # Main script
+    └── logs/                          # Auto-created runtime log folder (gitignored)
+        └── run-<timestamp>.log        # Timestamped execution log
 
 spec/
 └── 02-vscode-settings-sync/
@@ -83,16 +85,25 @@ Only `extensions` (enabled) are installed. The `disabled` list is kept for refer
 
 ## Execution Flow
 
-1. Load `log-messages.json` → display banner
-2. Load `config.json` → determine enabled editions
-3. Check for `.code-profile` → parse settings, keybindings, extensions if found
-4. Fall back to individual JSON files for any missing data
-5. For each enabled edition:
+1. Clean and recreate `logs/` subfolder in the script directory
+2. Start logging all output to `logs/run-<timestamp>.log`
+3. Load `log-messages.json` → display banner
+4. Load `config.json` → determine enabled editions
+5. Check for `.code-profile` → parse settings, keybindings, extensions if found
+6. Fall back to individual JSON files for any missing data
+7. For each enabled edition:
    a. Check if the CLI command is available (`code` / `code-insiders`)
    b. Backup existing `settings.json` and `keybindings.json` (timestamp + suffix)
    c. Copy settings and keybindings to the edition's settings path
    d. Install each enabled extension via CLI
-6. Display summary footer
+8. Display summary footer
+
+## Logging
+
+- Each run creates a `logs/` subfolder inside the script directory
+- The `logs/` folder is cleaned (deleted and recreated) at the start of every run
+- A timestamped log file (`run-YYYYMMDD-HHmmss.log`) captures all terminal output
+- The `logs` folder is already gitignored by the project-level `.gitignore`
 
 ## Prerequisites
 
@@ -123,3 +134,5 @@ Only `extensions` (enabled) are installed. The `disabled` list is kept for refer
 | Edition loop                | Single script handles both Stable and Insiders               |
 | CLI-based extension install | Official supported method, no registry hacking needed        |
 | No admin required           | Settings and extensions are per-user, no elevation needed    |
+| Plain ASCII banners         | Avoids Unicode alignment bugs in terminals                   |
+| Per-run log files           | Debugging aid; cleaned each run to avoid clutter             |
