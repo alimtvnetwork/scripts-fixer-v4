@@ -1,0 +1,13 @@
+{
+  "vscodePath": {
+    "user": "%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe",
+    "system": "C:\\Program Files\\Microsoft VS Code\\Code.exe"
+  },
+  "registryPaths": {
+    "file": "HKCR:\\*\\shell\\VSCode",
+    "directory": "HKCR:\\Directory\\shell\\VSCode",
+    "background": "HKCR:\\Directory\\Background\\shell\\VSCode"
+  },
+  "contextMenuLabel": "Open with Code",
+  "installationType": "user"
+}
