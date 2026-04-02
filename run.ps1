@@ -72,4 +72,7 @@ Write-Host "  [ RUN   ] " -ForegroundColor Magenta -NoNewline
 Write-Host "Executing: $($scriptDir.Name)\run.ps1"
 Write-Host ""
 
-& $scriptFile
+$scriptArgs = @{}
+if ($Merge) { $scriptArgs["Merge"] = $true }
+
+& $scriptFile @scriptArgs
