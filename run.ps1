@@ -28,24 +28,7 @@ param(
 $ErrorActionPreference = "Stop"
 $RootDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 
-# ── Git Pull ─────────────────────────────────────────────────────────
-Write-Host ""
-Write-Host "  [  GIT  ] " -ForegroundColor Cyan -NoNewline
-Write-Host "Pulling latest changes..."
-
-try {
-    Push-Location $RootDir
-    $gitOutput = git pull 2>&1
-    Pop-Location
-    Write-Host "  [  OK   ] " -ForegroundColor Green -NoNewline
-    Write-Host $gitOutput
-} catch {
-    Pop-Location
-    Write-Host "  [ WARN  ] " -ForegroundColor Yellow -NoNewline
-    Write-Host "git pull failed: $_  (continuing anyway)"
-}
-
-# ── Resolve Script ───────────────────────────────────────────────────
+# ── Resolve Script (early, so we can clean logs before git output) ───
 $prefix = "{0:D2}" -f $I
 $pattern = Join-Path $RootDir "scripts/$prefix-*"
 $scriptDir = Get-Item $pattern -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -64,6 +47,32 @@ if (-not (Test-Path $scriptFile)) {
     Write-Host "  [ FAIL  ] " -ForegroundColor Red -NoNewline
     Write-Host "run.ps1 not found in $($scriptDir.Name)"
     exit 1
+}
+
+# ── Clean & create logs folder ───────────────────────────────────────
+$logsDir = Join-Path $scriptDir.FullName "logs"
+if (Test-Path $logsDir) {
+    Remove-Item -Path $logsDir -Recurse -Force -ErrorAction SilentlyContinue
+}
+New-Item -Path $logsDir -ItemType Directory -Force | Out-Null
+Write-Host "  [ CLEAN ] " -ForegroundColor DarkGray -NoNewline
+Write-Host "Cleaned logs/ in $($scriptDir.Name)"
+
+# ── Git Pull ─────────────────────────────────────────────────────────
+Write-Host ""
+Write-Host "  [  GIT  ] " -ForegroundColor Cyan -NoNewline
+Write-Host "Pulling latest changes..."
+
+try {
+    Push-Location $RootDir
+    $gitOutput = git pull 2>&1
+    Pop-Location
+    Write-Host "  [  OK   ] " -ForegroundColor Green -NoNewline
+    Write-Host $gitOutput
+} catch {
+    Pop-Location
+    Write-Host "  [ WARN  ] " -ForegroundColor Yellow -NoNewline
+    Write-Host "git pull failed: $_  (continuing anyway)"
 }
 
 # ── Delegate ─────────────────────────────────────────────────────────

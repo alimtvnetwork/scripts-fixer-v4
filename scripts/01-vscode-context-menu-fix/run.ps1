@@ -76,6 +76,13 @@ function Resolve-VsCodePath {
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 
+# ── Setup file logging ──────────────────────────────────────────────
+$logsDir = Join-Path $ScriptDir "logs"
+if (-not (Test-Path $logsDir)) { New-Item -Path $logsDir -ItemType Directory -Force | Out-Null }
+$timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+$logFile   = Join-Path $logsDir "run-$timestamp.log"
+Start-Transcript -Path $logFile -Force | Out-Null
+
 # Load log messages
 $logPath = Join-Path $ScriptDir "log-messages.json"
 if (-not (Test-Path $logPath)) {
@@ -211,3 +218,5 @@ if ($totalSuccess) {
 }
 
 Write-Banner $script:LogMessages.footer "Green"
+
+Stop-Transcript | Out-Null
