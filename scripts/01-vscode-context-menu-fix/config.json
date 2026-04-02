@@ -1,13 +1,30 @@
 {
-  "vscodePath": {
-    "user": "%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe",
-    "system": "C:\\Program Files\\Microsoft VS Code\\Code.exe"
+  "editions": {
+    "stable": {
+      "vscodePath": {
+        "user": "%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe",
+        "system": "C:\\Program Files\\Microsoft VS Code\\Code.exe"
+      },
+      "registryPaths": {
+        "file": "HKCR:\\*\\shell\\VSCode",
+        "directory": "HKCR:\\Directory\\shell\\VSCode",
+        "background": "HKCR:\\Directory\\Background\\shell\\VSCode"
+      },
+      "contextMenuLabel": "Open with Code"
+    },
+    "insiders": {
+      "vscodePath": {
+        "user": "%LOCALAPPDATA%\\Programs\\Microsoft VS Code Insiders\\Code - Insiders.exe",
+        "system": "C:\\Program Files\\Microsoft VS Code Insiders\\Code - Insiders.exe"
+      },
+      "registryPaths": {
+        "file": "HKCR:\\*\\shell\\VSCodeInsiders",
+        "directory": "HKCR:\\Directory\\shell\\VSCodeInsiders",
+        "background": "HKCR:\\Directory\\Background\\shell\\VSCodeInsiders"
+      },
+      "contextMenuLabel": "Open with Code - Insiders"
+    }
   },
-  "registryPaths": {
-    "file": "HKCR:\\*\\shell\\VSCode",
-    "directory": "HKCR:\\Directory\\shell\\VSCode",
-    "background": "HKCR:\\Directory\\Background\\shell\\VSCode"
-  },
-  "contextMenuLabel": "Open with Code",
-  "installationType": "user"
+  "installationType": "user",
+  "enabledEditions": ["stable", "insiders"]
 }
