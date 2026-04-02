@@ -30,15 +30,16 @@ A structured PowerShell script that:
 ## File Structure
 
 ```
+run.ps1                              # Root dispatcher (git pull + delegate)
 scripts/
-└── vscode-context-menu-fix/
+└── 01-vscode-context-menu-fix/
     ├── config.json                  # Paths & settings (user-editable)
     ├── log-messages.json            # All display strings & banners
-    └── Fix-VSCodeContextMenu.ps1   # Main script
+    └── run.ps1                      # Main script
 
 spec/
-└── vscode-context-menu-fix/
-    └── README.md                   # This specification
+└── 01-vscode-context-menu-fix/
+    └── readme.md                    # This specification
 ```
 
 ## config.json Schema
