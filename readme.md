@@ -1,7 +1,7 @@
 # Windows Dev Environment Setup Scripts
 
 A collection of PowerShell scripts that automate Windows development environment
-configuration -- from VS Code settings to installing Go, Node.js, Python, and pnpm.
+configuration -- from VS Code settings to installing Git, Go, Node.js, Python, and pnpm.
 
 ## Quick Start
 
