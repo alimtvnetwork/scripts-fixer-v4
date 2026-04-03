@@ -97,7 +97,7 @@ function Save-ResolvedPath {
         [string]$ResolvedExe
     )
 
-    Save-ResolvedData -ScriptFolder "09-vscode-context-menu-fix" -Data @{
+    Save-ResolvedData -ScriptFolder "10-vscode-context-menu-fix" -Data @{
         $EditionName = @{
             resolvedExe  = $ResolvedExe
             resolvedAt   = (Get-Date -Format "o")

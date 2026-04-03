@@ -8,12 +8,12 @@
     {
       "label": "Core Tools",
       "checkedByDefault": true,
-      "ids": ["01", "02", "03", "04", "05", "06", "07", "08"]
+      "ids": ["01", "02", "03", "04", "05", "06", "07", "08", "09"]
     },
     {
       "label": "Optional",
       "checkedByDefault": false,
-      "ids": ["09", "10"]
+      "ids": ["10", "11"]
     }
   ],
   "scripts": {
@@ -25,8 +25,9 @@
     "06": { "enabled": true, "folder": "06-install-golang",           "name": "Go",                    "desc": "Install Go, configure GOPATH and go env" },
     "07": { "enabled": true, "folder": "07-install-git",              "name": "Git + LFS + gh",        "desc": "Install Git, Git LFS, GitHub CLI, configure settings" },
     "08": { "enabled": true, "folder": "08-install-github-desktop",   "name": "GitHub Desktop",        "desc": "Install GitHub Desktop" },
-    "09": { "enabled": true, "folder": "09-vscode-context-menu-fix",  "name": "VSCode Context Menu",   "desc": "Add/repair VSCode right-click context menu entries" },
-    "10": { "enabled": true, "folder": "10-vscode-settings-sync",     "name": "VSCode Settings Sync",  "desc": "Sync VSCode settings, keybindings, and extensions" }
+    "09": { "enabled": true, "folder": "09-install-cpp",              "name": "C++ (MinGW-w64)",       "desc": "Install MinGW-w64 C++ compiler, verify g++/gcc/make" },
+    "10": { "enabled": true, "folder": "10-vscode-context-menu-fix",  "name": "VSCode Context Menu",   "desc": "Add/repair VSCode right-click context menu entries" },
+    "11": { "enabled": true, "folder": "11-vscode-settings-sync",     "name": "VSCode Settings Sync",  "desc": "Sync VSCode settings, keybindings, and extensions" }
   },
-  "sequence": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10"]
+  "sequence": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11"]
 }

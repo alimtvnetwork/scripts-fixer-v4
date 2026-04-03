@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------
-#  Script 11 -- Install All Dev Tools
-#  Orchestrator: resolves dev directory, then runs scripts 01-10.
+#  Script 12 -- Install All Dev Tools
+#  Orchestrator: resolves dev directory, then runs scripts 01-11.
 #  Supports interactive grouped menu, -All, -Skip, and -Only filters.
 # --------------------------------------------------------------------------
 param(
@@ -92,7 +92,7 @@ Show-Summary -Results $results -LogMessages $logMessages
 Write-Log $logMessages.messages.allComplete -Level "success"
 
 # -- Save resolved state -------------------------------------------------------
-Save-ResolvedData -ScriptFolder "11-install-all-dev-tools" -Data @{
+Save-ResolvedData -ScriptFolder "12-install-all-dev-tools" -Data @{
     devDir    = $devDir
     results   = $results
     timestamp = (Get-Date -Format "o")

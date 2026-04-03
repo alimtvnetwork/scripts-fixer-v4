@@ -1,8 +1,9 @@
 # --------------------------------------------------------------------------
-#  Script 09 -- VS Code Context Menu Fix
-#  Restores "Open with Code" to the Windows right-click context menu.
+#  Script 11 -- VS Code Settings Sync
+#  Imports settings, keybindings, and extensions for VS Code.
 # --------------------------------------------------------------------------
 param(
+    [switch]$Merge,
     [switch]$Help
 )
 
@@ -16,9 +17,10 @@ $sharedDir = Join-Path (Split-Path -Parent $scriptDir) "shared"
 . (Join-Path $sharedDir "resolved.ps1")
 . (Join-Path $sharedDir "git-pull.ps1")
 . (Join-Path $sharedDir "help.ps1")
+. (Join-Path $sharedDir "json-utils.ps1")
 
 # -- Dot-source script helpers ------------------------------------------------
-. (Join-Path $scriptDir "helpers\registry.ps1")
+. (Join-Path $scriptDir "helpers\sync.ps1")
 
 # -- Load config & log messages -----------------------------------------------
 $config      = Import-JsonConfig (Join-Path $scriptDir "config.json")
@@ -43,23 +45,27 @@ if ($isDisabled) {
     return
 }
 
-# -- Assert admin --------------------------------------------------------------
-$hasAdminRights = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-$isNotAdmin = -not $hasAdminRights
-if ($isNotAdmin) {
-    Write-Log $logMessages.messages.notAdmin -Level "error"
-    Write-Host $script:SharedLogMessages.messages.adminTip -ForegroundColor Yellow
+# -- Resolve source files ------------------------------------------------------
+$sources = Resolve-SourceFiles -ScriptDir $scriptDir -LogMessages $logMessages
+
+$hasNoSettings = -not $sources.Settings
+if ($hasNoSettings) {
+    Write-Log $logMessages.messages.noSettingsSource -Level "error"
     return
 }
 
-# -- Process editions ----------------------------------------------------------
-$installType     = $config.installationType
 $enabledEditions = $config.enabledEditions
 $isAllSuccessful = $true
 
-Write-Log ($logMessages.messages.installTypePref -replace '\{type\}', $installType) -Level "info"
 Write-Log ($logMessages.messages.enabledEditions -replace '\{editions\}', ($enabledEditions -join ', ')) -Level "info"
+Write-Log ($logMessages.messages.extensionCount -replace '\{count\}', $sources.Extensions.Count) -Level "info"
+if ($Merge) {
+    Write-Log $logMessages.messages.mergeEnabled -Level "info"
+} else {
+    Write-Log $logMessages.messages.replaceMode -Level "info"
+}
 
+# -- Process each edition ------------------------------------------------------
 foreach ($editionName in $enabledEditions) {
     $edition = $config.editions.$editionName
 
@@ -71,17 +77,13 @@ foreach ($editionName in $enabledEditions) {
     }
 
     $result = Invoke-Edition `
-        -Edition     $edition `
-        -EditionName $editionName `
-        -InstallType $installType `
-        -ScriptDir   $scriptDir `
-        -Steps       @{
-            detectInstall = $logMessages.messages.detectInstall
-            regFile       = $logMessages.messages.regFile
-            regDir        = $logMessages.messages.regDir
-            regBg         = $logMessages.messages.regBg
-            verify        = $logMessages.messages.verify
-        }
+        -Edition      $edition `
+        -EditionName  $editionName `
+        -Sources      $sources `
+        -BackupSuffix $config.backupSuffix `
+        -MergeMode    $Merge.IsPresent `
+        -ScriptDir    $scriptDir `
+        -LogMessages  $logMessages
 
     $hasFailed = -not $result
     if ($hasFailed) { $isAllSuccessful = $false }
@@ -95,7 +97,9 @@ if ($isAllSuccessful) {
 }
 
 # -- Save resolved state -------------------------------------------------------
-Save-ResolvedData -ScriptFolder "09-vscode-context-menu-fix" -Data @{
-    editions  = ($enabledEditions -join ',')
-    timestamp = (Get-Date -Format "o")
+Save-ResolvedData -ScriptFolder "11-vscode-settings-sync" -Data @{
+    editions   = ($enabledEditions -join ',')
+    mergeMode  = $Merge.IsPresent
+    extensions = $sources.Extensions.Count
+    timestamp  = (Get-Date -Format "o")
 }
