@@ -256,7 +256,12 @@ function Install-Extensions {
         Write-Log "Installing: $ext" "info"
         try {
             $output = & $CliCommand --install-extension $ext --force 2>&1
-            Write-Log "Installed $ext" "ok"
+            if ($LASTEXITCODE -ne 0 -or $output -match 'Failed|error') {
+                Write-Log "Extension install may have failed: $ext -- $output" "warn"
+                $allOk = $false
+            } else {
+                Write-Log "Installed $ext" "ok"
+            }
         } catch {
             Write-Log "Failed to install $ext -- $_" "fail"
             $allOk = $false
