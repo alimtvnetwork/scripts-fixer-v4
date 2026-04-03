@@ -127,7 +127,10 @@ runtime cache without needing to manually delete folders.
 
 | Decision | Rationale |
 |----------|-----------|
+| Registry-based resolution | Exact folder names avoid glob collisions with stale/renamed folders |
+| Glob fallback | Backwards-compatible for repos that haven't added `registry.json` yet |
 | No params = git pull + help | User discovers available scripts on first run |
+| Clear `$env:SCRIPTS_ROOT_RUN` on no-param run | Prevents stale env var from a previous session causing git pull to skip |
 | `-I` is optional (not `Mandatory`) | Allows `-CleanOnly` and default help to work without a script number |
 | Usage help on missing `-I` | Better UX than a raw PowerShell parameter error |
 | Clean before git pull | Ensures fresh detection even if git pull brings new config |
