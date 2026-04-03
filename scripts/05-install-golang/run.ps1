@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------
-#  Script 04 -- Install Golang
+#  Script 05 -- Install Golang
 #  Installs Go via Chocolatey, configures GOPATH, PATH, and go env settings.
 # --------------------------------------------------------------------------
 param(
@@ -51,7 +51,8 @@ if ($isDisabled) {
 
 # -- Assert admin --------------------------------------------------------------
 $hasAdminRights = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-not $hasAdminRights) {
+$isNotAdmin = -not $hasAdminRights
+if ($isNotAdmin) {
     Write-Log $logMessages.messages.notAdmin -Level "error"
     Write-Host "  Tip: Right-click PowerShell -> 'Run as Administrator'" -ForegroundColor Yellow
     return
@@ -59,7 +60,8 @@ if (-not $hasAdminRights) {
 
 # -- Assert Chocolatey (skip for configure-only) -------------------------------
 $isConfigureOnly = $Command.ToLower() -eq "configure"
-if (-not $isConfigureOnly) {
+$isNotConfigureOnly = -not $isConfigureOnly
+if ($isNotConfigureOnly) {
     Assert-Choco
 }
 

@@ -1,7 +1,7 @@
 {
   "scriptName": "Install All Dev Tools",
-  "version": "1.1.0",
-  "description": "Orchestrator: sets up dev directory, then runs scripts 03-10 in sequence.",
+  "version": "1.2.0",
+  "description": "Orchestrator: sets up dev directory, then runs scripts 05-10 in sequence.",
   "messages": {
     "resolvingDevDir": "Resolving dev directory...",
     "devDirResolved": "Dev directory: {path}",
@@ -17,14 +17,26 @@
   },
   "help": {
     "commands": {
-      "(default)": "Run all enabled scripts (03-10) in sequence",
-      "--skip 05,07": "Skip specific scripts by number",
-      "--only 03,04": "Run only specific scripts"
+      "(default)": "Run all enabled scripts (03, 05-10) in sequence",
+      "--skip 06,08": "Skip specific scripts by number",
+      "--only 03,05": "Run only specific scripts"
+    },
+    "details": {
+      "title": "Available Scripts",
+      "scripts": [
+        { "id": "03", "name": "Package Managers", "desc": "Install Chocolatey and Winget" },
+        { "id": "05", "name": "Go", "desc": "Install Go, configure GOPATH and go env" },
+        { "id": "06", "name": "Node.js", "desc": "Install Node.js LTS, configure npm prefix" },
+        { "id": "07", "name": "Python", "desc": "Install Python, configure pip user site" },
+        { "id": "08", "name": "pnpm", "desc": "Install pnpm, configure global store" },
+        { "id": "09", "name": "Git + LFS + gh", "desc": "Install Git, Git LFS, GitHub CLI, configure global settings" },
+        { "id": "10", "name": "GitHub Desktop", "desc": "Install GitHub Desktop" }
+      ]
     },
     "examples": [
       ".\\run.ps1",
-      ".\\run.ps1 --skip 05,07",
-      ".\\run.ps1 --only 03,04",
+      ".\\run.ps1 --skip 06,08",
+      ".\\run.ps1 --only 03,05",
       ".\\run.ps1 -Help"
     ]
   }

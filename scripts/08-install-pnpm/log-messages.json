@@ -15,7 +15,7 @@
     "scriptDisabled": "pnpm installation is disabled in config.",
     "pnpmUpgrading": "Upgrading pnpm to latest...",
     "pnpmNotFound": "pnpm not found, installing via npm...",
-    "nodeRequired": "Node.js (npm) is required to install pnpm. Run script 05 first.",
+    "nodeRequired": "Node.js (npm) is required to install pnpm. Run script 06 first.",
     "savingResolved": "Saving resolved state..."
   },
   "help": {

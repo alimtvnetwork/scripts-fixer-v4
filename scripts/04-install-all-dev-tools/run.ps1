@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------
-#  Script 11 -- Install All Dev Tools
-#  Orchestrator: resolves dev directory, then runs scripts 03-10 in sequence.
+#  Script 04 -- Install All Dev Tools
+#  Orchestrator: resolves dev directory, then runs scripts 05-10 in sequence.
 # --------------------------------------------------------------------------
 param(
     [string]$Skip,
@@ -42,7 +42,8 @@ Invoke-GitPull
 
 # -- Assert admin --------------------------------------------------------------
 $hasAdminRights = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-not $hasAdminRights) {
+$isNotAdmin = -not $hasAdminRights
+if ($isNotAdmin) {
     Write-Log $logMessages.messages.notAdmin -Level "error"
     return
 }
@@ -67,7 +68,7 @@ Show-Summary -Results $results -LogMessages $logMessages
 Write-Log $logMessages.messages.allComplete -Level "success"
 
 # -- Save resolved state -------------------------------------------------------
-Save-ResolvedData -ScriptFolder "11-install-all-dev-tools" -Data @{
+Save-ResolvedData -ScriptFolder "04-install-all-dev-tools" -Data @{
     devDir    = $devDir
     results   = $results
     timestamp = (Get-Date -Format "o")

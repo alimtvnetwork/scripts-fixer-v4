@@ -13,7 +13,7 @@ function Install-Pnpm {
     $isNpmMissing = -not $hasNpm
     if ($isNpmMissing) {
         Write-Log $LogMessages.messages.nodeRequired -Level "error"
-        throw "npm is not available. Install Node.js first (script 05)."
+        throw "npm is not available. Install Node.js first (script 06)."
     }
 
     $existing = Get-Command pnpm -ErrorAction SilentlyContinue
@@ -89,7 +89,8 @@ function Update-PnpmPath {
     # pnpm global bin directory
     $pnpmHome = & pnpm config get global-bin-dir 2>$null
     $hasPnpmHome = [bool]$pnpmHome
-    if (-not $hasPnpmHome) {
+    $isPnpmHomeMissing = -not $hasPnpmHome
+    if ($isPnpmHomeMissing) {
         # Fallback: use PNPM_HOME or default location
         $pnpmHome = if ($env:PNPM_HOME) { $env:PNPM_HOME }
                     else { Join-Path $env:LOCALAPPDATA "pnpm" }

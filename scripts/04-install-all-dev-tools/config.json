@@ -6,12 +6,12 @@
   },
   "scripts": {
     "03": { "enabled": true, "folder": "03-install-package-managers", "name": "Package Managers" },
-    "04": { "enabled": true, "folder": "04-install-golang", "name": "Go" },
-    "05": { "enabled": true, "folder": "05-install-nodejs", "name": "Node.js" },
-    "06": { "enabled": true, "folder": "06-install-python", "name": "Python" },
-    "07": { "enabled": true, "folder": "07-install-pnpm", "name": "pnpm" },
+    "05": { "enabled": true, "folder": "05-install-golang", "name": "Go" },
+    "06": { "enabled": true, "folder": "06-install-nodejs", "name": "Node.js" },
+    "07": { "enabled": true, "folder": "07-install-python", "name": "Python" },
+    "08": { "enabled": true, "folder": "08-install-pnpm", "name": "pnpm" },
     "09": { "enabled": true, "folder": "09-install-git", "name": "Git + LFS + gh" },
     "10": { "enabled": true, "folder": "10-install-github-desktop", "name": "GitHub Desktop" }
   },
-  "sequence": ["03", "09", "04", "05", "06", "07", "10"]
+  "sequence": ["03", "09", "05", "06", "07", "08", "10"]
 }

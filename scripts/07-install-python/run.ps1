@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------
-#  Script 06 -- Install Python
+#  Script 07 -- Install Python
 #  Installs Python via Chocolatey and configures pip user site.
 # --------------------------------------------------------------------------
 param(
@@ -51,7 +51,8 @@ if ($isDisabled) {
 
 # -- Assert admin --------------------------------------------------------------
 $hasAdminRights = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-not $hasAdminRights) {
+$isNotAdmin = -not $hasAdminRights
+if ($isNotAdmin) {
     Write-Log $logMessages.messages.notAdmin -Level "error"
     return
 }
@@ -87,7 +88,7 @@ Write-Log $logMessages.messages.savingResolved -Level "info"
 $pythonVersion = & python --version 2>$null
 $pipVersion    = & pip --version 2>$null
 
-Save-ResolvedData -ScriptFolder "06-install-python" -Data @{
+Save-ResolvedData -ScriptFolder "07-install-python" -Data @{
     pythonVersion  = $pythonVersion
     pipVersion     = $pipVersion
     pythonUserBase = $env:PYTHONUSERBASE

@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------
-#  Script 05 -- Install Node.js
+#  Script 06 -- Install Node.js
 #  Installs Node.js (LTS) via Chocolatey and configures npm global prefix.
 # --------------------------------------------------------------------------
 param(
@@ -51,7 +51,8 @@ if ($isDisabled) {
 
 # -- Assert admin --------------------------------------------------------------
 $hasAdminRights = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-not $hasAdminRights) {
+$isNotAdmin = -not $hasAdminRights
+if ($isNotAdmin) {
     Write-Log $logMessages.messages.notAdmin -Level "error"
     return
 }
@@ -88,7 +89,7 @@ $nodeVersion = & node --version 2>$null
 $npmVersion  = & npm --version 2>$null
 $npmPrefix   = & npm config get prefix 2>$null
 
-Save-ResolvedData -ScriptFolder "05-install-nodejs" -Data @{
+Save-ResolvedData -ScriptFolder "06-install-nodejs" -Data @{
     nodeVersion = $nodeVersion
     npmVersion  = $npmVersion
     npmPrefix   = $npmPrefix
