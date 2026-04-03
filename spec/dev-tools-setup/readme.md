@@ -1,10 +1,10 @@
-# Spec: Dev Environment Setup Scripts (01-11)
+# Spec: Dev Environment Setup Scripts (01-10)
 
 ## Overview
 
 A suite of PowerShell scripts that set up a complete Windows development
 environment from scratch. Each script handles one concern and can run
-standalone or be orchestrated by script 11.
+standalone or be orchestrated by script 04.
 
 All dev tools are installed into a configurable **dev directory** (default: `E:\dev`)
 with structured subdirectories per tool.
@@ -18,13 +18,13 @@ with structured subdirectories per tool.
 | 01 | `01-vscode-context-menu-fix` | Restore "Open with Code" context menu entries | Yes |
 | 02 | `02-vscode-settings-sync` | Import VS Code settings, keybindings, extensions | No |
 | 03 | `03-install-package-managers` | Install/update Chocolatey + Winget | Yes |
-| 04 | `04-install-golang` | Install Go via Choco, configure GOPATH + go env | Yes |
-| 05 | `05-install-nodejs` | Install Node.js via Choco, configure npm prefix | Yes |
-| 06 | `06-install-python` | Install Python via Choco, configure pip | Yes |
-| 07 | `07-install-pnpm` | Install + configure pnpm (global store in dev dir) | No |
+| 04 | `04-install-all-dev-tools` | Orchestrator: runs 03, 05-10 in sequence | Yes |
+| 05 | `05-install-golang` | Install Go via Choco, configure GOPATH + go env | Yes |
+| 06 | `06-install-nodejs` | Install Node.js via Choco, configure npm prefix | Yes |
+| 07 | `07-install-python` | Install Python via Choco, configure pip | Yes |
+| 08 | `08-install-pnpm` | Install + configure pnpm (global store in dev dir) | No |
 | 09 | `09-install-git` | Install Git + Git LFS + GitHub CLI, configure settings | Yes |
 | 10 | `10-install-github-desktop` | Install GitHub Desktop via Choco | Yes |
-| 11 | `11-install-all-dev-tools` | Orchestrator: runs 03-10 in sequence | Yes |
 
 ---
 
