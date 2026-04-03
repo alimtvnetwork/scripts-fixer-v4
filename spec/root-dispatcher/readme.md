@@ -26,7 +26,7 @@ When run with no parameters, it performs a git pull and shows help
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `-I` | int | No | Script number to run (maps to `scripts/<NN>-*/run.ps1`) |
+| `-I` | int | No | Script number to run (resolved via `scripts/registry.json`) |
 | `-Merge` | switch | No | Passed through to child script (used by script 02 for deep-merge) |
 | `-Clean` | switch | No | Wipes all `.resolved/` data before running, forcing fresh detection |
 | `-CleanOnly` | switch | No | Wipes all `.resolved/` data and exits without running any script |
@@ -36,35 +36,71 @@ When run with no parameters, it performs a git pull and shows help
 
 ```powershell
 .\run.ps1                   # Pull, show help
-.\run.ps1 -I 1              # Pull, then run scripts/01-*/run.ps1
-.\run.ps1 -I 2 -Merge       # Pull, then run scripts/02-*/run.ps1 with merge mode
-.\run.ps1 -I 4              # Pull, then run install-all-dev-tools (interactive menu)
-.\run.ps1 -I 1 -Clean       # Wipe cache, pull, then run scripts/01-*/run.ps1
+.\run.ps1 -I 1              # Pull, then run scripts/01-install-vscode/run.ps1
+.\run.ps1 -I 2 -Merge       # Pull, then run scripts/02-install-package-managers/run.ps1 with merge mode
+.\run.ps1 -I 11             # Pull, then run install-all-dev-tools (interactive menu)
+.\run.ps1 -I 1 -Clean       # Wipe cache, pull, then run scripts/01-install-vscode/run.ps1
 .\run.ps1 -CleanOnly         # Wipe all cached resolved data
 ```
 
 ## Execution Flow
 
-1. If no parameters at all: git pull, show help, exit
+1. If no parameters at all: clear stale `$env:SCRIPTS_ROOT_RUN`, git pull, show help, exit
 2. If `-Help`: show help and exit
 3. If `-CleanOnly`: wipe `.resolved/` contents and exit immediately
 4. Validate `-I` is provided (show usage help if missing)
 5. If `-Clean`: wipe `.resolved/` contents, then continue
 6. Dot-source `scripts/shared/git-pull.ps1`
-7. Resolve script folder from `-I` (e.g. `1` -> `scripts/01-*/`)
-8. Verify `run.ps1` exists in the target folder
+7. Resolve script folder from `-I` via registry lookup (see below)
+8. Verify `run.ps1` exists in the resolved folder
 9. Clean and recreate the target script's `logs/` folder
 10. `Invoke-GitPull` from the repo root
 11. Set `$env:SCRIPTS_ROOT_RUN = "1"` so child scripts skip their own git pull
 12. Delegate to the child script, passing through any extra flags (`-Merge`)
 13. Clean up `$env:SCRIPTS_ROOT_RUN`
 
+## Script Resolution
+
+The dispatcher resolves `-I <number>` to a script folder using a two-tier strategy:
+
+### Primary: Registry lookup (`scripts/registry.json`)
+
+A flat JSON file maps zero-padded IDs to exact folder names:
+
+```json
+{
+  "scripts": {
+    "01": "01-install-vscode",
+    "04": "04-install-pnpm",
+    "11": "11-install-all-dev-tools"
+  }
+}
+```
+
+The dispatcher reads the registry, looks up the formatted prefix (e.g. `04`),
+and joins `scripts/<folder>` to get the exact path. This avoids glob ambiguity
+when stale or renamed folders share the same prefix.
+
+### Fallback: Glob matching
+
+If `registry.json` is missing, the dispatcher falls back to globbing
+`scripts/<NN>-*` and filtering to directories that contain a `run.ps1`.
+Only the first match is used.
+
+### Resolution errors
+
+| Condition | Behaviour |
+|-----------|-----------|
+| Registry entry exists but folder is missing on disk | `[ FAIL ]` with "No script folder found for ID NN" |
+| Registry missing + no glob match | `[ FAIL ]` with "No script folder found for ID NN" |
+| Folder found but no `run.ps1` inside | `[ FAIL ]` with "run.ps1 not found in <folder>" |
+
 ## Help Output
 
 The help display shows:
 - Project title and usage syntax
-- All available scripts with ID, name, and description of what each folder does
-- Script 04 specific options (interactive menu, -All, -Skip, -Only)
+- All available scripts with ID, name, and description (grouped: Core Tools, Optional, Orchestrator)
+- Script 11 specific options (interactive menu, -All, -Skip, -Only)
 - How to get per-script help
 
 ## Environment Variables
@@ -91,7 +127,10 @@ runtime cache without needing to manually delete folders.
 
 | Decision | Rationale |
 |----------|-----------|
+| Registry-based resolution | Exact folder names avoid glob collisions with stale/renamed folders |
+| Glob fallback | Backwards-compatible for repos that haven't added `registry.json` yet |
 | No params = git pull + help | User discovers available scripts on first run |
+| Clear `$env:SCRIPTS_ROOT_RUN` on no-param run | Prevents stale env var from a previous session causing git pull to skip |
 | `-I` is optional (not `Mandatory`) | Allows `-CleanOnly` and default help to work without a script number |
 | Usage help on missing `-I` | Better UX than a raw PowerShell parameter error |
 | Clean before git pull | Ensures fresh detection even if git pull brings new config |
