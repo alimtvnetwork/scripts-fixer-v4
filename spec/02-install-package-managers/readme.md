@@ -10,7 +10,7 @@ package managers on Windows. These are prerequisites for scripts 04-07.
 ## File Structure
 
 ```
-scripts/03-install-package-managers/
+scripts/02-install-package-managers/
 ├── config.json              # Enable/disable each manager, install URLs
 ├── log-messages.json        # Display strings and banners
 ├── run.ps1                  # Thin orchestrator with subcommand routing

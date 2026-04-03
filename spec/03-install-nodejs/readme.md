@@ -17,7 +17,7 @@ to reside inside the shared dev directory, keeping global packages organised.
 ## File Structure
 
 ```
-scripts/06-install-nodejs/
+scripts/03-install-nodejs/
   config.json
   log-messages.json
   run.ps1

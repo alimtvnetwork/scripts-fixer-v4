@@ -10,7 +10,7 @@ Adapted from the user's existing `go-install.ps1` to follow project conventions.
 ## File Structure
 
 ```
-scripts/05-install-golang/
+scripts/06-install-golang/
 +-- config.json              # Go settings, GOPATH config, go env settings
 +-- go-config.sample.json    # Original reference config from user
 +-- log-messages.json        # Display strings and banners
