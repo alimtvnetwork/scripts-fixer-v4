@@ -1,0 +1,33 @@
+{
+  "enabled": true,
+  "chocoPackageName": "git",
+  "alwaysUpgradeToLatest": true,
+  "gitConfig": {
+    "userName": {
+      "mode": "json-or-prompt",
+      "value": "",
+      "promptOnFirstRun": true
+    },
+    "userEmail": {
+      "mode": "json-or-prompt",
+      "value": "",
+      "promptOnFirstRun": true
+    },
+    "defaultBranch": {
+      "enabled": false,
+      "value": "main"
+    },
+    "credentialManager": {
+      "enabled": true,
+      "helper": "manager"
+    },
+    "lineEndings": {
+      "enabled": true,
+      "autocrlf": "true"
+    }
+  },
+  "path": {
+    "updateUserPath": true,
+    "ensureGitInPath": true
+  }
+}
