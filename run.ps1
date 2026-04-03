@@ -65,6 +65,8 @@ function Show-RootHelp {
     Write-Host "  Usage:" -ForegroundColor Yellow
     Write-Host "    .\run.ps1                           Show this help (after git pull)"
     Write-Host "    .\run.ps1 -d                         Shortcut for -I 12 (interactive menu)"
+    Write-Host "    .\run.ps1 -a                         Shortcut for -I 13 (audit mode)"
+    Write-Host "    .\run.ps1 -v                         Shortcut for -I 1  (install VS Code)"
     Write-Host "    .\run.ps1 -I <number>               Run a specific script"
     Write-Host "    .\run.ps1 -I <number> -Merge        Run with merge flag (script 02)"
     Write-Host "    .\run.ps1 -I <number> -Clean        Wipe cache, then run"
