@@ -1,0 +1,34 @@
+{
+  "banner": [
+    "----------------------------------------------------------------",
+    "  Install Golang -- Install, configure GOPATH and go env",
+    "----------------------------------------------------------------"
+  ],
+  "footer": [
+    "----------------------------------------------------------------",
+    "  Done! Open a new terminal to pick up PATH changes.",
+    "----------------------------------------------------------------"
+  ],
+  "status": {
+    "ok":   "[  OK  ]",
+    "fail": "[ FAIL ]",
+    "info": "[ INFO ]",
+    "warn": "[ WARN ]",
+    "skip": "[ SKIP ]"
+  },
+  "steps": {
+    "checkGo": "Checking Go installation...",
+    "installGo": "Installing Go via Chocolatey...",
+    "upgradeGo": "Upgrading Go to latest via Chocolatey...",
+    "resolveGopath": "Resolving GOPATH directory...",
+    "setGopath": "Setting GOPATH environment variable...",
+    "updatePath": "Updating user PATH...",
+    "configureEnv": "Configuring go env settings...",
+    "verify": "Verifying Go installation...",
+    "done": "Go installation and configuration completed."
+  },
+  "errors": {
+    "notAdmin": "This script must be run as Administrator.",
+    "disabled": "Go installation is disabled in config."
+  }
+}
