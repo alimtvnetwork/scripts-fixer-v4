@@ -1,6 +1,11 @@
 <#
 .SYNOPSIS
     Registry and VS Code resolution helpers for the context-menu-fix script.
+
+.NOTES
+    Uses reg.exe for all registry writes to avoid PowerShell provider issues
+    with wildcard characters (HKCR:\*) and -LiteralPath incompatibility
+    on Windows PowerShell 5.1.
 #>
 
 function Assert-Admin {
@@ -50,6 +55,46 @@ function Resolve-VsCodePath {
     return $null
 }
 
+function Save-ResolvedPath {
+    param(
+        [string]$ConfigPath,
+        [string]$EditionName,
+        [string]$ResolvedExe
+    )
+
+    Write-Log "Persisting resolved path to config.json..." "info"
+    try {
+        $raw    = Get-Content $ConfigPath -Raw
+        $config = $raw | ConvertFrom-Json
+
+        # Add or update the "resolved" key under the edition's vscodePath
+        $config.editions.$EditionName.vscodePath | Add-Member -NotePropertyName "resolved" -NotePropertyValue $ResolvedExe -Force
+
+        $json = $config | ConvertTo-Json -Depth 10
+        [System.IO.File]::WriteAllText($ConfigPath, $json)
+        Write-Log "Saved resolved path: $ResolvedExe" "ok"
+    } catch {
+        Write-Log "Failed to persist path: $_" "warn"
+    }
+}
+
+# ── Registry helpers using reg.exe ───────────────────────────────────
+
+function ConvertTo-RegPath {
+    <#
+    .SYNOPSIS
+        Converts a PowerShell Registry:: path to a native reg.exe path.
+        e.g. Registry::HKEY_CLASSES_ROOT\*\shell\VSCode -> HKCR\*\shell\VSCode
+    #>
+    param([string]$PsPath)
+
+    $p = $PsPath -replace '^Registry::', ''
+    $p = $p -replace '^HKEY_CLASSES_ROOT', 'HKCR'
+    $p = $p -replace '^HKEY_CURRENT_USER', 'HKCU'
+    $p = $p -replace '^HKEY_LOCAL_MACHINE', 'HKLM'
+    return $p
+}
+
 function Register-ContextMenu {
     param(
         [string]$StepLabel,
@@ -65,27 +110,27 @@ function Register-ContextMenu {
     Write-Log "  Icon          : $IconValue"
     Write-Log "  Command       : $CommandArg"
 
-    try {
-        Write-Log "  Creating registry key..." "info"
-        New-Item -LiteralPath $RegistryPath -Force -Confirm:$false -ErrorAction Stop | Out-Null
-        Write-Log "  Key created" "ok"
+    $regPath = ConvertTo-RegPath $RegistryPath
 
+    try {
+        # Set (Default) value = label
         Write-Log "  Setting (Default) = $Label" "info"
-        Set-Item -LiteralPath $RegistryPath -Value $Label -Force -Confirm:$false -ErrorAction Stop
+        $out = reg.exe add $regPath /ve /d $Label /f 2>&1
+        if ($LASTEXITCODE -ne 0) { throw "reg add (Default) failed: $out" }
         Write-Log "  (Default) set" "ok"
 
+        # Set Icon
         Write-Log "  Setting Icon = $IconValue" "info"
-        Set-ItemProperty -LiteralPath $RegistryPath -Name "Icon" -Value $IconValue -Force -Confirm:$false -ErrorAction Stop
+        $out = reg.exe add $regPath /v "Icon" /d $IconValue /f 2>&1
+        if ($LASTEXITCODE -ne 0) { throw "reg add Icon failed: $out" }
         Write-Log "  Icon set" "ok"
 
-        $cmdPath = "$RegistryPath\command"
-        Write-Log "  Creating command subkey: $cmdPath" "info"
-        New-Item -LiteralPath $cmdPath -Force -Confirm:$false -ErrorAction Stop | Out-Null
-        Write-Log "  Command subkey created" "ok"
-
-        Write-Log "  Setting command (Default) = $CommandArg" "info"
-        Set-Item -LiteralPath $cmdPath -Value $CommandArg -Force -Confirm:$false -ErrorAction Stop
-        Write-Log "  Command value set" "ok"
+        # Create command subkey with (Default) = command
+        $cmdRegPath = "$regPath\command"
+        Write-Log "  Setting command = $CommandArg" "info"
+        $out = reg.exe add $cmdRegPath /ve /d $CommandArg /f 2>&1
+        if ($LASTEXITCODE -ne 0) { throw "reg add command failed: $out" }
+        Write-Log "  Command set" "ok"
 
         return $true
     } catch {
@@ -101,12 +146,15 @@ function Test-RegistryEntry {
         [string]$Label
     )
 
-    Write-Log "  Verifying: $RegistryPath"
-    if (Test-Path -LiteralPath $RegistryPath) {
-        Write-Log "  [pass] $Label -- $RegistryPath" "ok"
+    $regPath = ConvertTo-RegPath $RegistryPath
+    Write-Log "  Verifying: $regPath"
+
+    $out = reg.exe query $regPath 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        Write-Log "  [pass] $Label -- $regPath" "ok"
         return $true
     } else {
-        Write-Log "  [miss] $Label -- $RegistryPath" "fail"
+        Write-Log "  [miss] $Label -- $regPath" "fail"
         return $false
     }
 }
@@ -116,7 +164,8 @@ function Invoke-Edition {
         [PSCustomObject]$Edition,
         [string]$EditionName,
         [string]$InstallType,
-        [hashtable]$Steps
+        [hashtable]$Steps,
+        [string]$ConfigPath
     )
 
     Write-Host ""
@@ -133,6 +182,11 @@ function Invoke-Edition {
         return $false
     }
     Write-Log "Using executable: $VsCodeExe" "ok"
+
+    # Persist resolved path back to config.json
+    if ($ConfigPath) {
+        Save-ResolvedPath -ConfigPath $ConfigPath -EditionName $EditionName -ResolvedExe $VsCodeExe
+    }
 
     $Label   = $Edition.contextMenuLabel
     $IconVal = "`"$VsCodeExe`""
