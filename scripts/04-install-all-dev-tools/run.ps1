@@ -62,7 +62,7 @@ Write-Log ($logMessages.messages.devDirResolved -replace '\{path\}', $devDir) -L
 
 # -- Build script list ---------------------------------------------------------
 $hasFilter = $Skip -or $Only
-if ($hasFilter -or $All) {
+if ($hasFilter -or $All -or $DryRun) {
     # Flag-based mode: skip interactive menu
     $scriptList = Resolve-ScriptList -Config $config -Skip $Skip -Only $Only
 } else {
