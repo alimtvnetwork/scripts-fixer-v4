@@ -56,7 +56,8 @@ function Show-ScriptHelp {
     Write-Host ""
     $headerLine = $slm.messages.helpHeader -replace '\{name\}', $Name -replace '\{version\}', $Version
     Write-Host $headerLine -ForegroundColor Cyan
-    Write-Host "  $Description" -ForegroundColor Gray
+    $descLine = $slm.messages.helpDescription -replace '\{description\}', $Description
+    Write-Host $descLine -ForegroundColor Gray
     Write-Host ""
 
     if ($Commands.Count -gt 0) {

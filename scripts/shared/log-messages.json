@@ -63,6 +63,7 @@
     "helpFlagsLabel": "  Flags:",
     "helpFlagItem": "    {label}{description}",
     "helpExamplesLabel": "  Examples:",
-    "helpExampleItem": "    {example}"
+    "helpExampleItem": "    {example}",
+    "helpDescription": "  {description}"
   }
 }
