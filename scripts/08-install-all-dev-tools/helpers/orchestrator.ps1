@@ -45,7 +45,7 @@ function Invoke-ScriptSequence {
     param(
         [array]$ScriptList,
         [string]$ScriptsRoot,
-        [hashtable]$LogMessages,
+        $LogMessages,
         [string]$Skip
     )
 
