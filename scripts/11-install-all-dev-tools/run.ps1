@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------
-#  Script 04 -- Install All Dev Tools
-#  Orchestrator: resolves dev directory, then runs scripts 01-03, 05-10.
-#  Supports interactive menu, -All, -Skip, and -Only filters.
+#  Script 11 -- Install All Dev Tools
+#  Orchestrator: resolves dev directory, then runs scripts 01-10.
+#  Supports interactive grouped menu, -All, -Skip, and -Only filters.
 # --------------------------------------------------------------------------
 param(
     [string]$Skip,
@@ -66,9 +66,10 @@ if ($hasFilter -or $All -or $DryRun) {
     # Flag-based mode: skip interactive menu
     $scriptList = Resolve-ScriptList -Config $config -Skip $Skip -Only $Only
 } else {
-    # Interactive menu mode
+    # Interactive menu mode with groups
     $scriptList = Resolve-ScriptList -Config $config -Skip "" -Only ""
-    $scriptList = Show-InteractiveMenu -ScriptList $scriptList -LogMessages $logMessages
+    $groups = if ($config.groups) { $config.groups } else { $null }
+    $scriptList = Show-InteractiveMenu -ScriptList $scriptList -LogMessages $logMessages -Groups $groups
     $hasNoSelection = -not $scriptList -or $scriptList.Count -eq 0
     if ($hasNoSelection) {
         Write-Log $logMessages.messages.menuNoneSelected -Level "warn"
