@@ -3,7 +3,7 @@
   "version": "1.1.0",
   "description": "Installs Node.js (LTS) via Chocolatey and configures npm global prefix.",
   "messages": {
-    "startingNodeInstall": "Starting Node.js installation...",
+    
     "nodeAlreadyInstalled": "Node.js is already installed: {version}",
     "nodeInstallSuccess": "Node.js installed successfully: {version}",
     "nodeUpgradeSuccess": "Node.js upgraded successfully: {version}",

@@ -4,11 +4,7 @@
   "description": "Imports settings, keybindings, and extensions for VS Code Stable and Insiders.",
   "messages": {
     "done": "All settings and extensions applied successfully!",
-    "settingsNotFound": "settings.json not found in script directory.",
-    "extensionsNotFound": "extensions.json not found in script directory.",
-    "cliNotFound": "CLI command not found in PATH -- skipping this edition.",
     "scriptDisabled": "VS Code settings sync is disabled in config.",
-    "notAdmin": "This script must be run as Administrator.",
     "noSettingsSource": "No settings source found -- cannot continue",
     "enabledEditions": "Enabled editions: {editions}",
     "extensionCount": "Extensions to install: {count}",

@@ -31,20 +31,6 @@
       "-Skip 06,08": "Skip specific scripts by number",
       "-Only 03,05": "Run only specific scripts"
     },
-    "details": {
-      "title": "Available Scripts",
-      "scripts": [
-        { "id": "01", "name": "VSCode Context Menu", "desc": "Add/repair VSCode right-click context menu entries" },
-        { "id": "02", "name": "VSCode Settings Sync", "desc": "Sync VSCode settings, keybindings, and extensions" },
-        { "id": "03", "name": "Package Managers", "desc": "Install Chocolatey and Winget" },
-        { "id": "05", "name": "Go", "desc": "Install Go, configure GOPATH and go env" },
-        { "id": "06", "name": "Node.js", "desc": "Install Node.js LTS, configure npm prefix" },
-        { "id": "07", "name": "Python", "desc": "Install Python, configure pip user site" },
-        { "id": "08", "name": "pnpm", "desc": "Install pnpm, configure global store" },
-        { "id": "09", "name": "Git + LFS + gh", "desc": "Install Git, Git LFS, GitHub CLI, configure global settings" },
-        { "id": "10", "name": "GitHub Desktop", "desc": "Install GitHub Desktop" }
-      ]
-    },
     "examples": [
       ".\\run.ps1",
       ".\\run.ps1 -All",

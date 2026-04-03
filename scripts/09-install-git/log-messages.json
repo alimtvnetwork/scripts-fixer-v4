@@ -35,7 +35,7 @@
     "ghUpgradeSuccess": "GitHub CLI upgraded successfully: {version}",
     "ghNotFound": "GitHub CLI not found, installing via Chocolatey...",
     "ghUpgrading": "Upgrading GitHub CLI to latest...",
-    "ghLoginPrompt": "Run 'gh auth login' to authenticate with GitHub.",
+    
     "ghAlreadyAuthenticated": "GitHub CLI is already authenticated as: {user}",
     "ghLoginStart": "Starting GitHub CLI authentication...",
     "addingToPath": "Adding Git to PATH: {path}",
