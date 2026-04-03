@@ -272,14 +272,17 @@ function Invoke-ScriptSequence {
 
 function Show-Summary {
     param(
-        [array]$Results,
+        $Results,
         $LogMessages
     )
+
+    # Ensure single hashtable result is wrapped in an array
+    $list = if ($Results -is [hashtable]) { ,@($Results) } else { @($Results) }
 
     Write-Host ""
     Write-Log $LogMessages.messages.summaryHeader -Level "info"
 
-    foreach ($r in @($Results)) {
+    foreach ($r in $list) {
         $badge = switch ($r.Status) {
             "success"  { "OK" }
             "failed"   { "FAIL" }
