@@ -1,9 +1,8 @@
 {
   "scriptName": "Install Node.js",
-  "version": "1.1.0",
-  "description": "Installs Node.js (LTS) via Chocolatey and configures npm global prefix.",
+  "version": "2.0.0",
+  "description": "Installs Node.js (LTS) via Chocolatey, configures npm, and installs Yarn, Bun, and npx.",
   "messages": {
-    
     "nodeAlreadyInstalled": "Node.js is already installed: {version}",
     "nodeInstallSuccess": "Node.js installed successfully: {version}",
     "nodeUpgradeSuccess": "Node.js upgraded successfully: {version}",
@@ -17,18 +16,30 @@
     "savingResolved": "Saving resolved state...",
     "notAdmin": "This script requires administrator privileges.",
     "unknownCommand": "Unknown command: {command}. Use -Help for usage.",
-    "nodeSetupComplete": "Node.js setup complete."
+    "nodeSetupComplete": "Node.js setup complete.",
+    "yarnInstalling": "Installing Yarn globally via npm...",
+    "yarnAlreadyInstalled": "Yarn is already installed: {version}",
+    "yarnInstallSuccess": "Yarn installed successfully: {version}",
+    "yarnInstallFailed": "Failed to install Yarn: {error}",
+    "bunInstalling": "Installing Bun via Chocolatey...",
+    "bunAlreadyInstalled": "Bun is already installed: {version}",
+    "bunInstallSuccess": "Bun installed successfully: {version}",
+    "npxVerifying": "Verifying npx is available...",
+    "npxAvailable": "npx is available: {version}",
+    "npxMissing": "npx not found -- it should ship with npm. Check your Node.js installation."
   },
   "help": {
     "commands": {
-      "all": "Install Node.js and configure npm (default)",
+      "all": "Install Node.js, configure npm, install extras (default)",
       "install": "Install/upgrade Node.js only",
-      "configure": "Configure npm prefix and PATH only"
+      "configure": "Configure npm prefix and PATH only",
+      "extras": "Install Yarn, Bun, and verify npx only"
     },
     "examples": [
       ".\\run.ps1",
       ".\\run.ps1 install",
       ".\\run.ps1 configure",
+      ".\\run.ps1 extras",
       ".\\run.ps1 -Help"
     ]
   }

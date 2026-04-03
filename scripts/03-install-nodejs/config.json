@@ -10,5 +10,18 @@
   "path": {
     "updateUserPath": true,
     "ensureNpmBinInPath": true
+  },
+  "extras": {
+    "yarn": {
+      "enabled": true,
+      "installMethod": "npm"
+    },
+    "bun": {
+      "enabled": true,
+      "chocoPackageName": "bun"
+    },
+    "npx": {
+      "verify": true
+    }
   }
 }
