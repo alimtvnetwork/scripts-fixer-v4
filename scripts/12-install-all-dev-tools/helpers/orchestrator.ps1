@@ -191,7 +191,7 @@ function Show-InteractiveMenu {
         }
     }
 
-    return $result
+    return ,$result
 }
 
 function Show-DryRun {
