@@ -78,7 +78,7 @@ switch ($Command.ToLower()) {
         Update-NodePath -Config $config -LogMessages $logMessages -PrefixPath $prefixPath
     }
     default {
-        Write-Log "Unknown command: $Command. Use -Help for usage." -Level "error"
+        Write-Log ($logMessages.messages.unknownCommand -replace '\{command\}', $Command) -Level "error"
         return
     }
 }
@@ -96,4 +96,4 @@ Save-ResolvedData -ScriptFolder "06-install-nodejs" -Data @{
     timestamp   = (Get-Date -Format "o")
 }
 
-Write-Log "Node.js setup complete." -Level "success"
+Write-Log $logMessages.messages.nodeSetupComplete -Level "success"

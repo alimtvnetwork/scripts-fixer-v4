@@ -1,6 +1,6 @@
 {
   "scriptName": "Install Python",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Installs Python via Chocolatey and configures pip user site.",
   "messages": {
     "startingPythonInstall": "Starting Python installation...",
@@ -15,7 +15,9 @@
     "scriptDisabled": "Python installation is disabled in config.",
     "pythonNotFound": "Python not found, installing via Chocolatey...",
     "savingResolved": "Saving resolved state...",
-    "notAdmin": "This script requires administrator privileges."
+    "notAdmin": "This script requires administrator privileges.",
+    "unknownCommand": "Unknown command: {command}. Use -Help for usage.",
+    "pythonSetupComplete": "Python setup complete."
   },
   "help": {
     "commands": {

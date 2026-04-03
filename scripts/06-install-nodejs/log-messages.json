@@ -1,6 +1,6 @@
 {
   "scriptName": "Install Node.js",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Installs Node.js (LTS) via Chocolatey and configures npm global prefix.",
   "messages": {
     "startingNodeInstall": "Starting Node.js installation...",
@@ -15,7 +15,9 @@
     "scriptDisabled": "Node.js installation is disabled in config.",
     "nodeNotFound": "Node.js not found, installing via Chocolatey...",
     "savingResolved": "Saving resolved state...",
-    "notAdmin": "This script requires administrator privileges."
+    "notAdmin": "This script requires administrator privileges.",
+    "unknownCommand": "Unknown command: {command}. Use -Help for usage.",
+    "nodeSetupComplete": "Node.js setup complete."
   },
   "help": {
     "commands": {

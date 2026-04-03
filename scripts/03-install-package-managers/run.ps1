@@ -65,23 +65,23 @@ $isAllSuccessful = $true
 
 switch ($Command.ToLower()) {
     "choco" {
-        Write-Log "Command: choco -- Chocolatey only" -Level "info"
-        $ok = Install-Chocolatey -Config $config.chocolatey
+        Write-Log $logMessages.messages.commandChoco -Level "info"
+        $ok = Install-Chocolatey -Config $config.chocolatey -LogMessages $logMessages
         $hasFailed = -not $ok
         if ($hasFailed) { $isAllSuccessful = $false }
     }
     "winget" {
-        Write-Log "Command: winget -- Winget only" -Level "info"
-        $ok = Install-Winget -Config $config.winget
+        Write-Log $logMessages.messages.commandWinget -Level "info"
+        $ok = Install-Winget -Config $config.winget -LogMessages $logMessages
         $hasFailed = -not $ok
         if ($hasFailed) { $isAllSuccessful = $false }
     }
     default {
-        Write-Log "Command: all -- Installing both package managers" -Level "info"
-        $ok = Install-Chocolatey -Config $config.chocolatey
+        Write-Log $logMessages.messages.commandAll -Level "info"
+        $ok = Install-Chocolatey -Config $config.chocolatey -LogMessages $logMessages
         $hasFailed = -not $ok
         if ($hasFailed) { $isAllSuccessful = $false }
-        $ok = Install-Winget -Config $config.winget
+        $ok = Install-Winget -Config $config.winget -LogMessages $logMessages
         $hasFailed = -not $ok
         if ($hasFailed) { $isAllSuccessful = $false }
     }
@@ -91,7 +91,7 @@ switch ($Command.ToLower()) {
 if ($isAllSuccessful) {
     Write-Log $logMessages.messages.done -Level "success"
 } else {
-    Write-Log "Completed with some warnings -- check output above." -Level "warn"
+    Write-Log $logMessages.messages.completedWithWarnings -Level "warn"
 }
 
-Write-Log "Package managers setup complete." -Level "success"
+Write-Log $logMessages.messages.setupComplete -Level "success"

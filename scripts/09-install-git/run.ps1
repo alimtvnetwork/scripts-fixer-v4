@@ -78,7 +78,7 @@ switch ($Command.ToLower()) {
         Update-GitPath -Config $config -LogMessages $logMessages
     }
     default {
-        Write-Log "Unknown command: $Command. Use -Help for usage." -Level "error"
+        Write-Log ($logMessages.messages.unknownCommand -replace '\{command\}', $Command) -Level "error"
         return
     }
 }
@@ -112,4 +112,4 @@ Save-ResolvedData -ScriptFolder "09-install-git" -Data @{
     timestamp        = (Get-Date -Format "o")
 }
 
-Write-Log "Git, Git LFS, and GitHub CLI setup complete." -Level "success"
+Write-Log $logMessages.messages.gitSetupComplete -Level "success"

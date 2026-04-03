@@ -66,14 +66,14 @@ if ($isNotConfigureOnly) {
 }
 
 # -- Execute subcommand --------------------------------------------------------
-Write-Log "Command: $Command" -Level "info"
-$isSuccess = Invoke-GoSetup -Config $config -ScriptDir $scriptDir -Command $Command.ToLower()
+Write-Log ($logMessages.messages.commandInfo -replace '\{command\}', $Command) -Level "info"
+$isSuccess = Invoke-GoSetup -Config $config -ScriptDir $scriptDir -Command $Command.ToLower() -LogMessages $logMessages
 
 # -- Summary -------------------------------------------------------------------
 if ($isSuccess) {
     Write-Log $logMessages.messages.done -Level "success"
 } else {
-    Write-Log "Completed with some warnings -- check output above." -Level "warn"
+    Write-Log $logMessages.messages.completedWithWarnings -Level "warn"
 }
 
-Write-Log "Go setup complete." -Level "success"
+Write-Log $logMessages.messages.goSetupComplete -Level "success"

@@ -78,7 +78,7 @@ switch ($Command.ToLower()) {
         Update-PythonPath -Config $config -LogMessages $logMessages -SitePath $sitePath
     }
     default {
-        Write-Log "Unknown command: $Command. Use -Help for usage." -Level "error"
+        Write-Log ($logMessages.messages.unknownCommand -replace '\{command\}', $Command) -Level "error"
         return
     }
 }
@@ -95,4 +95,4 @@ Save-ResolvedData -ScriptFolder "07-install-python" -Data @{
     timestamp      = (Get-Date -Format "o")
 }
 
-Write-Log "Python setup complete." -Level "success"
+Write-Log $logMessages.messages.pythonSetupComplete -Level "success"

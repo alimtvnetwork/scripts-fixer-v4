@@ -1,6 +1,6 @@
 {
   "scriptName": "Install pnpm",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Installs pnpm globally via npm and configures the global store.",
   "messages": {
     "startingPnpmInstall": "Starting pnpm installation...",
@@ -17,7 +17,9 @@
     "pnpmUpgrading": "Upgrading pnpm to latest...",
     "pnpmNotFound": "pnpm not found, installing via npm...",
     "nodeRequired": "Node.js (npm) is required to install pnpm. Run script 06 first.",
-    "savingResolved": "Saving resolved state..."
+    "savingResolved": "Saving resolved state...",
+    "unknownCommand": "Unknown command: {command}. Use -Help for usage.",
+    "pnpmSetupComplete": "pnpm setup complete."
   },
   "help": {
     "commands": {

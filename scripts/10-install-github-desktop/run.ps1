@@ -66,4 +66,4 @@ Save-ResolvedData -ScriptFolder "10-install-github-desktop" -Data @{
     timestamp = (Get-Date -Format "o")
 }
 
-Write-Log "GitHub Desktop setup complete." -Level "success"
+Write-Log $logMessages.messages.ghDesktopSetupComplete -Level "success"

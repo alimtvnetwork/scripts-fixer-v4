@@ -13,17 +13,18 @@ function Install-Go {
         Installs or upgrades Go via Chocolatey.
     #>
     param(
-        [PSCustomObject]$Config
+        [PSCustomObject]$Config,
+        $LogMessages
     )
 
     $packageName = if ($Config.chocoPackageName) { $Config.chocoPackageName } else { "golang" }
-    Write-Log "Chocolatey package name: $packageName" -Level "info"
+    Write-Log ($LogMessages.messages.chocoPackageName -replace '\{name\}', $packageName) -Level "info"
 
     $goCmd = Get-Command go.exe -ErrorAction SilentlyContinue
 
     $isGoMissing = -not $goCmd
     if ($isGoMissing) {
-        Write-Log "Go is not installed -- installing via Chocolatey..." -Level "info"
+        Write-Log $LogMessages.messages.goNotInstalled -Level "info"
         $ok = Install-ChocoPackage -PackageName $packageName
         $hasFailed = -not $ok
         if ($hasFailed) { return $false }
@@ -33,18 +34,18 @@ function Install-Go {
         $goCmd = Get-Command go.exe -ErrorAction SilentlyContinue
         $isStillMissing = -not $goCmd
         if ($isStillMissing) {
-            Write-Log "Go installed but go.exe not found in PATH -- may need a new terminal" -Level "warn"
+            Write-Log $LogMessages.messages.goNotInPath -Level "warn"
             return $false
         }
     } else {
-        Write-Log "Go is already installed" -Level "success"
+        Write-Log $LogMessages.messages.goAlreadyInstalled -Level "success"
         if ($Config.alwaysUpgradeToLatest) {
             Upgrade-ChocoPackage -PackageName $packageName | Out-Null
         }
     }
 
     $version = & go.exe version 2>&1
-    Write-Log "Go version: $version" -Level "success"
+    Write-Log ($LogMessages.messages.goVersion -replace '\{version\}', $version) -Level "success"
     return $true
 }
 
@@ -56,21 +57,22 @@ function Resolve-Gopath {
     #>
     param(
         [PSCustomObject]$GopathConfig,
-        [string]$DevDirSubfolder
+        [string]$DevDirSubfolder,
+        $LogMessages
     )
 
     # If orchestrator set DEV_DIR, derive GOPATH from it
     $hasDevDir = -not [string]::IsNullOrWhiteSpace($env:DEV_DIR)
     if ($hasDevDir -and $DevDirSubfolder) {
         $derived = Join-Path $env:DEV_DIR $DevDirSubfolder
-        Write-Log "Using GOPATH derived from DEV_DIR: $derived" -Level "success"
+        Write-Log ($LogMessages.messages.gopathFromDevDir -replace '\{path\}', $derived) -Level "success"
         return $derived
     }
 
     $hasNoConfig = -not $GopathConfig
     if ($hasNoConfig) {
         $fallback = "E:\dev\go"
-        Write-Log "No gopath config -- using fallback: $fallback" -Level "warn"
+        Write-Log ($LogMessages.messages.gopathNoConfig -replace '\{path\}', $fallback) -Level "warn"
         return $fallback
     }
 
@@ -79,12 +81,12 @@ function Resolve-Gopath {
 
     $hasOverride = -not [string]::IsNullOrWhiteSpace($override)
     if ($hasOverride) {
-        Write-Log "Using GOPATH override from config: $override" -Level "info"
+        Write-Log ($LogMessages.messages.gopathOverride -replace '\{path\}', $override) -Level "info"
         return $override
     }
 
     if ($GopathConfig.mode -eq "json-only") {
-        Write-Log "GOPATH mode is 'json-only': $default" -Level "info"
+        Write-Log ($LogMessages.messages.gopathJsonOnly -replace '\{path\}', $default) -Level "info"
         return $default
     }
 
@@ -92,11 +94,11 @@ function Resolve-Gopath {
     $userInput = Read-Host -Prompt "Enter GOPATH (default: $default)"
     $hasUserInput = -not [string]::IsNullOrWhiteSpace($userInput)
     if ($hasUserInput) {
-        Write-Log "User provided GOPATH: $userInput" -Level "info"
+        Write-Log ($LogMessages.messages.gopathUserProvided -replace '\{path\}', $userInput) -Level "info"
         return $userInput
     }
 
-    Write-Log "Using default GOPATH: $default" -Level "info"
+    Write-Log ($LogMessages.messages.gopathDefault -replace '\{path\}', $default) -Level "info"
     return $default
 }
 
@@ -107,27 +109,28 @@ function Initialize-Gopath {
     #>
     param(
         [Parameter(Mandatory)]
-        [string]$GopathValue
+        [string]$GopathValue,
+        $LogMessages
     )
 
     $gopathFull = [System.IO.Path]::GetFullPath($GopathValue)
-    Write-Log "Resolved GOPATH to: $gopathFull" -Level "info"
+    Write-Log ($LogMessages.messages.gopathResolved -replace '\{path\}', $gopathFull) -Level "info"
 
     $isDirMissing = -not (Test-Path $gopathFull)
     if ($isDirMissing) {
-        Write-Log "Creating GOPATH directory: $gopathFull" -Level "info"
+        Write-Log ($LogMessages.messages.gopathCreating -replace '\{path\}', $gopathFull) -Level "info"
         New-Item -Path $gopathFull -ItemType Directory -Force -Confirm:$false | Out-Null
-        Write-Log "GOPATH directory created" -Level "success"
+        Write-Log $LogMessages.messages.gopathCreated -Level "success"
     }
 
     # Set user environment variable
     try {
-        Write-Log "Setting user env GOPATH=$gopathFull" -Level "info"
+        Write-Log ($LogMessages.messages.gopathSettingEnv -replace '\{path\}', $gopathFull) -Level "info"
         [Environment]::SetEnvironmentVariable("GOPATH", $gopathFull, "User")
         $env:GOPATH = $gopathFull
-        Write-Log "GOPATH set successfully" -Level "success"
+        Write-Log $LogMessages.messages.gopathSet -Level "success"
     } catch {
-        Write-Log "Failed to set GOPATH: $_" -Level "error"
+        Write-Log ($LogMessages.messages.gopathSetFailed -replace '\{error\}', $_) -Level "error"
         return $null
     }
 
@@ -141,12 +144,13 @@ function Update-GoPath {
     #>
     param(
         [PSCustomObject]$PathConfig,
-        [string]$GopathFull
+        [string]$GopathFull,
+        $LogMessages
     )
 
     $isPathUpdateDisabled = -not $PathConfig.updateUserPath
     if ($isPathUpdateDisabled) {
-        Write-Log "User PATH update is disabled in config" -Level "info"
+        Write-Log $LogMessages.messages.pathUpdateDisabled -Level "info"
         return $true
     }
 
@@ -154,7 +158,7 @@ function Update-GoPath {
 
     $isBinMissing = -not (Test-Path $goBin)
     if ($isBinMissing) {
-        Write-Log "Creating Go bin directory: $goBin" -Level "info"
+        Write-Log ($LogMessages.messages.goBinCreating -replace '\{path\}', $goBin) -Level "info"
         New-Item -Path $goBin -ItemType Directory -Force -Confirm:$false | Out-Null
     }
 
@@ -175,22 +179,24 @@ function Set-GoEnvSetting {
         [string]$Key,
 
         [Parameter(Mandatory)]
-        [string]$Value
+        [string]$Value,
+
+        $LogMessages
     )
 
-    Write-Log "Running: go env -w $Key=$Value" -Level "info"
+    Write-Log ($LogMessages.messages.goEnvRunning -replace '\{key\}', $Key -replace '\{value\}', $Value) -Level "info"
     try {
         & go.exe env -w "$Key=$Value" 2>&1 | ForEach-Object {
             if ($_ -and $_.ToString().Trim().Length -gt 0) { Write-Log $_ -Level "info" }
         }
         if ($LASTEXITCODE -ne 0) {
-            Write-Log "go env -w failed for $Key (exit code $LASTEXITCODE)" -Level "warn"
+            Write-Log ($LogMessages.messages.goEnvFailed -replace '\{key\}', $Key -replace '\{code\}', $LASTEXITCODE) -Level "warn"
             return $false
         }
-        Write-Log "go env $Key set" -Level "success"
+        Write-Log ($LogMessages.messages.goEnvSet -replace '\{key\}', $Key) -Level "success"
         return $true
     } catch {
-        Write-Log "Failed to set go env $Key -- $_" -Level "error"
+        Write-Log ($LogMessages.messages.goEnvSetFailed -replace '\{key\}', $Key -replace '\{error\}', $_) -Level "error"
         return $false
     }
 }
@@ -202,12 +208,13 @@ function Configure-GoEnv {
     #>
     param(
         [PSCustomObject]$GoEnvConfig,
-        [string]$GopathFull
+        [string]$GopathFull,
+        $LogMessages
     )
 
     $hasNoConfig = -not $GoEnvConfig -or -not $GoEnvConfig.settings
     if ($hasNoConfig) {
-        Write-Log "No goEnv settings in config -- skipping" -Level "info"
+        Write-Log $LogMessages.messages.goEnvNoConfig -Level "info"
         return $true
     }
 
@@ -220,7 +227,7 @@ function Configure-GoEnv {
 
         $isEntryDisabled = -not $entry.enabled
         if ($isEntryDisabled) {
-            Write-Log "go env $key is disabled -- skipping" -Level "info"
+            Write-Log ($LogMessages.messages.goEnvDisabled -replace '\{key\}', $key) -Level "info"
             continue
         }
 
@@ -232,14 +239,14 @@ function Configure-GoEnv {
             $rel = $entry.relativePath
             $isRelEmpty = [string]::IsNullOrWhiteSpace($rel)
             if ($isRelEmpty) {
-                Write-Log "go env $key has empty relativePath -- skipping" -Level "warn"
+                Write-Log ($LogMessages.messages.goEnvEmptyRelPath -replace '\{key\}', $key) -Level "warn"
                 continue
             }
 
             $absolutePath = Join-Path $GopathFull $rel
             $isDirMissing = -not (Test-Path $absolutePath)
             if ($isDirMissing) {
-                Write-Log "Creating directory for $key -- $absolutePath" -Level "info"
+                Write-Log ($LogMessages.messages.goEnvCreatingDir -replace '\{key\}', $key -replace '\{path\}', $absolutePath) -Level "info"
                 New-Item -Path $absolutePath -ItemType Directory -Force -Confirm:$false | Out-Null
             }
             $finalValue = $absolutePath
@@ -253,17 +260,17 @@ function Configure-GoEnv {
             $hasUserInput = -not [string]::IsNullOrWhiteSpace($userInput)
             if ($hasUserInput) {
                 $finalValue = $userInput
-                Write-Log "User provided value for $key -- $finalValue" -Level "info"
+                Write-Log ($LogMessages.messages.goEnvUserProvided -replace '\{key\}', $key -replace '\{value\}', $finalValue) -Level "info"
             }
         }
 
         $hasValue = -not [string]::IsNullOrWhiteSpace($finalValue)
         if ($hasValue) {
-            $ok = Set-GoEnvSetting -Key $key -Value $finalValue
+            $ok = Set-GoEnvSetting -Key $key -Value $finalValue -LogMessages $LogMessages
             $hasFailed = -not $ok
             if ($hasFailed) { $isAllOk = $false }
         } else {
-            Write-Log "No value resolved for go env $key -- skipping" -Level "warn"
+            Write-Log ($LogMessages.messages.goEnvNoValue -replace '\{key\}', $key) -Level "warn"
         }
     }
 
@@ -278,7 +285,8 @@ function Invoke-GoSetup {
     param(
         [PSCustomObject]$Config,
         [string]$ScriptDir,
-        [string]$Command
+        [string]$Command,
+        $LogMessages
     )
 
     $isAllOk = $true
@@ -286,10 +294,10 @@ function Invoke-GoSetup {
     # Install/upgrade
     $isNotConfigureOnly = $Command -ne "configure"
     if ($isNotConfigureOnly) {
-        $ok = Install-Go -Config $Config
+        $ok = Install-Go -Config $Config -LogMessages $LogMessages
         $hasFailed = -not $ok
         if ($hasFailed) {
-            Write-Log "Go install failed -- cannot continue" -Level "error"
+            Write-Log $LogMessages.messages.goInstallFailed -Level "error"
             return $false
         }
     }
@@ -298,22 +306,22 @@ function Invoke-GoSetup {
     $isNotInstallOnly = $Command -ne "install"
     if ($isNotInstallOnly) {
         # Resolve GOPATH
-        $gopathValue = Resolve-Gopath -GopathConfig $Config.gopath -DevDirSubfolder $Config.devDirSubfolder
-        $gopathFull = Initialize-Gopath -GopathValue $gopathValue
+        $gopathValue = Resolve-Gopath -GopathConfig $Config.gopath -DevDirSubfolder $Config.devDirSubfolder -LogMessages $LogMessages
+        $gopathFull = Initialize-Gopath -GopathValue $gopathValue -LogMessages $LogMessages
 
         $isGopathFailed = -not $gopathFull
         if ($isGopathFailed) {
-            Write-Log "Failed to initialize GOPATH" -Level "error"
+            Write-Log $LogMessages.messages.gopathInitFailed -Level "error"
             return $false
         }
 
         # Update PATH
-        $ok = Update-GoPath -PathConfig $Config.path -GopathFull $gopathFull
+        $ok = Update-GoPath -PathConfig $Config.path -GopathFull $gopathFull -LogMessages $LogMessages
         $hasFailed = -not $ok
         if ($hasFailed) { $isAllOk = $false }
 
         # Configure go env
-        $ok = Configure-GoEnv -GoEnvConfig $Config.goEnv -GopathFull $gopathFull
+        $ok = Configure-GoEnv -GoEnvConfig $Config.goEnv -GopathFull $gopathFull -LogMessages $LogMessages
         $hasFailed = -not $ok
         if ($hasFailed) { $isAllOk = $false }
 

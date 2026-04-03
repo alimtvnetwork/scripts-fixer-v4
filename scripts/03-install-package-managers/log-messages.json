@@ -1,11 +1,33 @@
 {
   "scriptName": "Install Package Managers",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Installs and updates Chocolatey and Winget package managers.",
   "messages": {
     "done": "All package managers are installed and ready.",
     "notAdmin": "This script must be run as Administrator.",
-    "scriptDisabled": "Package managers installation is disabled in config."
+    "scriptDisabled": "Package managers installation is disabled in config.",
+    "completedWithWarnings": "Completed with some warnings -- check output above.",
+    "setupComplete": "Package managers setup complete.",
+    "commandChoco": "Command: choco -- Chocolatey only",
+    "commandWinget": "Command: winget -- Winget only",
+    "commandAll": "Command: all -- Installing both package managers",
+    "chocoDisabled": "Chocolatey is disabled in config -- skipping",
+    "chocoUpgrading": "Upgrading Chocolatey itself to latest...",
+    "chocoUpgradeIssues": "Chocolatey self-upgrade had issues: {output}",
+    "chocoUpToDate": "Chocolatey is up to date",
+    "chocoUpgradeFailed": "Failed to upgrade Chocolatey: {error}",
+    "wingetDisabled": "Winget is disabled in config -- skipping",
+    "wingetChecking": "Checking for Winget...",
+    "wingetFound": "Winget found: {version}",
+    "wingetNotFoundSkip": "Winget not found and installIfMissing is false -- skipping",
+    "wingetNotFound": "Winget not found -- attempting install...",
+    "wingetDownloading": "Downloading App Installer from: {url}",
+    "wingetInstalling": "Installing App Installer package...",
+    "wingetInstallSuccess": "Winget installed successfully: {version}",
+    "wingetNotInPath": "Winget install completed but winget.exe not found in PATH",
+    "wingetManualStore": "Try installing manually from the Microsoft Store",
+    "wingetInstallFailed": "Failed to install Winget: {error}",
+    "wingetManualHint": "Install manually: Microsoft Store -> 'App Installer'"
   },
   "help": {
     "commands": {

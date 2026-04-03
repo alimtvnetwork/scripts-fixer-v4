@@ -1,6 +1,6 @@
 {
   "scriptName": "Install Git, Git LFS, and GitHub CLI",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Installs Git, Git LFS, and GitHub CLI via Chocolatey and configures global settings.",
   "messages": {
     "startingGitInstall": "Starting Git installation...",
@@ -42,7 +42,9 @@
     "pathAlreadyContains": "PATH already contains: {path}",
     "scriptDisabled": "Git installation is disabled in config.",
     "savingResolved": "Saving resolved state...",
-    "notAdmin": "This script requires administrator privileges."
+    "notAdmin": "This script requires administrator privileges.",
+    "unknownCommand": "Unknown command: {command}. Use -Help for usage.",
+    "gitSetupComplete": "Git, Git LFS, and GitHub CLI setup complete."
   },
   "help": {
     "commands": {

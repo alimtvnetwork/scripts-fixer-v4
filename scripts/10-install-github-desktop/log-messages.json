@@ -1,6 +1,6 @@
 {
   "scriptName": "Install GitHub Desktop",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Installs GitHub Desktop via Chocolatey.",
   "messages": {
     "ghDesktopAlreadyInstalled": "GitHub Desktop is already installed.",
@@ -10,7 +10,8 @@
     "ghDesktopUpgrading": "Upgrading GitHub Desktop to latest...",
     "scriptDisabled": "GitHub Desktop installation is disabled in config.",
     "savingResolved": "Saving resolved state...",
-    "notAdmin": "This script requires administrator privileges."
+    "notAdmin": "This script requires administrator privileges.",
+    "ghDesktopSetupComplete": "GitHub Desktop setup complete."
   },
   "help": {
     "commands": {
