@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------
 #  Script 08 -- Install All Dev Tools
-#  Orchestrator: resolves dev directory, then runs scripts 03-07 in sequence.
+#  Orchestrator: resolves dev directory, then runs scripts 03-10 in sequence.
 # --------------------------------------------------------------------------
 param(
     [string]$Skip,

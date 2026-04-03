@@ -36,16 +36,33 @@ function Save-ResolvedData {
     <#
     .SYNOPSIS
         Writes a hashtable as JSON to .resolved/<script-folder>/resolved.json.
+        Accepts either -ScriptDir (full path) or -ScriptFolder (folder name string).
     #>
     param(
-        [Parameter(Mandatory)]
         [string]$ScriptDir,
+        [string]$ScriptFolder,
 
         [Parameter(Mandatory)]
         [hashtable]$Data
     )
 
-    $resolvedDir  = Get-ResolvedDir -ScriptDir $ScriptDir
+    # Resolve the directory path
+    if ($ScriptFolder -and -not $ScriptDir) {
+        # Derive from ScriptFolder name: walk up to repo root from the calling script
+        $callerDir = if ($script:ScriptDir) { $script:ScriptDir }
+                     elseif ($scriptDir) { $scriptDir }
+                     else { Split-Path -Parent $MyInvocation.PSCommandPath }
+        $repoRoot    = Split-Path -Parent (Split-Path -Parent $callerDir)
+        $resolvedDir = Join-Path $repoRoot ".resolved" | Join-Path -ChildPath $ScriptFolder
+
+        if (-not (Test-Path $resolvedDir)) {
+            New-Item -Path $resolvedDir -ItemType Directory -Force -Confirm:$false | Out-Null
+        }
+    }
+    else {
+        $resolvedDir = Get-ResolvedDir -ScriptDir $ScriptDir
+    }
+
     $resolvedFile = Join-Path $resolvedDir "resolved.json"
 
     # Merge with existing data if present

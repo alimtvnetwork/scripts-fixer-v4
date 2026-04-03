@@ -3,7 +3,7 @@
 ## Purpose
 
 Orchestrator that resolves the dev directory once, sets `$env:DEV_DIR`,
-then runs scripts 03-07 in sequence. Supports `--skip` and `--only` filters.
+then runs scripts 03-10 in sequence. Supports `--skip` and `--only` filters.
 
 ## Usage
 

@@ -1,7 +1,7 @@
 {
   "scriptName": "Install All Dev Tools",
   "version": "1.0.0",
-  "description": "Orchestrator: sets up dev directory, then runs scripts 03-07 in sequence.",
+  "description": "Orchestrator: sets up dev directory, then runs scripts 03-10 in sequence.",
   "messages": {
     "resolvingDevDir": "Resolving dev directory...",
     "devDirResolved": "Dev directory: {path}",

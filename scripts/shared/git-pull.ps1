@@ -7,16 +7,25 @@
     Skips automatically if $env:SCRIPTS_ROOT_RUN is set (meaning the root
     dispatcher already performed the pull).
 
+    Can be called with -RepoRoot or without (auto-detects from caller location).
+
 .NOTES
     Author : Lovable AI
-    Version: 1.0.0
+    Version: 1.1.0
 #>
 
 function Invoke-GitPull {
     param(
-        [Parameter(Mandatory)]
         [string]$RepoRoot
     )
+
+    # Auto-detect repo root if not provided
+    if (-not $RepoRoot) {
+        $callerDir = if ($script:ScriptDir) { $script:ScriptDir }
+                     elseif ($scriptDir) { $scriptDir }
+                     else { Split-Path -Parent $MyInvocation.PSCommandPath }
+        $RepoRoot = Split-Path -Parent (Split-Path -Parent $callerDir)
+    }
 
     # Skip if the root dispatcher already ran git pull
     if ($env:SCRIPTS_ROOT_RUN -eq "1") {

@@ -15,10 +15,18 @@ function Resolve-DevDir {
         2. Config override value
         3. User prompt (if mode allows)
         4. Config default value
+
+        Accepts -DevDirConfig or -Config (alias).
     #>
     param(
-        [PSCustomObject]$DevDirConfig
+        [Parameter(Position = 0)]
+        [PSCustomObject]$DevDirConfig,
+
+        [PSCustomObject]$Config
     )
+
+    # Support -Config alias
+    if ($Config -and -not $DevDirConfig) { $DevDirConfig = $Config }
 
     # Check environment variable first (set by orchestrator)
     if (-not [string]::IsNullOrWhiteSpace($env:DEV_DIR)) {
@@ -58,13 +66,19 @@ function Initialize-DevDir {
     <#
     .SYNOPSIS
         Creates the dev directory and standard subdirectories if they don't exist.
+        Accepts -DevDir or -Path (alias).
     #>
     param(
-        [Parameter(Mandatory)]
+        [Parameter(Position = 0)]
         [string]$DevDir,
+
+        [string]$Path,
 
         [string[]]$Subdirectories = @()
     )
+
+    # Support -Path alias
+    if ($Path -and -not $DevDir) { $DevDir = $Path }
 
     Write-Log "Initializing dev directory: $DevDir" "info"
 

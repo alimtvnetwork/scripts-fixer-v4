@@ -4,29 +4,40 @@
 
 .DESCRIPTION
     Provides Show-ScriptHelp for consistent help output across all scripts.
+    Supports two calling conventions:
+      Old-style: Show-ScriptHelp -Name -Version -Description -Commands -Flags -Examples
+      New-style: Show-ScriptHelp -LogMessages $logMessages
 #>
 
 function Show-ScriptHelp {
-    <#
-    .SYNOPSIS
-        Displays formatted help text for a script.
-    #>
     param(
-        [Parameter(Mandatory)]
         [string]$Name,
-
-        [Parameter(Mandatory)]
         [string]$Version,
-
-        [Parameter(Mandatory)]
         [string]$Description,
-
         [hashtable[]]$Commands = @(),
-
         [string[]]$Examples = @(),
-
-        [hashtable[]]$Flags = @()
+        [hashtable[]]$Flags = @(),
+        [PSObject]$LogMessages
     )
+
+    # New-style: extract from LogMessages object
+    if ($LogMessages) {
+        if (-not $Name -and $LogMessages.scriptName)   { $Name = $LogMessages.scriptName }
+        if (-not $Version -and $LogMessages.version)    { $Version = $LogMessages.version }
+        if (-not $Description -and $LogMessages.description) { $Description = $LogMessages.description }
+
+        # Extract commands from log messages help block
+        if ($Commands.Count -eq 0 -and $LogMessages.help -and $LogMessages.help.commands) {
+            foreach ($prop in $LogMessages.help.commands.PSObject.Properties) {
+                $Commands += @{ Name = $prop.Name; Description = $prop.Value }
+            }
+        }
+
+        # Extract examples
+        if ($Examples.Count -eq 0 -and $LogMessages.help -and $LogMessages.help.examples) {
+            $Examples = @($LogMessages.help.examples)
+        }
+    }
 
     Write-Host ""
     Write-Host "  $Name -- v$Version" -ForegroundColor Cyan

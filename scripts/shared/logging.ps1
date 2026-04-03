@@ -5,12 +5,35 @@
 
 function Write-Log {
     param(
+        [Parameter(Position = 0)]
         [string]$Message,
-        [ValidateSet("ok","fail","info","warn","skip")]
-        [string]$Status = "info"
+
+        [Parameter(Position = 1)]
+        [string]$Status = "info",
+
+        [string]$Level
     )
 
+    # -Level alias: map new-style names to old-style names
+    if ($Level) {
+        $Status = switch ($Level.ToLower()) {
+            "success" { "ok" }
+            "error"   { "fail" }
+            default   { $Level }
+        }
+    }
+
+    # Validate
+    $validStatuses = @("ok", "fail", "info", "warn", "skip")
+    if ($Status -notin $validStatuses) { $Status = "info" }
+
     $badge  = $script:LogMessages.status.$Status
+    if (-not $badge) {
+        # Fallback badges when log-messages.json doesn't have a status block
+        $fallbackBadges = @{ ok = "[  OK  ]"; fail = "[ FAIL ]"; info = "[ INFO ]"; warn = "[ WARN ]"; skip = "[ SKIP ]" }
+        $badge = $fallbackBadges[$Status]
+    }
+
     $colors = @{
         ok   = "Green"
         fail = "Red"
@@ -24,7 +47,24 @@ function Write-Log {
 }
 
 function Write-Banner {
-    param([string[]]$Lines, [string]$Color = "Magenta")
+    param(
+        [Parameter(Position = 0)]
+        [string[]]$Lines,
+
+        [Parameter(Position = 1)]
+        [string]$Color = "Magenta",
+
+        [string]$Title,
+        [string]$Version
+    )
+
+    # New-style: -Title and -Version params
+    if ($Title) {
+        $header = if ($Version) { "$Title -- v$Version" } else { $Title }
+        $border = "-" * ([Math]::Max($header.Length + 6, 60))
+        $Lines = @($border, "  $header", $border)
+    }
+
     Write-Host ""
     foreach ($line in $Lines) { Write-Host $line -ForegroundColor $Color }
     Write-Host ""
@@ -54,9 +94,14 @@ function Initialize-Logging {
 
 function Import-JsonConfig {
     param(
+        [Parameter(Position = 0, Mandatory)]
         [string]$FilePath,
+
+        [Parameter(Position = 1)]
         [string]$Label
     )
+
+    if (-not $Label) { $Label = Split-Path -Leaf $FilePath }
 
     Write-Log "Loading $Label from: $FilePath"
     if (-not (Test-Path $FilePath)) {
