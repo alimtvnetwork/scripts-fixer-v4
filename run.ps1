@@ -172,10 +172,11 @@ if ($isHelperMissing) {
 # ── Resolve Script (early, so we can clean logs before git output) ───
 $prefix = "{0:D2}" -f $I
 $pattern = Join-Path $RootDir "scripts/$prefix-*"
-$scriptDir = Get-Item $pattern -ErrorAction SilentlyContinue | Select-Object -First 1
+$scriptMatches = @(Get-Item $pattern -ErrorAction SilentlyContinue | Where-Object { $_.PSIsContainer })
+$runnableScriptMatches = @($scriptMatches | Where-Object { Test-Path (Join-Path $_.FullName "run.ps1") })
 
-$isScriptMissing = -not $scriptDir
-if ($isScriptMissing) {
+$hasNoScriptMatches = $scriptMatches.Count -eq 0
+if ($hasNoScriptMatches) {
     Write-Host ""
     Write-Host "  [ FAIL  ] " -ForegroundColor Red -NoNewline
     Write-Host "No script folder found matching: scripts/$prefix-*"
@@ -183,15 +184,26 @@ if ($isScriptMissing) {
     exit 1
 }
 
-$scriptFile = Join-Path $scriptDir.FullName "run.ps1"
-
-$isRunFileMissing = -not (Test-Path $scriptFile)
-if ($isRunFileMissing) {
+$hasNoRunnableScriptMatches = $runnableScriptMatches.Count -eq 0
+if ($hasNoRunnableScriptMatches) {
     Write-Host ""
     Write-Host "  [ FAIL  ] " -ForegroundColor Red -NoNewline
-    Write-Host "run.ps1 not found in $($scriptDir.Name)"
+    Write-Host "No runnable script found matching: scripts/$prefix-*"
+    Write-Host "  Remove stale script folders that do not contain run.ps1 and try again" -ForegroundColor Cyan
     exit 1
 }
+
+$hasMultipleRunnableScriptMatches = $runnableScriptMatches.Count -gt 1
+if ($hasMultipleRunnableScriptMatches) {
+    Write-Host ""
+    Write-Host "  [ FAIL  ] " -ForegroundColor Red -NoNewline
+    Write-Host "Multiple runnable script folders found matching: scripts/$prefix-*"
+    Write-Host "  Matches: $($runnableScriptMatches.Name -join ', ')" -ForegroundColor Cyan
+    exit 1
+}
+
+$scriptDir = $runnableScriptMatches[0]
+$scriptFile = Join-Path $scriptDir.FullName "run.ps1"
 
 # ── Clean & create logs folder ───────────────────────────────────────
 $logsDir = Join-Path $scriptDir.FullName "logs"
