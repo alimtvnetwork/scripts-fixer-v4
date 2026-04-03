@@ -58,7 +58,7 @@ function Resolve-DevDir {
         }
     }
 
-    Write-Log "Using default dev directory: $default" "info"
+    Write-Log "Using default dev directory: $default" -Level "info"
     return $default
 }
 
