@@ -27,7 +27,12 @@ function Write-Log {
     $validStatuses = @("ok", "fail", "info", "warn", "skip")
     if ($Status -notin $validStatuses) { $Status = "info" }
 
-    $badge  = if (Get-Variable -Name LogMessages -Scope Script -ErrorAction SilentlyContinue) { $script:LogMessages.status.$Status } else { $null }
+    $badge  = $null
+    $hasLogMessages = (Get-Variable -Name LogMessages -Scope Script -ErrorAction SilentlyContinue) -and
+                      $script:LogMessages.PSObject.Properties['status']
+    if ($hasLogMessages) {
+        $badge = $script:LogMessages.status.$Status
+    }
     $isBadgeMissing = -not $badge
     if ($isBadgeMissing) {
         # Fallback badges when log-messages.json doesn't have a status block
