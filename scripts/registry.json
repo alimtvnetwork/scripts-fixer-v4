@@ -12,6 +12,7 @@
     "09": "09-install-cpp",
     "10": "10-vscode-context-menu-fix",
     "11": "11-vscode-settings-sync",
-    "12": "12-install-all-dev-tools"
+    "12": "12-install-all-dev-tools",
+    "13": "audit"
   }
 }
