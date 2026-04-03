@@ -312,6 +312,15 @@ function Invoke-Edition {
         Write-Log "Created: $settingsDir" "ok"
     }
 
+    # Save resolved settings path to .resolved/
+    Save-ResolvedData -ScriptDir $ScriptDir -Data @{
+        $EditionName = @{
+            settingsDir = $settingsDir
+            cliCommand  = $cliCmd
+            resolvedAt  = (Get-Date -Format "o")
+        }
+    }
+
     $destSettings    = Join-Path $settingsDir "settings.json"
     $destKeybindings = Join-Path $settingsDir "keybindings.json"
 
