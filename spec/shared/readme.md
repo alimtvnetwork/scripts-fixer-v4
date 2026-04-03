@@ -12,55 +12,96 @@ by individual scripts. This avoids duplicating common logic across scripts.
 ```
 scripts/
 └── shared/
-    ├── git-pull.ps1      # Provides Invoke-GitPull function
-    ├── logging.ps1       # Provides Write-Log, Write-Banner, Initialize-Logging, Import-JsonConfig
-    ├── json-utils.ps1    # Provides Backup-File, Merge-JsonDeep, ConvertTo-OrderedHashtable
-    ├── resolved.ps1      # Provides Save-ResolvedData, Get-ResolvedDir
-    ├── cleanup.ps1       # Provides Clear-ResolvedData
-    ├── help.ps1          # Provides Show-ScriptHelp
-    ├── path-utils.ps1    # Provides Add-ToUserPath, Add-ToMachinePath, Test-InPath
-    ├── choco-utils.ps1   # Provides Assert-Choco, Install-ChocoPackage, Upgrade-ChocoPackage
-    └── dev-dir.ps1       # Provides Resolve-DevDir, Initialize-DevDir
+    ├── logging.ps1       # Write-Log, Write-Banner, Initialize-Logging, Import-JsonConfig
+    ├── log-messages.json  # Shared log message strings (choco, cleanup, path, etc.)
+    ├── git-pull.ps1      # Invoke-GitPull
+    ├── resolved.ps1      # Save-ResolvedData, Get-ResolvedDir
+    ├── cleanup.ps1       # Clear-ResolvedData
+    ├── help.ps1          # Show-ScriptHelp
+    ├── choco-utils.ps1   # Assert-Choco, Install-ChocoPackage, Upgrade-ChocoPackage
+    ├── path-utils.ps1    # Test-InPath, Add-ToUserPath, Add-ToMachinePath
+    ├── dev-dir.ps1       # Resolve-DevDir, Initialize-DevDir
+    └── json-utils.ps1    # Backup-File, Merge-JsonDeep, ConvertTo-OrderedHashtable
 
 .resolved/                # Runtime-resolved data (gitignored, never committed)
 ├── 01-vscode-context-menu-fix/
-│   └── resolved.json     # Discovered exe paths, timestamps
+│   └── resolved.json
 └── 02-vscode-settings-sync/
-    └── resolved.json     # Resolved settings dirs, CLI commands
+    └── resolved.json
 ```
 
 ---
 
-## git-pull.ps1
+## Conventions
 
-### Purpose
+### Bootstrap Block
 
-Provides `Invoke-GitPull` -- a function that runs `git pull` from the repo root.
-
-### Skip Mechanism
-
-| Scenario | Behavior |
-|----------|----------|
-| Script run directly (`.\scripts\01-...\run.ps1`) | `$env:SCRIPTS_ROOT_RUN` is not set -> git pull runs |
-| Script run via root dispatcher (`.\run.ps1 -I 1`) | Root sets `$env:SCRIPTS_ROOT_RUN = "1"` before delegating -> git pull is skipped |
-
-### Function Signature
+Every shared helper (and every `helpers/*.ps1` file) includes a **bootstrap
+block** at the top that ensures `Write-Log` and `$script:SharedLogMessages`
+are available, even when the file is dot-sourced in isolation:
 
 ```powershell
-Invoke-GitPull -RepoRoot <string>
-```
+# -- Bootstrap shared helpers --------------------------------------------------
+$loggingPath = Join-Path $PSScriptRoot "logging.ps1"
+if ((Test-Path $loggingPath) -and -not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
+    . $loggingPath
+}
 
-### How Child Scripts Use It
-
-```powershell
-# At the top of Main, before Initialize-Logging:
-$sharedGitPull = Join-Path $ScriptDir "..\shared\git-pull.ps1"
-if (Test-Path $sharedGitPull) {
-    . $sharedGitPull
-    $repoRoot = Split-Path -Parent (Split-Path -Parent $ScriptDir)
-    Invoke-GitPull -RepoRoot $repoRoot
+if (-not (Get-Variable -Name SharedLogMessages -Scope Script -ErrorAction SilentlyContinue)) {
+    $sharedLogPath = Join-Path $PSScriptRoot "log-messages.json"
+    if (Test-Path $sharedLogPath) {
+        $script:SharedLogMessages = Get-Content $sharedLogPath -Raw | ConvertFrom-Json
+    }
 }
 ```
+
+For helpers inside `scripts/NN-xxx/helpers/`, the path calculation differs
+(two levels up to reach `shared/`):
+
+```powershell
+$_sharedDir = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) "shared"
+$_loggingPath = Join-Path $_sharedDir "logging.ps1"
+```
+
+### Strict-Mode Safety
+
+All `run.ps1` files use `Set-StrictMode -Version Latest`. Under strict mode,
+accessing an unset `$script:` variable throws an error. Therefore:
+
+- **Never** use `$null -eq $script:SomeVar` to test for existence.
+- **Always** use `Get-Variable -Name SomeVar -Scope Script -ErrorAction SilentlyContinue`.
+
+### Log Messages
+
+- **No hardcoded strings in `Write-Log` calls.** Every message comes from
+  either `$logMessages.messages.*` (per-script) or `$slm.messages.*` (shared).
+- Shared helpers read from `scripts/shared/log-messages.json` via
+  `$script:SharedLogMessages` (aliased to `$slm` inside functions).
+- Per-script messages live in `scripts/NN-xxx/log-messages.json` and are
+  loaded via `Import-JsonConfig` at the top of each `run.ps1`.
+- Placeholders use `{name}` syntax and are replaced with `-replace '\{name\}', $value`.
+
+### Boolean Variables
+
+- Use `$is` / `$has` prefixes for boolean variables.
+- Avoid bare `-not` in `if` conditions -- assign to a named boolean first.
+
+```powershell
+# Good
+$isDirMissing = -not (Test-Path $dir)
+if ($isDirMissing) { ... }
+
+# Avoid
+if (-not (Test-Path $dir)) { ... }
+```
+
+### Naming
+
+| Rule | Example |
+|------|---------|
+| File names: lowercase-hyphenated (kebab-case) | `git-pull.ps1` |
+| Folder names: lowercase-hyphenated | `shared` |
+| PowerShell functions: Verb-Noun PascalCase | `Invoke-GitPull` |
 
 ---
 
@@ -71,32 +112,83 @@ if (Test-Path $sharedGitPull) {
 | Function | Purpose |
 |----------|---------|
 | `Write-Log` | Prints a status-badged message (`[  OK  ]`, `[ FAIL ]`, etc.) |
-| `Write-Banner` | Displays ASCII banner blocks in a specified color |
-| `Initialize-Logging` | Cleans and recreates `logs/`, starts transcript |
+| `Write-Banner` | Displays a titled banner block with border lines |
+| `Initialize-Logging` | Cleans and recreates `logs/`, starts `Start-Transcript` |
 | `Import-JsonConfig` | Loads and returns a JSON file with verbose logging |
+
+### Write-Log
+
+Accepts `-Status` (old-style: `ok`, `fail`, `info`, `warn`, `skip`) or
+`-Level` (new-style: `success`, `error`, `info`, `warn`, `skip`). The
+`-Level` param maps `success` -> `ok` and `error` -> `fail`.
+
+Badge text comes from `$script:LogMessages.status.*` if set (per-script), with
+hardcoded fallbacks (`[  OK  ]`, `[ FAIL ]`, etc.) when the status block is absent.
+
+### Write-Banner
+
+Supports two calling styles:
+
+```powershell
+# Old-style: explicit line array
+Write-Banner @("---", "  Title", "---") "Magenta"
+
+# New-style: -Title and -Version params (auto-generates border)
+Write-Banner -Title "My Script" -Version "1.0.0"
+```
+
+### Import-JsonConfig
+
+```powershell
+$config = Import-JsonConfig (Join-Path $scriptDir "config.json")
+$logMessages = Import-JsonConfig (Join-Path $scriptDir "log-messages.json")
+```
+
+Logs the file path, size, and success/failure using shared log messages.
+Returns `$null` if the file is missing.
 
 ---
 
-## json-utils.ps1
+## log-messages.json
+
+The shared log messages file contains strings used by all shared helpers.
+Keys are grouped by helper:
+
+| Prefix | Used by |
+|--------|---------|
+| `choco*` | `choco-utils.ps1` |
+| `cleanup*` | `cleanup.ps1` |
+| `devDir*` | `dev-dir.ps1` |
+| `backup*` | `json-utils.ps1` |
+| `import*` | `logging.ps1` (`Import-JsonConfig`) |
+| `path*` | `path-utils.ps1` |
+| `resolved*` | `resolved.ps1` |
+| `gitPull*` | `git-pull.ps1` |
+| `help*` | `help.ps1` |
+| `adminTip` | `run.ps1` files (admin privilege error) |
+
+---
+
+## git-pull.ps1
 
 ### Purpose
 
-Provides common JSON and file utilities extracted from script 02 so all scripts can reuse them.
+Provides `Invoke-GitPull` -- runs `git pull` from the repo root.
 
-### Functions
+### Skip Mechanism
 
-| Function | Purpose |
-|----------|---------|
-| `Backup-File` | Creates a timestamped backup copy of an existing file before overwriting |
-| `ConvertTo-OrderedHashtable` | Converts a `PSCustomObject` (from `ConvertFrom-Json`) to an ordered hashtable for deep merging |
-| `Merge-JsonDeep` | Recursively deep-merges two hashtables; incoming keys overwrite, existing-only keys are preserved |
+| Scenario | Behavior |
+|----------|----------|
+| Script run directly (`.\scripts\01-...\run.ps1`) | `$env:SCRIPTS_ROOT_RUN` is not set -- git pull runs |
+| Script run via root dispatcher (`.\run.ps1 -I 1`) | Root sets `$env:SCRIPTS_ROOT_RUN = "1"` -- git pull is skipped |
 
-### How Child Scripts Use It
+### Function Signature
 
 ```powershell
-$sharedJsonUtils = Join-Path $PSScriptRoot "..\shared\json-utils.ps1"
-if (Test-Path $sharedJsonUtils) { . $sharedJsonUtils }
+Invoke-GitPull [-RepoRoot <string>]
 ```
+
+Auto-detects the repo root from `$script:ScriptDir` if `-RepoRoot` is omitted.
 
 ---
 
@@ -104,85 +196,50 @@ if (Test-Path $sharedJsonUtils) { . $sharedJsonUtils }
 
 ### Purpose
 
-Provides a shared mechanism for persisting **runtime-discovered state** to the
-`.resolved/` folder at the repo root. This keeps `config.json` files **purely
-declarative** -- they are never mutated by scripts.
+Persists **runtime-discovered state** to `.resolved/` at the repo root.
 
 ### Design Principle
 
 **Config files are input. Resolved data is output.**
 
-- `config.json` contains user-editable, declarative settings (paths with env vars, labels, edition preferences)
-- `.resolved/` contains runtime state discovered by the script (expanded paths, timestamps, usernames)
-- Config is committed to git. Resolved data is gitignored.
+- `config.json` -- user-editable, declarative settings (committed to git)
+- `.resolved/` -- runtime state: expanded paths, timestamps (gitignored)
 
 ### Functions
 
 | Function | Signature | Purpose |
 |----------|-----------|---------|
-| `Get-ResolvedDir` | `-ScriptDir <string>` | Returns `.resolved/<script-folder>/` path, creating the directory if needed |
-| `Save-ResolvedData` | `-ScriptDir <string> -Data <hashtable>` | Merges new keys into `resolved.json`, preserving existing data |
+| `Get-ResolvedDir` | `-ScriptDir <string>` | Returns `.resolved/<script-folder>/` path, creating it if needed |
+| `Save-ResolvedData` | `-ScriptDir <string> -Data <hashtable>` or `-ScriptFolder <string> -Data <hashtable>` | Merges new keys into `resolved.json`, preserving existing data |
 
-### Folder Layout
+### Merge Semantics
 
-```
-<repo-root>/
-└── .resolved/                              # gitignored
-    ├── 01-vscode-context-menu-fix/
-    │   └── resolved.json                   # { "stable": { "resolvedExe": "...", "resolvedAt": "...", "resolvedBy": "..." } }
-    └── 02-vscode-settings-sync/
-        └── resolved.json                   # { "stable": { "settingsDir": "...", "cliCommand": "...", "resolvedAt": "..." } }
-```
-
-### How It Works
-
-1. Script calls `Save-ResolvedData -ScriptDir $ScriptDir -Data @{ ... }`
-2. Helper computes `<repo-root>/.resolved/<script-folder-name>/`
-3. If `resolved.json` already exists, it reads and merges (new keys overlay, old keys preserved)
-4. Writes merged result back as JSON
+If `resolved.json` already exists, existing keys are preserved and new keys
+overlay on top. This allows multiple editions (or multiple runs) to coexist
+in one file without overwriting each other.
 
 ### Cache-First Pattern (Script 01)
 
 Script 01 checks `.resolved/` **before** running path detection:
 
 ```powershell
-# Inside Resolve-VsCodePath:
-$resolvedDir  = Get-ResolvedDir -ScriptDir $ScriptDir
-$resolvedFile = Join-Path $resolvedDir "resolved.json"
+$resolvedFile = Join-Path (Get-ResolvedDir -ScriptDir $ScriptDir) "resolved.json"
 if (Test-Path $resolvedFile) {
     $cached = Get-Content $resolvedFile -Raw | ConvertFrom-Json
     $cachedExe = $cached.$EditionName.resolvedExe
     if ($cachedExe -and (Test-Path $cachedExe)) {
-        # Use cached path, skip detection
-        return $cachedExe
-    }
-    # Cached path stale -- fall through to full detection
-}
-```
-
-If the cached exe still exists on disk, detection is skipped entirely. If stale (uninstalled/moved), normal detection runs and the cache is updated.
-
-### How Child Scripts Use It
-
-```powershell
-$sharedResolved = Join-Path $ScriptDir "..\shared\resolved.ps1"
-if (Test-Path $sharedResolved) { . $sharedResolved }
-
-# After resolving a path:
-Save-ResolvedData -ScriptDir $ScriptDir -Data @{
-    $EditionName = @{
-        resolvedExe = $VsCodeExe
-        resolvedAt  = (Get-Date -Format "o")
-        resolvedBy  = $env:USERNAME
+        return $cachedExe   # Skip detection
     }
 }
 ```
+
+---
 
 ## cleanup.ps1
 
 ### Purpose
 
-Provides `Clear-ResolvedData` to wipe cached runtime state for a fresh start.
+Provides `Clear-ResolvedData` to wipe cached runtime state.
 
 ### Function Signature
 
@@ -197,39 +254,136 @@ Clear-ResolvedData -ScriptDir <string> [-EditionName <string>]
 | `Clear-ResolvedData -ScriptDir $ScriptDir` | Removes **all** contents of `.resolved/` |
 | `Clear-ResolvedData -ScriptDir $ScriptDir -EditionName "stable"` | Removes only the `"stable"` key from that script's `resolved.json` |
 
-### How to Use
+---
+
+## help.ps1
+
+### Purpose
+
+Provides `Show-ScriptHelp` for consistent `--help` output across all scripts.
+
+### Function Signature
 
 ```powershell
-$sharedCleanup = Join-Path $ScriptDir "..\shared\cleanup.ps1"
-if (Test-Path $sharedCleanup) { . $sharedCleanup }
+# New-style (preferred): pass the entire log-messages object
+Show-ScriptHelp -LogMessages $logMessages
 
-# Wipe everything:
-Clear-ResolvedData -ScriptDir $ScriptDir
+# Old-style: explicit params
+Show-ScriptHelp -Name "My Script" -Version "1.0.0" -Description "..." -Commands @(...) -Examples @(...)
+```
 
-# Or just one edition:
-Clear-ResolvedData -ScriptDir $ScriptDir -EditionName "insiders"
+The new-style call extracts `scriptName`, `version`, `description`,
+`help.commands`, and `help.examples` from the log-messages JSON object.
+
+### Expected log-messages.json Shape
+
+```json
+{
+  "scriptName": "Install Foo",
+  "version": "1.0.0",
+  "description": "Installs Foo via Chocolatey.",
+  "messages": { ... },
+  "help": {
+    "commands": { "all": "Install everything (default)" },
+    "examples": [ ".\\run.ps1", ".\\run.ps1 -Help" ]
+  }
+}
 ```
 
 ---
 
-## Naming Conventions
+## choco-utils.ps1
 
-| Rule | Example |
-|------|---------|
-| All file names use **lowercase-hyphenated** (kebab-case) | `git-pull.ps1` |
-| Folder names also use lowercase-hyphenated | `shared` |
-| PowerShell functions use Verb-Noun PascalCase per PS convention | `Invoke-GitPull` |
+### Purpose
+
+Chocolatey package management helpers. Requires administrator privileges.
+
+### Functions
+
+| Function | Purpose |
+|----------|---------|
+| `Assert-Choco` | Ensures Chocolatey is installed; installs it if missing. Returns `$true` if available. |
+| `Install-ChocoPackage` | Installs a package if not already present. Accepts optional `-Version`. |
+| `Upgrade-ChocoPackage` | Upgrades an existing package to the latest version. |
+
+### Usage
+
+```powershell
+Assert-Choco
+Install-ChocoPackage -PackageName "golang" -Version "1.22.0"
+Upgrade-ChocoPackage -PackageName "golang"
+```
+
+---
+
+## path-utils.ps1
+
+### Purpose
+
+Safe PATH manipulation with deduplication.
+
+### Functions
+
+| Function | Purpose |
+|----------|---------|
+| `Test-InPath` | Checks if a directory is in the specified PATH scope (`User`, `Machine`, `Process`) |
+| `Add-ToUserPath` | Adds a directory to the user PATH if not already present |
+| `Add-ToMachinePath` | Adds a directory to the machine PATH if not already present (requires admin) |
+
+Both `Add-To*Path` functions also update `$env:Path` for the current session
+after modifying the persistent environment variable.
+
+---
+
+## dev-dir.ps1
+
+### Purpose
+
+Resolves and initializes the base dev directory (e.g. `E:\dev`).
+
+### Functions
+
+| Function | Purpose |
+|----------|---------|
+| `Resolve-DevDir` | Resolves the dev directory path from env var, config override, user prompt, or default |
+| `Initialize-DevDir` | Creates the dev directory and optional subdirectories if missing |
+
+### Resolution Priority
+
+1. `$env:DEV_DIR` (set by the orchestrator, script 04)
+2. Config `override` value (non-empty string in config)
+3. User prompt (if mode is `json-or-prompt`)
+4. Config `default` value (fallback: `E:\dev`)
+
+---
+
+## json-utils.ps1
+
+### Purpose
+
+Common JSON and file utilities.
+
+### Functions
+
+| Function | Purpose |
+|----------|---------|
+| `Backup-File` | Creates a timestamped backup copy before overwriting a file |
+| `ConvertTo-OrderedHashtable` | Converts a `PSCustomObject` to an ordered hashtable (for deep merge) |
+| `Merge-JsonDeep` | Recursively deep-merges two hashtables; incoming keys overwrite, existing-only keys preserved |
+
+---
 
 ## Design Decisions
 
 | Decision | Rationale |
 |----------|-----------|
-| Environment variable flag | Simple, no file I/O, works across process boundaries |
-| Dot-sourcing (not module) | No module manifest overhead, just a simple function import |
-| Graceful fallback | If shared helper is missing, scripts warn and continue |
-| Root cleans flag after run | Prevents stale flag from affecting future standalone runs |
-| Config is read-only at runtime | Scripts never mutate their own config.json -- keeps it declarative and git-friendly |
-| .resolved/ is gitignored | Runtime state (discovered paths, timestamps) belongs outside version control |
-| Merge semantics in Save-ResolvedData | Multiple editions can write to the same resolved.json without overwriting each other |
-| Granular cleanup | Clear-ResolvedData supports per-edition clearing, not just full wipe |
+| Dot-sourcing (not PS modules) | No module manifest overhead; simple function import |
+| Environment variable flag for skip | Simple, no file I/O, works across process boundaries |
+| Config is read-only at runtime | Scripts never mutate `config.json` -- keeps it declarative and git-friendly |
+| `.resolved/` is gitignored | Runtime state (paths, timestamps) belongs outside version control |
+| Merge semantics in `Save-ResolvedData` | Multiple editions can write to the same `resolved.json` without overwriting each other |
+| Granular cleanup | `Clear-ResolvedData` supports per-edition clearing, not just full wipe |
 | Cache-first detection | Avoids redundant filesystem probing on repeated runs |
+| Bootstrap block in every file | Helpers work correctly whether dot-sourced from `run.ps1` or in isolation |
+| `Get-Variable` for strict-mode checks | `$null -eq $script:Var` throws under `Set-StrictMode -Version Latest` |
+| All log strings externalized to JSON | Enables future localization and keeps PS code free of display text |
