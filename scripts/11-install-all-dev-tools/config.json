@@ -4,16 +4,29 @@
     "default": "E:\\dev",
     "override": ""
   },
+  "groups": [
+    {
+      "label": "Core Tools",
+      "checkedByDefault": true,
+      "ids": ["01", "02", "03", "04", "05", "06", "07", "08"]
+    },
+    {
+      "label": "Optional",
+      "checkedByDefault": false,
+      "ids": ["09", "10"]
+    }
+  ],
   "scripts": {
-    "01": { "enabled": true, "folder": "01-vscode-context-menu-fix", "name": "VSCode Context Menu", "desc": "Add/repair VSCode right-click context menu entries" },
-    "02": { "enabled": true, "folder": "02-vscode-settings-sync", "name": "VSCode Settings Sync", "desc": "Sync VSCode settings, keybindings, and extensions" },
-    "03": { "enabled": true, "folder": "03-install-package-managers", "name": "Package Managers", "desc": "Install Chocolatey and Winget" },
-    "05": { "enabled": true, "folder": "05-install-golang", "name": "Go", "desc": "Install Go, configure GOPATH and go env" },
-    "06": { "enabled": true, "folder": "06-install-nodejs", "name": "Node.js", "desc": "Install Node.js LTS, configure npm prefix" },
-    "07": { "enabled": true, "folder": "07-install-python", "name": "Python", "desc": "Install Python, configure pip user site" },
-    "08": { "enabled": true, "folder": "08-install-pnpm", "name": "pnpm", "desc": "Install pnpm, configure global store" },
-    "09": { "enabled": true, "folder": "09-install-git", "name": "Git + LFS + gh", "desc": "Install Git, Git LFS, GitHub CLI, configure settings" },
-    "10": { "enabled": true, "folder": "10-install-github-desktop", "name": "GitHub Desktop", "desc": "Install GitHub Desktop" }
+    "01": { "enabled": true, "folder": "01-install-vscode",           "name": "VS Code",              "desc": "Install Visual Studio Code (Stable/Insiders)" },
+    "02": { "enabled": true, "folder": "02-install-package-managers", "name": "Package Managers",      "desc": "Install Chocolatey and Winget" },
+    "03": { "enabled": true, "folder": "03-install-nodejs",           "name": "Node.js + Yarn + Bun",  "desc": "Install Node.js LTS, Yarn, Bun, verify npx" },
+    "04": { "enabled": true, "folder": "04-install-pnpm",             "name": "pnpm",                  "desc": "Install pnpm, configure global store" },
+    "05": { "enabled": true, "folder": "05-install-python",           "name": "Python",                "desc": "Install Python, configure pip user site" },
+    "06": { "enabled": true, "folder": "06-install-golang",           "name": "Go",                    "desc": "Install Go, configure GOPATH and go env" },
+    "07": { "enabled": true, "folder": "07-install-git",              "name": "Git + LFS + gh",        "desc": "Install Git, Git LFS, GitHub CLI, configure settings" },
+    "08": { "enabled": true, "folder": "08-install-github-desktop",   "name": "GitHub Desktop",        "desc": "Install GitHub Desktop" },
+    "09": { "enabled": true, "folder": "09-vscode-context-menu-fix",  "name": "VSCode Context Menu",   "desc": "Add/repair VSCode right-click context menu entries" },
+    "10": { "enabled": true, "folder": "10-vscode-settings-sync",     "name": "VSCode Settings Sync",  "desc": "Sync VSCode settings, keybindings, and extensions" }
   },
-  "sequence": ["01", "02", "03", "09", "05", "06", "07", "08", "10"]
+  "sequence": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10"]
 }
