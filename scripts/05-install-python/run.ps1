@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------
-#  Script 07 -- Install Python
+#  Script 05 -- Install Python
 #  Installs Python via Chocolatey and configures pip user site.
 # --------------------------------------------------------------------------
 param(

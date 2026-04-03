@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------
-#  Script 05 -- Install Golang
+#  Script 06 -- Install Golang
 #  Installs Go via Chocolatey, configures GOPATH, PATH, and go env settings.
 # --------------------------------------------------------------------------
 param(

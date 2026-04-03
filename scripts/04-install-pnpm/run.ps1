@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------
-#  Script 08 -- Install pnpm
+#  Script 04 -- Install pnpm
 #  Installs pnpm globally via npm and configures the global store.
 # --------------------------------------------------------------------------
 param(
