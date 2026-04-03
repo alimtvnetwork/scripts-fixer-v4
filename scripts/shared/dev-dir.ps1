@@ -30,7 +30,7 @@ function Resolve-DevDir {
 
     # Check environment variable first (set by orchestrator)
     if (-not [string]::IsNullOrWhiteSpace($env:DEV_DIR)) {
-        Write-Log "Using dev directory from environment: $env:DEV_DIR" "ok"
+        Write-Log "Using dev directory from environment: $env:DEV_DIR" -Level "success"
         return $env:DEV_DIR
     }
 
