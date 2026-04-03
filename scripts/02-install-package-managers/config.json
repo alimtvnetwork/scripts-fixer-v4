@@ -4,11 +4,5 @@
     "enabled": true,
     "installUrl": "https://chocolatey.org/install.ps1",
     "upgradeOnRun": true
-  },
-  "winget": {
-    "enabled": true,
-    "installIfMissing": true,
-    "appInstallerPackage": "Microsoft.DesktopAppInstaller",
-    "msStoreUrl": "https://aka.ms/getwinget"
   }
 }

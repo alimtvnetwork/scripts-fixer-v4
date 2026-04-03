@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "01": { "enabled": true, "folder": "01-install-vscode",           "name": "VS Code",              "desc": "Install Visual Studio Code (Stable/Insiders)" },
-    "02": { "enabled": true, "folder": "02-install-package-managers", "name": "Package Managers",      "desc": "Install Chocolatey and Winget" },
+    "02": { "enabled": true, "folder": "02-install-package-managers", "name": "Chocolatey",            "desc": "Install Chocolatey package manager" },
     "03": { "enabled": true, "folder": "03-install-nodejs",           "name": "Node.js + Yarn + Bun",  "desc": "Install Node.js LTS, Yarn, Bun, verify npx" },
     "04": { "enabled": true, "folder": "04-install-pnpm",             "name": "pnpm",                  "desc": "Install pnpm, configure global store" },
     "05": { "enabled": true, "folder": "05-install-python",           "name": "Python",                "desc": "Install Python, configure pip user site" },

@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------
-#  Script 02 -- Install Chocolatey
-#  Installs and updates the Chocolatey package manager.
+#  Script 14 -- Install Winget
+#  Installs and verifies the Winget (App Installer) package manager.
 # --------------------------------------------------------------------------
 param(
     [switch]$Help
@@ -19,10 +19,9 @@ $script:ScriptDir = $scriptDir
 . (Join-Path $sharedDir "resolved.ps1")
 . (Join-Path $sharedDir "git-pull.ps1")
 . (Join-Path $sharedDir "help.ps1")
-. (Join-Path $sharedDir "choco-utils.ps1")
 
 # -- Dot-source script helpers ------------------------------------------------
-. (Join-Path $scriptDir "helpers\choco.ps1")
+. (Join-Path $scriptDir "helpers\winget.ps1")
 
 # -- Load config & log messages -----------------------------------------------
 $config      = Import-JsonConfig (Join-Path $scriptDir "config.json")
@@ -52,18 +51,17 @@ $hasAdminRights = ([Security.Principal.WindowsPrincipal] [Security.Principal.Win
 $isNotAdmin = -not $hasAdminRights
 if ($isNotAdmin) {
     Write-Log $logMessages.messages.notAdmin -Level "error"
-    Write-Host $script:SharedLogMessages.messages.adminTip -ForegroundColor Yellow
     return
 }
 
-# -- Install Chocolatey --------------------------------------------------------
-$ok = Install-Chocolatey -Config $config.chocolatey -LogMessages $logMessages
+# -- Install Winget ------------------------------------------------------------
+$ok = Install-Winget -Config $config.winget -LogMessages $logMessages
 
 # -- Summary -------------------------------------------------------------------
 if ($ok) {
     Write-Log $logMessages.messages.done -Level "success"
 } else {
-    Write-Log $logMessages.messages.completedWithWarnings -Level "warn"
+    Write-Log $logMessages.messages.wingetManualHint -Level "warn"
 }
 
 Write-Log $logMessages.messages.setupComplete -Level "success"

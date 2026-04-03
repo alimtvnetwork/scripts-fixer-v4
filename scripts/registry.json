@@ -13,6 +13,7 @@
     "10": "10-vscode-context-menu-fix",
     "11": "11-vscode-settings-sync",
     "12": "12-install-all-dev-tools",
-    "13": "audit"
+    "13": "audit",
+    "14": "14-install-winget"
   }
 }

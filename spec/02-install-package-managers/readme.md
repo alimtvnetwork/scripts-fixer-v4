@@ -1,9 +1,12 @@
-# Spec: Install Package Managers
+# Spec: Install Chocolatey
 
 ## Overview
 
-A PowerShell script that installs and/or updates **Chocolatey** and **Winget**
-package managers on Windows. These are prerequisites for scripts 04-07.
+A PowerShell script that installs and/or updates **Chocolatey**
+package manager on Windows. This is a prerequisite for scripts 03-09.
+
+Winget was previously part of this script but has been extracted to
+**script 14** (`14-install-winget`) as a standalone utility.
 
 ---
 
@@ -11,54 +14,43 @@ package managers on Windows. These are prerequisites for scripts 04-07.
 
 ```
 scripts/02-install-package-managers/
-├── config.json              # Enable/disable each manager, install URLs
+├── config.json              # Enable/disable, install URL
 ├── log-messages.json        # Display strings and banners
-├── run.ps1                  # Thin orchestrator with subcommand routing
+├── run.ps1                  # Thin orchestrator
 ├── helpers/
-│   ├── choco.ps1            # Install-Chocolatey function
-│   └── winget.ps1           # Install-Winget function
+│   └── choco.ps1            # Install-Chocolatey function
 └── logs/                    # Auto-created (gitignored)
 
-.resolved/03-install-package-managers/
-└── resolved.json            # Installed versions + timestamps
+.resolved/02-install-package-managers/
+└── resolved.json            # Installed version + timestamp
 ```
 
-## Subcommands
+## Usage
 
 ```powershell
-.\run.ps1                    # Install both (default "all")
-.\run.ps1 choco              # Chocolatey only
-.\run.ps1 winget             # Winget only
-.\run.ps1 -Help              # Show usage
+.\run.ps1              # Install/update Chocolatey
+.\run.ps1 -Help        # Show usage
 ```
 
 ## config.json Schema
 
 | Key | Type | Description |
 |-----|------|-------------|
+| `enabled` | bool | Master enable/disable for the entire script |
 | `chocolatey.enabled` | bool | Whether to install/check Chocolatey |
 | `chocolatey.installUrl` | string | URL for Chocolatey install script |
 | `chocolatey.upgradeOnRun` | bool | Upgrade Chocolatey itself on every run |
-| `winget.enabled` | bool | Whether to install/check Winget |
-| `winget.installIfMissing` | bool | Install Winget if not found |
-| `winget.msStoreUrl` | string | Download URL for App Installer package |
 
 ## Execution Flow
 
-1. Parse subcommand (default: `all`)
-2. If `-Help`: display usage and exit
-3. Load shared helpers (logging, choco-utils, resolved, help)
-4. Load script helpers (choco.ps1, winget.ps1)
-5. Git pull (unless `$env:SCRIPTS_ROOT_RUN`)
-6. Start logging
-7. Assert admin privileges
-8. Load config.json
-9. Route to subcommand handler:
-   - `choco`: Install-Chocolatey
-   - `winget`: Install-Winget
-   - `all`: both in sequence
-10. Save resolved versions to `.resolved/`
-11. Display summary
+1. If `-Help`: display usage and exit
+2. Load shared helpers (logging, choco-utils, resolved, help)
+3. Load script helper (choco.ps1)
+4. Git pull (unless `$env:SCRIPTS_ROOT_RUN`)
+5. Assert admin privileges
+6. Call `Install-Chocolatey` with config
+7. Save resolved version to `.resolved/`
+8. Display summary
 
 ## Prerequisites
 
@@ -71,7 +63,6 @@ scripts/02-install-package-managers/
 
 | Decision | Rationale |
 |----------|-----------|
-| Subcommand via positional param | Simple, no extra flags needed |
-| Assert-Choco from shared helper | Same logic reused by scripts 04-06 |
-| Winget via msixbundle download | Works when Microsoft Store is unavailable |
+| Winget extracted to script 14 | Winget is optional and OS-bundled; keeps this script focused on Chocolatey |
+| Assert-Choco from shared helper | Same logic reused by scripts 03-09 |
 | Versions saved to .resolved/ | Other scripts can check prerequisite versions |

@@ -84,7 +84,7 @@ function Show-RootHelp {
     Write-Host ""
     Write-Host "    Core Tools" -ForegroundColor Magenta
     Write-Host "    01  Install VS Code               " -NoNewline; Write-Host "Install Visual Studio Code (Stable/Insiders)" -ForegroundColor DarkGray
-    Write-Host "    02  Package Managers              " -NoNewline; Write-Host "Install Chocolatey and Winget" -ForegroundColor DarkGray
+    Write-Host "    02  Chocolatey                    " -NoNewline; Write-Host "Install Chocolatey package manager" -ForegroundColor DarkGray
     Write-Host "    03  Node.js + Yarn + Bun          " -NoNewline; Write-Host "Install Node.js LTS, Yarn, Bun, verify npx" -ForegroundColor DarkGray
     Write-Host "    04  pnpm                          " -NoNewline; Write-Host "Install pnpm, configure global store" -ForegroundColor DarkGray
     Write-Host "    05  Python                        " -NoNewline; Write-Host "Install Python, configure pip user site" -ForegroundColor DarkGray
@@ -102,6 +102,7 @@ function Show-RootHelp {
     Write-Host ""
     Write-Host "    Utilities" -ForegroundColor Magenta
     Write-Host "    13  Audit Mode                    " -NoNewline; Write-Host "Scan configs, specs, suggestions for stale IDs" -ForegroundColor DarkGray
+    Write-Host "    14  Install Winget                " -NoNewline; Write-Host "Install/verify Winget package manager (standalone)" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Script 12 (Install All Dev Tools):" -ForegroundColor Yellow
     Write-Host "    .\run.ps1 -I 12                         " -NoNewline; Write-Host "Interactive menu -- pick what to install" -ForegroundColor DarkGray
