@@ -197,9 +197,9 @@ function Invoke-Edition {
     $logMsgs = Import-JsonConfig (Join-Path $ScriptDir "log-messages.json")
 
     Write-Host ""
-    Write-Host "  +----------------------------------------------" -ForegroundColor DarkCyan
-    Write-Host "  |  Edition: $($Edition.contextMenuLabel)" -ForegroundColor Cyan
-    Write-Host "  +----------------------------------------------" -ForegroundColor DarkCyan
+    Write-Host $logMsgs.messages.editionBorderLine -ForegroundColor DarkCyan
+    Write-Host ($logMsgs.messages.editionLabel -replace '\{label\}', $Edition.contextMenuLabel) -ForegroundColor Cyan
+    Write-Host $logMsgs.messages.editionBorderLine -ForegroundColor DarkCyan
 
     # Resolve exe
     Write-Log $Steps.detectInstall -Level "info"

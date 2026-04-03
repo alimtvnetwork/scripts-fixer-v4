@@ -213,9 +213,9 @@ function Invoke-Edition {
     )
 
     Write-Host ""
-    Write-Host "  +----------------------------------------------" -ForegroundColor DarkCyan
-    Write-Host "  |  Edition: VS Code $($EditionName.Substring(0,1).ToUpper() + $EditionName.Substring(1))" -ForegroundColor Cyan
-    Write-Host "  +----------------------------------------------" -ForegroundColor DarkCyan
+    Write-Host $LogMessages.messages.editionBorderLine -ForegroundColor DarkCyan
+    Write-Host ($LogMessages.messages.editionLabel -replace '\{label\}', "VS Code $($EditionName.Substring(0,1).ToUpper() + $EditionName.Substring(1))") -ForegroundColor Cyan
+    Write-Host $LogMessages.messages.editionBorderLine -ForegroundColor DarkCyan
 
     $cliCmd = $Edition.cliCommand
     $isAllOk = $true

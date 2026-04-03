@@ -61,7 +61,9 @@
     "verifyingFiles": "Verifying applied files...",
     "settingsPresent": "settings.json present at {path}",
     "settingsMissing": "settings.json NOT found at {path}",
-    "keybindingsPresent": "keybindings.json present at {path}"
+    "keybindingsPresent": "keybindings.json present at {path}",
+    "editionBorderLine": "  +----------------------------------------------",
+    "editionLabel": "  |  Edition: {label}"
   },
   "help": {
     "commands": {

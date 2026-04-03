@@ -44,7 +44,9 @@
     "regIconDetail": "  Icon          : {icon}",
     "regCommandDetail": "  Command       : {command}",
     "exeNotFound": "{label}: executable not found -- skipping",
-    "usingExe": "Using executable: {path}"
+    "usingExe": "Using executable: {path}",
+    "editionBorderLine": "  +----------------------------------------------",
+    "editionLabel": "  |  Edition: {label}"
   },
   "help": {
     "commands": {},
