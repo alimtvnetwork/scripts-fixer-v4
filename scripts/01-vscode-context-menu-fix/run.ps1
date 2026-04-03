@@ -22,6 +22,9 @@ Write-Host "  [ INFO ] Script directory: $ScriptDir" -ForegroundColor Cyan
 . (Join-Path $ScriptDir "helpers\logging.ps1")
 . (Join-Path $ScriptDir "helpers\registry.ps1")
 
+$sharedResolved = Join-Path $ScriptDir "..\shared\resolved.ps1"
+if (Test-Path $sharedResolved) { . $sharedResolved }
+
 # ── Git pull (skip if called from root dispatcher) ───────────────────
 $sharedGitPull = Join-Path $ScriptDir "..\shared\git-pull.ps1"
 if (Test-Path $sharedGitPull) {
