@@ -104,6 +104,7 @@ function Show-RootHelp {
 $hasNoParams = -not $I -and -not $Help -and -not $CleanOnly -and -not $Clean
 if ($hasNoParams) {
     # Load git pull helper and pull before showing help
+    Remove-Item Env:\SCRIPTS_ROOT_RUN -ErrorAction SilentlyContinue
     $sharedGitPull = Join-Path $RootDir "scripts\shared\git-pull.ps1"
     $isHelperAvailable = Test-Path $sharedGitPull
     if ($isHelperAvailable) {
