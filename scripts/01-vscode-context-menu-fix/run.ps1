@@ -167,14 +167,12 @@ function Register-ContextMenu {
         Write-Log "  Key created" "ok"
 
         Write-Log "  Setting (Default) = $Label" "info"
-        $regKey = Get-Item -LiteralPath $RegistryPath -ErrorAction Stop
-        $regKey.SetValue("", $Label)
+        Set-Item -Path $RegistryPath -Value $Label -Force -Confirm:$false -ErrorAction Stop
         Write-Log "  (Default) set" "ok"
 
         Write-Log "  Setting Icon = $IconValue" "info"
-        $regKey.SetValue("Icon", $IconValue)
+        Set-ItemProperty -Path $RegistryPath -Name "Icon" -Value $IconValue -Force -Confirm:$false -ErrorAction Stop
         Write-Log "  Icon set" "ok"
-        $regKey.Close()
 
         $cmdPath = "$RegistryPath\command"
         Write-Log "  Creating command subkey: $cmdPath" "info"
@@ -182,9 +180,7 @@ function Register-ContextMenu {
         Write-Log "  Command subkey created" "ok"
 
         Write-Log "  Setting command (Default) = $CommandArg" "info"
-        $cmdKey = Get-Item -LiteralPath $cmdPath -ErrorAction Stop
-        $cmdKey.SetValue("", $CommandArg)
-        $cmdKey.Close()
+        Set-Item -Path $cmdPath -Value $CommandArg -Force -Confirm:$false -ErrorAction Stop
         Write-Log "  Command value set" "ok"
 
         return $true
