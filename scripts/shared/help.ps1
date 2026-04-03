@@ -9,6 +9,15 @@
       New-style: Show-ScriptHelp -LogMessages $logMessages
 #>
 
+# -- Bootstrap shared log messages --------------------------------------------
+if (-not $script:SharedLogMessages) {
+    $sharedLogPath = Join-Path $PSScriptRoot "log-messages.json"
+    $isSharedLogFound = Test-Path $sharedLogPath
+    if ($isSharedLogFound) {
+        $script:SharedLogMessages = Get-Content $sharedLogPath -Raw | ConvertFrom-Json
+    }
+}
+
 function Show-ScriptHelp {
     param(
         [string]$Name,
@@ -19,6 +28,8 @@ function Show-ScriptHelp {
         [hashtable[]]$Flags = @(),
         [PSObject]$LogMessages
     )
+
+    $slm = $script:SharedLogMessages
 
     # New-style: extract from LogMessages object
     if ($LogMessages) {
@@ -43,34 +54,36 @@ function Show-ScriptHelp {
     }
 
     Write-Host ""
-    Write-Host "  $Name -- v$Version" -ForegroundColor Cyan
+    $headerLine = $slm.messages.helpHeader -replace '\{name\}', $Name -replace '\{version\}', $Version
+    Write-Host $headerLine -ForegroundColor Cyan
     Write-Host "  $Description" -ForegroundColor Gray
     Write-Host ""
 
     if ($Commands.Count -gt 0) {
-        Write-Host "  Commands:" -ForegroundColor Yellow
+        Write-Host $slm.messages.helpCommandsLabel -ForegroundColor Yellow
         foreach ($cmd in $Commands) {
-            $label = "    {0,-16}" -f $cmd.Name
-            Write-Host $label -ForegroundColor White -NoNewline
-            Write-Host $cmd.Description -ForegroundColor Gray
+            $label = "{0,-16}" -f $cmd.Name
+            $line = $slm.messages.helpCommandItem -replace '\{label\}', $label -replace '\{description\}', $cmd.Description
+            Write-Host $line -ForegroundColor Gray
         }
         Write-Host ""
     }
 
     if ($Flags.Count -gt 0) {
-        Write-Host "  Flags:" -ForegroundColor Yellow
+        Write-Host $slm.messages.helpFlagsLabel -ForegroundColor Yellow
         foreach ($flag in $Flags) {
-            $label = "    {0,-16}" -f $flag.Name
-            Write-Host $label -ForegroundColor White -NoNewline
-            Write-Host $flag.Description -ForegroundColor Gray
+            $label = "{0,-16}" -f $flag.Name
+            $line = $slm.messages.helpFlagItem -replace '\{label\}', $label -replace '\{description\}', $flag.Description
+            Write-Host $line -ForegroundColor Gray
         }
         Write-Host ""
     }
 
     if ($Examples.Count -gt 0) {
-        Write-Host "  Examples:" -ForegroundColor Yellow
+        Write-Host $slm.messages.helpExamplesLabel -ForegroundColor Yellow
         foreach ($ex in $Examples) {
-            Write-Host "    $ex" -ForegroundColor DarkGray
+            $line = $slm.messages.helpExampleItem -replace '\{example\}', $ex
+            Write-Host $line -ForegroundColor DarkGray
         }
         Write-Host ""
     }

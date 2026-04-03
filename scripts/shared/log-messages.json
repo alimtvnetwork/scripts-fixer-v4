@@ -56,6 +56,13 @@
     "gitPullSkipped": "git pull -- already run by root dispatcher",
     "gitPulling": "Pulling latest changes...",
     "gitPullSuccess": "{output}",
-    "gitPullFailed": "git pull failed: {error}  (continuing anyway)"
+    "gitPullFailed": "git pull failed: {error}  (continuing anyway)",
+    "helpHeader": "  {name} -- v{version}",
+    "helpCommandsLabel": "  Commands:",
+    "helpCommandItem": "    {label}{description}",
+    "helpFlagsLabel": "  Flags:",
+    "helpFlagItem": "    {label}{description}",
+    "helpExamplesLabel": "  Examples:",
+    "helpExampleItem": "    {example}"
   }
 }
