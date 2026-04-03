@@ -62,7 +62,7 @@ function Resolve-ScriptList {
         }
     }
 
-    return $result
+    return ,$result
 }
 
 function Show-InteractiveMenu {
