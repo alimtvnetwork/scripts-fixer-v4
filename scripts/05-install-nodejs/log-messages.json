@@ -14,7 +14,8 @@
     "pathAlreadyContains": "PATH already contains: {path}",
     "scriptDisabled": "Node.js installation is disabled in config.",
     "nodeNotFound": "Node.js not found, installing via Chocolatey...",
-    "savingResolved": "Saving resolved state..."
+    "savingResolved": "Saving resolved state...",
+    "notAdmin": "This script requires administrator privileges."
   },
   "help": {
     "commands": {

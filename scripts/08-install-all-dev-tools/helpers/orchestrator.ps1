@@ -92,7 +92,7 @@ function Invoke-ScriptSequence {
 function Show-Summary {
     param(
         [array]$Results,
-        [hashtable]$LogMessages
+        $LogMessages
     )
 
     Write-Host ""

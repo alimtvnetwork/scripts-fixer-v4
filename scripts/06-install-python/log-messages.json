@@ -14,7 +14,8 @@
     "pathAlreadyContains": "PATH already contains: {path}",
     "scriptDisabled": "Python installation is disabled in config.",
     "pythonNotFound": "Python not found, installing via Chocolatey...",
-    "savingResolved": "Saving resolved state..."
+    "savingResolved": "Saving resolved state...",
+    "notAdmin": "This script requires administrator privileges."
   },
   "help": {
     "commands": {
