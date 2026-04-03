@@ -42,6 +42,8 @@
 param(
     [int]$I,
 
+    [switch]$d,
+
     [switch]$Merge,
 
     [switch]$Clean,
