@@ -43,8 +43,8 @@ function Resolve-ScriptList {
         }
     }
 
-    # Filter disabled
-    $result = @()
+    # Build result list using ArrayList to prevent single-item unwrapping
+    $result = New-Object System.Collections.ArrayList
     foreach ($id in $sequence) {
         $entry = $scripts.$id
         $hasNoEntry = -not $entry
@@ -52,25 +52,28 @@ function Resolve-ScriptList {
 
         $checkedByDefault = if ($groupDefaults.ContainsKey($id)) { $groupDefaults[$id] } else { $entry.enabled }
 
-        $result += @{
+        [void]$result.Add(@{
             Id              = $id
             Folder          = $entry.folder
             Name            = $entry.name
             Desc            = if ($entry.desc) { $entry.desc } else { "" }
             Enabled         = $entry.enabled
             CheckedByDefault = $checkedByDefault
-        }
+        })
     }
 
-    return ,$result
+    return ,@($result)
 }
 
 function Show-InteractiveMenu {
     param(
-        [array]$ScriptList,
+        $ScriptList,
         $LogMessages,
         $Groups
     )
+
+    # Normalize: ensure $ScriptList is always a proper list
+    $ScriptList = if ($ScriptList -is [hashtable]) { ,@($ScriptList) } else { @($ScriptList) }
 
     # Build selection state from group defaults
     $selected = @{}
@@ -183,15 +186,15 @@ function Show-InteractiveMenu {
     }
 
     # Return only selected scripts
-    $result = @()
+    $result = New-Object System.Collections.ArrayList
     for ($i = 0; $i -lt $ScriptList.Count; $i++) {
         $isSelected = $selected[$i]
         if ($isSelected) {
-            $result += $ScriptList[$i]
+            [void]$result.Add($ScriptList[$i])
         }
     }
 
-    return ,$result
+    return ,@($result)
 }
 
 function Show-DryRun {
@@ -222,14 +225,17 @@ function Show-DryRun {
 
 function Invoke-ScriptSequence {
     param(
-        [array]$ScriptList,
+        $ScriptList,
         [string]$ScriptsRoot,
         $LogMessages,
         [string]$Skip
     )
 
+    # Normalize: ensure $ScriptList is always a proper list
+    $ScriptList = if ($ScriptList -is [hashtable]) { ,@($ScriptList) } else { @($ScriptList) }
+
     $skipList = if ($Skip) { $Skip -split ',' | ForEach-Object { $_.Trim() } } else { @() }
-    $results  = @()
+    $results  = New-Object System.Collections.ArrayList
 
     foreach ($script in $ScriptList) {
         $id   = $script.Id
@@ -239,7 +245,7 @@ function Invoke-ScriptSequence {
         $isDisabled = -not $script.Enabled
         if ($isDisabled) {
             Write-Log ($LogMessages.messages.scriptDisabled -replace '\{id\}', $id -replace '\{name\}', $name) -Level "warn"
-            $results += @{ Id = $id; Name = $name; Status = "disabled" }
+            [void]$results.Add(@{ Id = $id; Name = $name; Status = "disabled" })
             continue
         }
 
@@ -247,7 +253,7 @@ function Invoke-ScriptSequence {
         $isSkipped = $id -in $skipList
         if ($isSkipped) {
             Write-Log ($LogMessages.messages.scriptSkipped -replace '\{id\}', $id -replace '\{name\}', $name) -Level "warn"
-            $results += @{ Id = $id; Name = $name; Status = "skipped" }
+            [void]$results.Add(@{ Id = $id; Name = $name; Status = "skipped" })
             continue
         }
 
@@ -258,16 +264,16 @@ function Invoke-ScriptSequence {
         try {
             & $scriptPath
             Write-Log ($LogMessages.messages.scriptSuccess -replace '\{id\}', $id) -Level "success"
-            $results += @{ Id = $id; Name = $name; Status = "success" }
+            [void]$results.Add(@{ Id = $id; Name = $name; Status = "success" })
         }
         catch {
             $errMsg = $_.Exception.Message
             Write-Log ($LogMessages.messages.scriptFailed -replace '\{id\}', $id -replace '\{error\}', $errMsg) -Level "error"
-            $results += @{ Id = $id; Name = $name; Status = "failed" }
+            [void]$results.Add(@{ Id = $id; Name = $name; Status = "failed" })
         }
     }
 
-    return ,$results
+    return ,@($results)
 }
 
 function Show-Summary {
