@@ -8,6 +8,14 @@
     on Windows PowerShell 5.1.
 #>
 
+# -- Bootstrap shared helpers --------------------------------------------------
+$_sharedDir = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) "shared"
+$_loggingPath = Join-Path $_sharedDir "logging.ps1"
+if ((Test-Path $_loggingPath) -and -not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
+    . $_loggingPath
+}
+
+
 function Assert-Admin {
     $logMsgs = Import-JsonConfig (Join-Path $script:ScriptDir "log-messages.json")
     Write-Log $logMsgs.messages.checkingAdmin -Level "info"
