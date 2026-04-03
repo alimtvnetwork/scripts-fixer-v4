@@ -1,0 +1,5 @@
+{
+  "enabled": true,
+  "chocoPackageName": "github-desktop",
+  "alwaysUpgradeToLatest": true
+}

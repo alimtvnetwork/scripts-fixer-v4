@@ -28,8 +28,9 @@ configuration -- from VS Code settings to installing Git, Go, Node.js, Python, a
 | 05 | `05-install-nodejs` | Install Node.js (LTS), configure npm prefix | Yes |
 | 06 | `06-install-python` | Install Python, configure pip user site | Yes |
 | 07 | `07-install-pnpm` | Install pnpm, configure global store | No |
-| 08 | `08-install-all-dev-tools` | Orchestrator: runs 03-09 in sequence | Yes |
+| 08 | `08-install-all-dev-tools` | Orchestrator: runs 03-10 in sequence | Yes |
 | 09 | `09-install-git` | Install Git + GitHub CLI, configure globals | Yes |
+| 10 | `10-install-github-desktop` | Install GitHub Desktop | Yes |
 
 ## Dev Directory
 
@@ -75,7 +76,8 @@ scripts/
   06-.../              # Python
   07-.../              # pnpm
   08-.../              # Orchestrator
-  09-.../              # Git
+  09-.../              # Git + GitHub CLI
+  10-.../              # GitHub Desktop
 spec/                  # Specifications per script
 suggestions/           # Improvement ideas
 .resolved/             # Runtime state (git-ignored)
