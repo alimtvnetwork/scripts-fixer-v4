@@ -16,404 +16,112 @@
 
 .NOTES
     Author : Lovable AI
-    Version: 4.0.0
+    Version: 5.0.0
 #>
 
 param(
     [switch]$Merge
 )
 
-# ── Shared Helpers ───────────────────────────────────────────────────
-$sharedLogging = Join-Path $PSScriptRoot "..\shared\logging.ps1"
-if (Test-Path $sharedLogging) {
-    . $sharedLogging
-} else {
-    Write-Host "  [ FAIL ] Shared logging helper not found: $sharedLogging" -ForegroundColor Red
-    exit 1
-}
+$ErrorActionPreference = "Stop"
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 
-$sharedResolved = Join-Path $PSScriptRoot "..\shared\resolved.ps1"
+Write-Host "  [ INFO ] Script directory: $ScriptDir" -ForegroundColor Cyan
+
+# ── Load shared helpers ──────────────────────────────────────────────
+. (Join-Path $ScriptDir "..\shared\logging.ps1")
+. (Join-Path $ScriptDir "..\shared\json-utils.ps1")
+
+$sharedResolved = Join-Path $ScriptDir "..\shared\resolved.ps1"
 if (Test-Path $sharedResolved) { . $sharedResolved }
 
-$sharedJsonUtils = Join-Path $PSScriptRoot "..\shared\json-utils.ps1"
-if (Test-Path $sharedJsonUtils) {
-    . $sharedJsonUtils
+# ── Load script-specific helpers ─────────────────────────────────────
+. (Join-Path $ScriptDir "helpers\sync.ps1")
+
+# ── Git pull (guard is inside Invoke-GitPull) ────────────────────────
+$sharedGitPull = Join-Path $ScriptDir "..\shared\git-pull.ps1"
+if (Test-Path $sharedGitPull) {
+    . $sharedGitPull
+    $repoRoot = Split-Path -Parent (Split-Path -Parent $ScriptDir)
+    Invoke-GitPull -RepoRoot $repoRoot
 } else {
-    Write-Host "  [ FAIL ] Shared json-utils helper not found: $sharedJsonUtils" -ForegroundColor Red
-    exit 1
+    Write-Host "  [ WARN  ] " -ForegroundColor Yellow -NoNewline
+    Write-Host "Shared git-pull helper not found -- skipping git pull"
 }
 
-function Resolve-SourceFiles {
-    param([string]$ScriptDir)
+# ── Start logging ────────────────────────────────────────────────────
+$logFile = Initialize-Logging -ScriptDir $ScriptDir
 
-    $result = @{ Settings = $null; Keybindings = $null; Extensions = @() }
+try {
+    # Load log messages
+    $logPath = Join-Path $ScriptDir "log-messages.json"
+    $script:LogMessages = Import-JsonConfig -FilePath $logPath -Label "log-messages.json"
+    if (-not $script:LogMessages) { exit 1 }
 
-    # Check for .code-profile first
-    $profileFiles = Get-ChildItem -Path $ScriptDir -Filter "*.code-profile" -ErrorAction SilentlyContinue
-    Write-Log "Scanning for .code-profile files in: $ScriptDir"
-    Write-Log "Found $(@($profileFiles).Count) .code-profile file(s)" "info"
+    Write-Banner $script:LogMessages.banner
 
-    if ($profileFiles -and $profileFiles.Count -gt 0) {
-        $profilePath = $profileFiles[0].FullName
-        Write-Log "Using profile: $($profileFiles[0].Name)" "ok"
+    # Load config
+    $cfgPath = Join-Path $ScriptDir "config.json"
+    $Config = Import-JsonConfig -FilePath $cfgPath -Label "config.json"
+    if (-not $Config) { exit 1 }
 
-        try {
-            $profileData = Get-Content $profilePath -Raw | ConvertFrom-Json
+    # Resolve source files
+    $sources = Resolve-SourceFiles -ScriptDir $ScriptDir
 
-            if ($profileData.settings) {
-                Write-Log "Extracting settings from profile..." "info"
-                $settingsWrapper = $profileData.settings | ConvertFrom-Json
-                $settingsContent = $settingsWrapper.settings
-                $tmpSettings = Join-Path $env:TEMP "vscode-profile-settings.json"
-                $settingsContent | Out-File -FilePath $tmpSettings -Encoding utf8 -Force
-                $result.Settings = $tmpSettings
-                Write-Log "Settings extracted to: $tmpSettings" "ok"
-            }
+    if (-not $sources.Settings) {
+        Write-Log "No settings source found -- cannot continue" "fail"
+        exit 1
+    }
 
-            if ($profileData.keybindings) {
-                Write-Log "Extracting keybindings from profile..." "info"
-                $kbWrapper = $profileData.keybindings | ConvertFrom-Json
-                $kbContent = $kbWrapper.keybindings
-                $tmpKeybindings = Join-Path $env:TEMP "vscode-profile-keybindings.json"
-                $kbContent | Out-File -FilePath $tmpKeybindings -Encoding utf8 -Force
-                $result.Keybindings = $tmpKeybindings
-                Write-Log "Keybindings extracted to: $tmpKeybindings" "ok"
-            }
+    $enabledEditions = $Config.enabledEditions
+    $totalSuccess    = $true
 
-            if ($profileData.extensions) {
-                Write-Log "Extracting extensions from profile..." "info"
-                $profileExtensions = $profileData.extensions | ConvertFrom-Json
-                $result.Extensions = @($profileExtensions | Where-Object { -not $_.disabled } | ForEach-Object { $_.identifier.id })
-                Write-Log "Extracted $($result.Extensions.Count) extension(s) from profile" "ok"
-            }
-        } catch {
-            Write-Log "Failed to parse profile: $_" "fail"
-            Write-Log "Falling back to individual JSON files..." "warn"
+    Write-Log "Enabled editions: $($enabledEditions -join ', ')" "info"
+    Write-Log "Extensions to install: $($sources.Extensions.Count)" "info"
+    if ($Merge) {
+        Write-Log "Merge mode enabled -- settings will be deep-merged" "info"
+    } else {
+        Write-Log "Replace mode -- existing settings will be backed up and replaced" "info"
+    }
+
+    # Process each edition
+    foreach ($editionName in $enabledEditions) {
+        $edition = $Config.editions.$editionName
+
+        if (-not $edition) {
+            Write-Log "Unknown edition '$editionName' -- skipping" "warn"
+            $totalSuccess = $false
+            continue
         }
+
+        $result = Invoke-Edition `
+            -Edition      $edition `
+            -EditionName  $editionName `
+            -Sources      $sources `
+            -BackupSuffix $Config.backupSuffix `
+            -MergeMode    $Merge.IsPresent `
+            -ScriptDir    $ScriptDir
+
+        if (-not $result) { $totalSuccess = $false }
     }
 
-    # Fallback: individual settings.json
-    if (-not $result.Settings) {
-        $settingsPath = Join-Path $ScriptDir "settings.json"
-        Write-Log "Checking individual settings.json: $settingsPath"
-        if (Test-Path $settingsPath) {
-            $result.Settings = $settingsPath
-            Write-Log "Source settings.json found" "ok"
-        } else {
-            Write-Log "settings.json not found -- cannot continue" "fail"
-        }
-    }
-
-    # Fallback: individual keybindings.json
-    if (-not $result.Keybindings) {
-        $kbPath = Join-Path $ScriptDir "keybindings.json"
-        Write-Log "Checking individual keybindings.json: $kbPath"
-        if (Test-Path $kbPath) {
-            $result.Keybindings = $kbPath
-            Write-Log "Source keybindings.json found" "ok"
-        } else {
-            Write-Log "No keybindings.json -- skipping keybindings" "skip"
-        }
-    }
-
-    # Fallback: extensions.json
-    if ($result.Extensions.Count -eq 0) {
-        $extPath = Join-Path $ScriptDir "extensions.json"
-        Write-Log "Checking individual extensions.json: $extPath"
-        if (Test-Path $extPath) {
-            $extData = Get-Content $extPath -Raw | ConvertFrom-Json
-            $result.Extensions = @($extData.extensions)
-            Write-Log "$($result.Extensions.Count) extension(s) loaded from extensions.json" "ok"
-        } else {
-            Write-Log "No extensions.json found" "warn"
-        }
-    }
-
-    return $result
-}
-
-function Apply-Settings {
-    param(
-        [string]$SourcePath,
-        [string]$DestPath,
-        [string]$BackupSuffix,
-        [bool]$MergeMode
-    )
-
-    Write-Log "Applying settings to: $DestPath"
-    $backupOk = Backup-File -FilePath $DestPath -BackupSuffix $BackupSuffix
-
-    if (-not $backupOk) { return $false }
-
-    if ($MergeMode -and (Test-Path $DestPath)) {
-        Write-Log "Merge mode: deep-merging into existing settings.json" "info"
-        try {
-            $existingObj = Get-Content $DestPath -Raw | ConvertFrom-Json
-            $incomingObj = Get-Content $SourcePath -Raw | ConvertFrom-Json
-            $existingHt  = ConvertTo-OrderedHashtable -InputObject $existingObj
-            $incomingHt  = ConvertTo-OrderedHashtable -InputObject $incomingObj
-            $merged      = Merge-JsonDeep -Base $existingHt -Override $incomingHt
-            $merged | ConvertTo-Json -Depth 20 | Out-File -FilePath $DestPath -Encoding utf8 -Force
-            Write-Log "settings.json merged successfully" "ok"
-            return $true
-        } catch {
-            Write-Log "Merge failed: $_ -- falling back to replace" "warn"
-        }
-    }
-
-    Write-Log "Copying settings.json..." "info"
-    try {
-        Copy-Item -Path $SourcePath -Destination $DestPath -Force
-        Write-Log "settings.json applied" "ok"
-        return $true
-    } catch {
-        Write-Log "Failed to copy settings: $_" "fail"
-        return $false
-    }
-}
-
-function Apply-Keybindings {
-    param(
-        [string]$SourcePath,
-        [string]$DestPath,
-        [string]$BackupSuffix
-    )
-
-    Write-Log "Applying keybindings to: $DestPath"
-    $backupOk = Backup-File -FilePath $DestPath -BackupSuffix $BackupSuffix
-
-    if (-not $backupOk) { return $false }
-
-    try {
-        Copy-Item -Path $SourcePath -Destination $DestPath -Force
-        Write-Log "keybindings.json applied" "ok"
-        return $true
-    } catch {
-        Write-Log "Failed to copy keybindings: $_" "fail"
-        return $false
-    }
-}
-
-function Install-Extensions {
-    param(
-        [string]$CliCommand,
-        [string[]]$Extensions
-    )
-
-    $allOk = $true
-    Write-Log "Installing $($Extensions.Count) extension(s) via '$CliCommand'..."
-
-    foreach ($ext in $Extensions) {
-        Write-Log "Installing: $ext" "info"
-        try {
-            $output = & $CliCommand --install-extension $ext --force 2>&1
-            if ($LASTEXITCODE -ne 0 -or $output -match 'Failed|error') {
-                Write-Log "Extension install may have failed: $ext -- $output" "warn"
-                $allOk = $false
-            } else {
-                Write-Log "Installed $ext" "ok"
-            }
-        } catch {
-            Write-Log "Failed to install $ext -- $_" "fail"
-            $allOk = $false
-        }
-    }
-
-    return $allOk
-}
-
-function Invoke-Edition {
-    param(
-        [PSCustomObject]$Edition,
-        [string]$EditionName,
-        [hashtable]$Sources,
-        [string]$BackupSuffix,
-        [bool]$MergeMode,
-        [string]$ScriptDir
-    )
-
+    # Summary
     Write-Host ""
-    Write-Host "  +----------------------------------------------" -ForegroundColor DarkCyan
-    Write-Host "  |  Edition: VS Code $($EditionName.Substring(0,1).ToUpper() + $EditionName.Substring(1))" -ForegroundColor Cyan
-    Write-Host "  +----------------------------------------------" -ForegroundColor DarkCyan
-
-    $cliCmd = $Edition.cliCommand
-    $allOk  = $true
-
-    # Check CLI
-    Write-Log "Checking CLI command: $cliCmd"
-    $cliExists = Get-Command $cliCmd -ErrorAction SilentlyContinue
-    if (-not $cliExists) {
-        Write-Log "'$cliCmd' not found in PATH -- skipping this edition" "warn"
-        return $false
-    }
-    Write-Log "'$cliCmd' found in PATH" "ok"
-
-    # Resolve settings directory
-    $rawPath     = $Edition.settingsPath
-    $settingsDir = [System.Environment]::ExpandEnvironmentVariables($rawPath)
-    Write-Log "Settings path (raw): $rawPath"
-    Write-Log "Settings path (expanded): $settingsDir"
-
-    if (-not (Test-Path $settingsDir)) {
-        Write-Log "Settings directory does not exist -- creating..." "info"
-        New-Item -Path $settingsDir -ItemType Directory -Force -Confirm:$false | Out-Null
-        Write-Log "Created: $settingsDir" "ok"
-    }
-
-    # Save resolved settings path to .resolved/
-    Save-ResolvedData -ScriptDir $ScriptDir -Data @{
-        $EditionName = @{
-            settingsDir = $settingsDir
-            cliCommand  = $cliCmd
-            resolvedAt  = (Get-Date -Format "o")
-        }
-    }
-
-    $destSettings    = Join-Path $settingsDir "settings.json"
-    $destKeybindings = Join-Path $settingsDir "keybindings.json"
-
-    # Apply settings
-    if ($Sources.Settings) {
-        $ok = Apply-Settings `
-            -SourcePath   $Sources.Settings `
-            -DestPath     $destSettings `
-            -BackupSuffix $BackupSuffix `
-            -MergeMode    $MergeMode
-        if (-not $ok) { $allOk = $false }
-    }
-
-    # Apply keybindings
-    if ($Sources.Keybindings) {
-        $ok = Apply-Keybindings `
-            -SourcePath   $Sources.Keybindings `
-            -DestPath     $destKeybindings `
-            -BackupSuffix $BackupSuffix
-        if (-not $ok) { $allOk = $false }
-    }
-
-    # Install extensions
-    if ($Sources.Extensions.Count -gt 0) {
-        $ok = Install-Extensions -CliCommand $cliCmd -Extensions $Sources.Extensions
-        if (-not $ok) { $allOk = $false }
-    }
-
-    # Verify
-    Write-Log "Verifying applied files..."
-    if (Test-Path $destSettings) {
-        Write-Log "settings.json present at $destSettings" "ok"
+    if ($totalSuccess) {
+        Write-Log $script:LogMessages.steps.done "ok"
     } else {
-        Write-Log "settings.json NOT found at $destSettings" "fail"
-        $allOk = $false
+        Write-Log "Completed with some warnings -- check output above." "warn"
     }
 
-    if ($Sources.Keybindings -and (Test-Path $destKeybindings)) {
-        Write-Log "keybindings.json present at $destKeybindings" "ok"
-    }
+    Write-Banner $script:LogMessages.footer "Green"
 
-    return $allOk
+} catch {
+    Write-Host ""
+    Write-Log "Unhandled error: $_" "fail"
+    Write-Log "Stack: $($_.ScriptStackTrace)" "fail"
+    Write-Host ""
+    Write-Log "Log saved to: $logFile" "info"
+} finally {
+    Stop-Transcript -ErrorAction SilentlyContinue | Out-Null
+    Write-Host "  [ LOG  ] Transcript saved: $logFile" -ForegroundColor DarkGray
 }
-
-# ── Main ─────────────────────────────────────────────────────────────
-
-function Main {
-    $ErrorActionPreference = "Stop"
-    $ScriptDir = Split-Path -Parent $MyInvocation.PSCommandPath
-
-    if (-not $ScriptDir) {
-        $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-    }
-
-    Write-Host "  [ INFO ] Script directory: $ScriptDir" -ForegroundColor Cyan
-
-    # Load shared git-pull helper and run (guard is inside Invoke-GitPull)
-    $sharedGitPull = Join-Path $ScriptDir "..\shared\git-pull.ps1"
-    if (Test-Path $sharedGitPull) {
-        . $sharedGitPull
-        $repoRoot = Split-Path -Parent (Split-Path -Parent $ScriptDir)
-        Invoke-GitPull -RepoRoot $repoRoot
-    } else {
-        Write-Host "  [ WARN  ] " -ForegroundColor Yellow -NoNewline
-        Write-Host "Shared git-pull helper not found -- skipping git pull"
-    }
-
-    # Start logging
-    $logFile = Initialize-Logging -ScriptDir $ScriptDir
-
-    try {
-        # Load log messages
-        $logPath = Join-Path $ScriptDir "log-messages.json"
-        $script:LogMessages = Import-JsonConfig -FilePath $logPath -Label "log-messages.json"
-        if (-not $script:LogMessages) { exit 1 }
-
-        Write-Banner $script:LogMessages.banner
-
-        # Load config
-        $cfgPath = Join-Path $ScriptDir "config.json"
-        $Config = Import-JsonConfig -FilePath $cfgPath -Label "config.json"
-        if (-not $Config) { exit 1 }
-
-        # Resolve source files
-        $sources = Resolve-SourceFiles -ScriptDir $ScriptDir
-
-        if (-not $sources.Settings) {
-            Write-Log "No settings source found -- cannot continue" "fail"
-            exit 1
-        }
-
-        $enabledEditions = $Config.enabledEditions
-        $totalSuccess    = $true
-
-        Write-Log "Enabled editions: $($enabledEditions -join ', ')" "info"
-        Write-Log "Extensions to install: $($sources.Extensions.Count)" "info"
-        if ($Merge) {
-            Write-Log "Merge mode enabled -- settings will be deep-merged" "info"
-        } else {
-            Write-Log "Replace mode -- existing settings will be backed up and replaced" "info"
-        }
-
-        # Process each edition
-        foreach ($editionName in $enabledEditions) {
-            $edition = $Config.editions.$editionName
-
-            if (-not $edition) {
-                Write-Log "Unknown edition '$editionName' -- skipping" "warn"
-                $totalSuccess = $false
-                continue
-            }
-
-            $result = Invoke-Edition `
-                -Edition      $edition `
-                -EditionName  $editionName `
-                -Sources      $sources `
-                -BackupSuffix $Config.backupSuffix `
-                -MergeMode    $Merge.IsPresent `
-                -ScriptDir    $ScriptDir
-
-            if (-not $result) { $totalSuccess = $false }
-        }
-
-        # Summary
-        Write-Host ""
-        if ($totalSuccess) {
-            Write-Log $script:LogMessages.steps.done "ok"
-        } else {
-            Write-Log "Completed with some warnings -- check output above." "warn"
-        }
-
-        Write-Banner $script:LogMessages.footer "Green"
-
-    } catch {
-        Write-Host ""
-        Write-Log "Unhandled error: $_" "fail"
-        Write-Log "Stack: $($_.ScriptStackTrace)" "fail"
-        Write-Host ""
-        Write-Log "Log saved to: $logFile" "info"
-    } finally {
-        Stop-Transcript -ErrorAction SilentlyContinue | Out-Null
-        Write-Host "  [ LOG  ] Transcript saved: $logFile" -ForegroundColor DarkGray
-    }
-}
-
-# ── Entry Point ──────────────────────────────────────────────────────
-Main
