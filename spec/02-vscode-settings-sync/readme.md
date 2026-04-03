@@ -41,7 +41,8 @@ scripts/
 │   ├── git-pull.ps1                   # Shared git-pull helper (dot-sourced)
 │   ├── logging.ps1                    # Write-Log, Write-Banner, Initialize-Logging, Import-JsonConfig
 │   ├── json-utils.ps1                 # Backup-File, Merge-JsonDeep, ConvertTo-OrderedHashtable
-│   └── resolved.ps1                   # Save-ResolvedData, Get-ResolvedDir
+│   ├── resolved.ps1                   # Save-ResolvedData, Get-ResolvedDir
+│   └── cleanup.ps1                    # Clear-ResolvedData
 └── 02-vscode-settings-sync/
     ├── config.json                    # Paths & edition settings (never mutated at runtime)
     ├── log-messages.json              # All display strings & banners
@@ -49,7 +50,9 @@ scripts/
     ├── keybindings.json               # Extracted/provided keybindings
     ├── extensions.json                # Extension IDs (enabled & disabled)
     ├── *.code-profile                 # (Optional) VS Code profile export
-    ├── run.ps1                        # Main script
+    ├── run.ps1                        # Thin orchestrator (loads helpers, runs flow)
+    ├── helpers/
+    │   └── sync.ps1                   # Script-specific functions (resolve, apply, install)
     └── logs/                          # Auto-created runtime log folder (gitignored)
         └── run-<timestamp>.log        # Timestamped execution log
 
@@ -97,8 +100,9 @@ Only `extensions` (enabled) are installed. The `disabled` list is kept for refer
 
 ## Script Architecture
 
-The script is organized into **small, focused functions** that are defined first,
-then invoked from a single `Main` entry point at the bottom of the file.
+The script follows the same pattern as script 01: a **thin `run.ps1` orchestrator**
+that dot-sources shared helpers and a script-specific `helpers/sync.ps1` file.
+All reusable functions live in `scripts/shared/`, script-specific logic lives in `helpers/`.
 
 ### Function Breakdown
 
@@ -112,12 +116,11 @@ then invoked from a single `Main` entry point at the bottom of the file.
 | `Merge-JsonDeep` | `shared/json-utils.ps1` | Recursively deep-merges two hashtables |
 | `ConvertTo-OrderedHashtable` | `shared/json-utils.ps1` | Converts `PSCustomObject` to ordered hashtable |
 | `Save-ResolvedData` | `shared/resolved.ps1` | Persists runtime-discovered state to `.resolved/` |
-| `Resolve-SourceFiles` | `run.ps1` (local) | Scans for `.code-profile` first, falls back to individual JSON files |
-| `Apply-Settings` | `run.ps1` (local) | Backs up and copies/merges `settings.json` |
-| `Apply-Keybindings` | `run.ps1` (local) | Backs up and copies `keybindings.json` |
-| `Install-Extensions` | `run.ps1` (local) | Installs extensions via VS Code CLI, checks `$LASTEXITCODE` |
-| `Invoke-Edition` | `run.ps1` (local) | Orchestrates the full update for a single edition |
-| `Main` | `run.ps1` (local) | Orchestrates the full flow |
+| `Resolve-SourceFiles` | `helpers/sync.ps1` | Scans for `.code-profile` first, falls back to individual JSON files |
+| `Apply-Settings` | `helpers/sync.ps1` | Backs up and copies/merges `settings.json` |
+| `Apply-Keybindings` | `helpers/sync.ps1` | Backs up and copies `keybindings.json` |
+| `Install-Extensions` | `helpers/sync.ps1` | Installs extensions via VS Code CLI, checks `$LASTEXITCODE` |
+| `Invoke-Edition` | `helpers/sync.ps1` | Orchestrates the full update for a single edition |
 
 ### Verbose Logging Rules
 
