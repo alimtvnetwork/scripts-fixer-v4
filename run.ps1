@@ -169,41 +169,44 @@ if ($isHelperMissing) {
 }
 . $sharedGitPull
 
-# ── Resolve Script (early, so we can clean logs before git output) ───
+# ── Resolve Script from registry (exact folder match) ────────────────
 $prefix = "{0:D2}" -f $I
-$pattern = Join-Path $RootDir "scripts/$prefix-*"
-$scriptMatches = @(Get-Item $pattern -ErrorAction SilentlyContinue | Where-Object { $_.PSIsContainer })
-$runnableScriptMatches = @($scriptMatches | Where-Object { Test-Path (Join-Path $_.FullName "run.ps1") })
+$registryPath = Join-Path $RootDir "scripts\registry.json"
+$isRegistryAvailable = Test-Path $registryPath
 
-$hasNoScriptMatches = $scriptMatches.Count -eq 0
-if ($hasNoScriptMatches) {
+if ($isRegistryAvailable) {
+    $registry = Get-Content $registryPath -Raw | ConvertFrom-Json
+    $folderName = $registry.scripts.$prefix
+
+    $isRegistered = [bool]$folderName
+    if ($isRegistered) {
+        $scriptDir = Get-Item (Join-Path $RootDir "scripts\$folderName") -ErrorAction SilentlyContinue
+    }
+} else {
+    # Fallback: glob match (for repos without registry.json)
+    $pattern = Join-Path $RootDir "scripts/$prefix-*"
+    $scriptDir = @(Get-Item $pattern -ErrorAction SilentlyContinue |
+        Where-Object { $_.PSIsContainer -and (Test-Path (Join-Path $_.FullName "run.ps1")) }) |
+        Select-Object -First 1
+}
+
+$isScriptMissing = -not $scriptDir -or -not (Test-Path $scriptDir.FullName)
+if ($isScriptMissing) {
     Write-Host ""
     Write-Host "  [ FAIL  ] " -ForegroundColor Red -NoNewline
-    Write-Host "No script folder found matching: scripts/$prefix-*"
+    Write-Host "No script folder found for ID $prefix"
     Write-Host "  Run .\run.ps1 -Help to see all available scripts" -ForegroundColor Cyan
     exit 1
 }
 
-$hasNoRunnableScriptMatches = $runnableScriptMatches.Count -eq 0
-if ($hasNoRunnableScriptMatches) {
-    Write-Host ""
-    Write-Host "  [ FAIL  ] " -ForegroundColor Red -NoNewline
-    Write-Host "No runnable script found matching: scripts/$prefix-*"
-    Write-Host "  Remove stale script folders that do not contain run.ps1 and try again" -ForegroundColor Cyan
-    exit 1
-}
-
-$hasMultipleRunnableScriptMatches = $runnableScriptMatches.Count -gt 1
-if ($hasMultipleRunnableScriptMatches) {
-    Write-Host ""
-    Write-Host "  [ FAIL  ] " -ForegroundColor Red -NoNewline
-    Write-Host "Multiple runnable script folders found matching: scripts/$prefix-*"
-    Write-Host "  Matches: $($runnableScriptMatches.Name -join ', ')" -ForegroundColor Cyan
-    exit 1
-}
-
-$scriptDir = $runnableScriptMatches[0]
 $scriptFile = Join-Path $scriptDir.FullName "run.ps1"
+$isRunFileMissing = -not (Test-Path $scriptFile)
+if ($isRunFileMissing) {
+    Write-Host ""
+    Write-Host "  [ FAIL  ] " -ForegroundColor Red -NoNewline
+    Write-Host "run.ps1 not found in $($scriptDir.Name)"
+    exit 1
+}
 
 # ── Clean & create logs folder ───────────────────────────────────────
 $logsDir = Join-Path $scriptDir.FullName "logs"
