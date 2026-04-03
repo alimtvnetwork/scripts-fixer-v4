@@ -4,8 +4,8 @@
 
 function Install-GitHubDesktop {
     param(
-        [hashtable]$Config,
-        [hashtable]$LogMessages
+        $Config,
+        $LogMessages
     )
 
     $packageName = $Config.chocoPackageName

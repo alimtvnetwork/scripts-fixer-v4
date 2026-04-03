@@ -26,7 +26,7 @@ function Clear-ResolvedData {
     $resolvedDir = Join-Path $repoRoot ".resolved"
 
     if (-not (Test-Path $resolvedDir)) {
-        Write-Log "Nothing to clear -- .resolved/ does not exist" "skip"
+        Write-Log "Nothing to clear -- .resolved/ does not exist" -Level "info"
         return
     }
 
@@ -36,7 +36,7 @@ function Clear-ResolvedData {
         $resolvedFile = Join-Path $resolvedDir $scriptName "resolved.json"
 
         if (-not (Test-Path $resolvedFile)) {
-            Write-Log "No resolved.json for $scriptName -- nothing to clear" "skip"
+            Write-Log "No resolved.json for $scriptName -- nothing to clear" -Level "info"
             return
         }
 
@@ -51,24 +51,24 @@ function Clear-ResolvedData {
 
             if ($ht.Count -eq 0) {
                 Remove-Item -Path $resolvedFile -Force
-                Write-Log "Removed resolved.json for $scriptName (was only $EditionName)" "ok"
+                Write-Log "Removed resolved.json for $scriptName (was only $EditionName)" -Level "success"
             } else {
                 $json = $ht | ConvertTo-Json -Depth 10
                 [System.IO.File]::WriteAllText($resolvedFile, $json)
-                Write-Log "Cleared '$EditionName' from $scriptName/resolved.json" "ok"
+                Write-Log "Cleared '$EditionName' from $scriptName/resolved.json" -Level "success"
             }
         } catch {
-            Write-Log "Failed to clear edition '$EditionName': $_" "warn"
+            Write-Log "Failed to clear edition '$EditionName': $_" -Level "warn"
         }
         return
     }
 
     # Clear everything
-    Write-Log "Clearing all resolved data..." "info"
+    Write-Log "Clearing all resolved data..." -Level "info"
     try {
         Get-ChildItem -Path $resolvedDir -Recurse -Force | Remove-Item -Recurse -Force
-        Write-Log "All .resolved/ contents removed" "ok"
+        Write-Log "All .resolved/ contents removed" -Level "success"
     } catch {
-        Write-Log "Failed to clear .resolved/: $_" "warn"
+        Write-Log "Failed to clear .resolved/: $_" -Level "warn"
     }
 }

@@ -4,8 +4,8 @@
 
 function Install-Pnpm {
     param(
-        [hashtable]$Config,
-        [hashtable]$LogMessages
+        $Config,
+        $LogMessages
     )
 
     # Ensure npm is available
@@ -40,8 +40,8 @@ function Install-Pnpm {
 
 function Configure-PnpmStore {
     param(
-        [hashtable]$Config,
-        [hashtable]$LogMessages,
+        $Config,
+        $LogMessages,
         [string]$DevDir
     )
 
@@ -76,8 +76,8 @@ function Configure-PnpmStore {
 
 function Update-PnpmPath {
     param(
-        [hashtable]$Config,
-        [hashtable]$LogMessages
+        $Config,
+        $LogMessages
     )
 
     if (-not $Config.path.updateUserPath) { return }

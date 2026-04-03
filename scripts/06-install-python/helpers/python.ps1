@@ -4,8 +4,8 @@
 
 function Install-Python {
     param(
-        [hashtable]$Config,
-        [hashtable]$LogMessages
+        $Config,
+        $LogMessages
     )
 
     $packageName = $Config.chocoPackageName
@@ -35,8 +35,8 @@ function Install-Python {
 
 function Configure-PipSite {
     param(
-        [hashtable]$Config,
-        [hashtable]$LogMessages,
+        $Config,
+        $LogMessages,
         [string]$DevDir
     )
 
@@ -72,8 +72,8 @@ function Configure-PipSite {
 
 function Update-PythonPath {
     param(
-        [hashtable]$Config,
-        [hashtable]$LogMessages,
+        $Config,
+        $LogMessages,
         [string]$SitePath
     )
 

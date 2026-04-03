@@ -11,7 +11,7 @@ function Resolve-DevDir {
     <#
     .SYNOPSIS
         Resolves the dev directory path from (in priority order):
-        1. $env:DEV_DIR (set by orchestrator script 08)
+        1. $env:DEV_DIR (set by orchestrator script 11)
         2. Config override value
         3. User prompt (if mode allows)
         4. Config default value
@@ -30,13 +30,13 @@ function Resolve-DevDir {
 
     # Check environment variable first (set by orchestrator)
     if (-not [string]::IsNullOrWhiteSpace($env:DEV_DIR)) {
-        Write-Log "Using dev directory from environment: $env:DEV_DIR" "ok"
+        Write-Log "Using dev directory from environment: $env:DEV_DIR" -Level "success"
         return $env:DEV_DIR
     }
 
     if (-not $DevDirConfig) {
         $fallback = "E:\dev"
-        Write-Log "No dev directory config -- using fallback: $fallback" "warn"
+        Write-Log "No dev directory config -- using fallback: $fallback" -Level "warn"
         return $fallback
     }
 
@@ -45,7 +45,7 @@ function Resolve-DevDir {
 
     # Config override takes precedence
     if (-not [string]::IsNullOrWhiteSpace($override)) {
-        Write-Log "Using dev directory override from config: $override" "info"
+        Write-Log "Using dev directory override from config: $override" -Level "info"
         return $override
     }
 
@@ -53,12 +53,12 @@ function Resolve-DevDir {
     if ($DevDirConfig.mode -eq "json-or-prompt") {
         $userInput = Read-Host -Prompt "Enter dev directory (default: $default)"
         if (-not [string]::IsNullOrWhiteSpace($userInput)) {
-            Write-Log "User provided dev directory: $userInput" "info"
+            Write-Log "User provided dev directory: $userInput" -Level "info"
             return $userInput
         }
     }
 
-    Write-Log "Using default dev directory: $default" "info"
+    Write-Log "Using default dev directory: $default" -Level "info"
     return $default
 }
 
@@ -80,20 +80,20 @@ function Initialize-DevDir {
     # Support -Path alias
     if ($Path -and -not $DevDir) { $DevDir = $Path }
 
-    Write-Log "Initializing dev directory: $DevDir" "info"
+    Write-Log "Initializing dev directory: $DevDir" -Level "info"
 
     if (-not (Test-Path $DevDir)) {
         New-Item -Path $DevDir -ItemType Directory -Force -Confirm:$false | Out-Null
-        Write-Log "Created dev directory: $DevDir" "ok"
+        Write-Log "Created dev directory: $DevDir" -Level "success"
     } else {
-        Write-Log "Dev directory already exists: $DevDir" "skip"
+        Write-Log "Dev directory already exists: $DevDir" -Level "info"
     }
 
     foreach ($sub in $Subdirectories) {
         $subPath = Join-Path $DevDir $sub
         if (-not (Test-Path $subPath)) {
             New-Item -Path $subPath -ItemType Directory -Force -Confirm:$false | Out-Null
-            Write-Log "Created subdirectory: $sub" "ok"
+            Write-Log "Created subdirectory: $sub" -Level "success"
         }
     }
 

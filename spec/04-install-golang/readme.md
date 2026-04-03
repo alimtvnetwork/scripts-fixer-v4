@@ -51,7 +51,7 @@ scripts/04-install-golang/
 
 ## GOPATH Resolution Priority
 
-1. `$env:DEV_DIR` + `devDirSubfolder` (set by orchestrator script 08)
+1. `$env:DEV_DIR` + `devDirSubfolder` (set by orchestrator script 11)
 2. `gopath.override` from config (if non-empty)
 3. User prompt (if mode is `json-or-prompt`)
 4. `gopath.default` from config
