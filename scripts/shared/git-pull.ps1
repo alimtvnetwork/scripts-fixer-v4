@@ -14,7 +14,13 @@
     Version: 1.2.0
 #>
 
-# -- Bootstrap shared log messages --------------------------------------------
+# -- Bootstrap shared helpers --------------------------------------------------
+$loggingPath = Join-Path $PSScriptRoot "logging.ps1"
+$isLoggingAvailable = Test-Path $loggingPath
+if ($isLoggingAvailable -and -not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
+    . $loggingPath
+}
+
 if (-not $script:SharedLogMessages) {
     $sharedLogPath = Join-Path $PSScriptRoot "log-messages.json"
     $isSharedLogFound = Test-Path $sharedLogPath
