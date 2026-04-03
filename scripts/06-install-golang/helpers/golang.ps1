@@ -334,7 +334,7 @@ function Invoke-GoSetup {
         if ($hasFailed) { $isAllOk = $false }
 
         # Save resolved data
-        Save-ResolvedData -ScriptFolder "05-install-golang" -Data @{
+        Save-ResolvedData -ScriptFolder "06-install-golang" -Data @{
             golang = @{
                 gopath     = $gopathFull
                 version    = "$(& go.exe version 2>&1)".Trim()

@@ -244,7 +244,7 @@ function Invoke-Edition {
     }
 
     # Save resolved settings path to .resolved/
-    Save-ResolvedData -ScriptFolder "02-vscode-settings-sync" -Data @{
+    Save-ResolvedData -ScriptFolder "10-vscode-settings-sync" -Data @{
         $EditionName = @{
             settingsDir = $settingsDir
             cliCommand  = $cliCmd

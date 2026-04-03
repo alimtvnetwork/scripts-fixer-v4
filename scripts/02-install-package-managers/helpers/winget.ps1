@@ -30,7 +30,7 @@ function Install-Winget {
         $version = & winget.exe --version 2>&1
         Write-Log ($LogMessages.messages.wingetFound -replace '\{version\}', $version) -Level "success"
 
-        Save-ResolvedData -ScriptFolder "03-install-package-managers" -Data @{
+        Save-ResolvedData -ScriptFolder "02-install-package-managers" -Data @{
             winget = @{
                 version    = "$version".Trim()
                 resolvedAt = (Get-Date -Format "o")
@@ -68,7 +68,7 @@ function Install-Winget {
             $version = & winget.exe --version 2>&1
             Write-Log ($LogMessages.messages.wingetInstallSuccess -replace '\{version\}', $version) -Level "success"
 
-            Save-ResolvedData -ScriptFolder "03-install-package-managers" -Data @{
+            Save-ResolvedData -ScriptFolder "02-install-package-managers" -Data @{
                 winget = @{
                     version    = "$version".Trim()
                     resolvedAt = (Get-Date -Format "o")
