@@ -9,7 +9,7 @@ if ((Test-Path $loggingPath) -and -not (Get-Command Write-Log -ErrorAction Silen
     . $loggingPath
 }
 
-if (-not $script:SharedLogMessages) {
+if ($null -eq $script:SharedLogMessages) {
     $sharedLogPath = Join-Path $PSScriptRoot "log-messages.json"
     if (Test-Path $sharedLogPath) {
         $script:SharedLogMessages = Get-Content $sharedLogPath -Raw | ConvertFrom-Json

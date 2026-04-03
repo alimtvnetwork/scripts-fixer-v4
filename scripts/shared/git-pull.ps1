@@ -21,7 +21,7 @@ if ($isLoggingAvailable -and -not (Get-Command Write-Log -ErrorAction SilentlyCo
     . $loggingPath
 }
 
-if (-not $script:SharedLogMessages) {
+if ($null -eq $script:SharedLogMessages) {
     $sharedLogPath = Join-Path $PSScriptRoot "log-messages.json"
     $isSharedLogFound = Test-Path $sharedLogPath
     if ($isSharedLogFound) {

@@ -10,7 +10,7 @@
 #>
 
 # -- Bootstrap shared log messages --------------------------------------------
-if (-not $script:SharedLogMessages) {
+if ($null -eq $script:SharedLogMessages) {
     $sharedLogPath = Join-Path $PSScriptRoot "log-messages.json"
     $isSharedLogFound = Test-Path $sharedLogPath
     if ($isSharedLogFound) {
