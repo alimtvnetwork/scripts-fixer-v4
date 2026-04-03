@@ -23,16 +23,14 @@ Write-Host "  [ INFO ] Script directory: $ScriptDir" -ForegroundColor Cyan
 . (Join-Path $ScriptDir "helpers\registry.ps1")
 
 # ── Git pull (skip if called from root dispatcher) ───────────────────
-if (-not $env:SCRIPTS_ROOT_RUN) {
-    $sharedGitPull = Join-Path $ScriptDir "..\shared\git-pull.ps1"
-    if (Test-Path $sharedGitPull) {
-        . $sharedGitPull
-        $repoRoot = Split-Path -Parent (Split-Path -Parent $ScriptDir)
-        Invoke-GitPull -RepoRoot $repoRoot
-    } else {
-        Write-Host "  [ WARN  ] " -ForegroundColor Yellow -NoNewline
-        Write-Host "Shared git-pull helper not found -- skipping git pull"
-    }
+$sharedGitPull = Join-Path $ScriptDir "..\shared\git-pull.ps1"
+if (Test-Path $sharedGitPull) {
+    . $sharedGitPull
+    $repoRoot = Split-Path -Parent (Split-Path -Parent $ScriptDir)
+    Invoke-GitPull -RepoRoot $repoRoot
+} else {
+    Write-Host "  [ WARN  ] " -ForegroundColor Yellow -NoNewline
+    Write-Host "Shared git-pull helper not found -- skipping git pull"
 }
 
 # ── Start logging ────────────────────────────────────────────────────
