@@ -113,3 +113,65 @@ function Update-NodePath {
         }
     }
 }
+
+function Install-NodeExtras {
+    param(
+        $Config,
+        $LogMessages
+    )
+
+    $extras = $Config.extras
+
+    # -- Yarn (via npm) --------------------------------------------------------
+    $isYarnEnabled = $extras.yarn.enabled
+    if ($isYarnEnabled) {
+        $yarnCmd = Get-Command yarn -ErrorAction SilentlyContinue
+        if ($yarnCmd) {
+            $yarnVersion = & yarn --version 2>$null
+            Write-Log ($LogMessages.messages.yarnAlreadyInstalled -replace '\{version\}', $yarnVersion) -Level "info"
+        }
+        else {
+            Write-Log $LogMessages.messages.yarnInstalling -Level "info"
+            try {
+                & npm install -g yarn 2>&1 | Out-Null
+                $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+                $yarnVersion = & yarn --version 2>$null
+                Write-Log ($LogMessages.messages.yarnInstallSuccess -replace '\{version\}', $yarnVersion) -Level "success"
+            }
+            catch {
+                Write-Log ($LogMessages.messages.yarnInstallFailed -replace '\{error\}', $_) -Level "error"
+            }
+        }
+    }
+
+    # -- Bun (via Chocolatey) --------------------------------------------------
+    $isBunEnabled = $extras.bun.enabled
+    if ($isBunEnabled) {
+        $bunCmd = Get-Command bun -ErrorAction SilentlyContinue
+        if ($bunCmd) {
+            $bunVersion = & bun --version 2>$null
+            Write-Log ($LogMessages.messages.bunAlreadyInstalled -replace '\{version\}', $bunVersion) -Level "info"
+        }
+        else {
+            Write-Log $LogMessages.messages.bunInstalling -Level "info"
+            Install-ChocoPackage -PackageName $extras.bun.chocoPackageName
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+            $bunVersion = & bun --version 2>$null
+            Write-Log ($LogMessages.messages.bunInstallSuccess -replace '\{version\}', $bunVersion) -Level "success"
+        }
+    }
+
+    # -- npx (verify) ----------------------------------------------------------
+    $isNpxVerify = $extras.npx.verify
+    if ($isNpxVerify) {
+        Write-Log $LogMessages.messages.npxVerifying -Level "info"
+        $npxCmd = Get-Command npx -ErrorAction SilentlyContinue
+        if ($npxCmd) {
+            $npxVersion = & npx --version 2>$null
+            Write-Log ($LogMessages.messages.npxAvailable -replace '\{version\}', $npxVersion) -Level "success"
+        }
+        else {
+            Write-Log $LogMessages.messages.npxMissing -Level "warn"
+        }
+    }
+}

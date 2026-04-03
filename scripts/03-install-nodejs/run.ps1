@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------
-#  Script 06 -- Install Node.js
-#  Installs Node.js (LTS) via Chocolatey and configures npm global prefix.
+#  Script 03 -- Install Node.js
+#  Installs Node.js (LTS) via Chocolatey, configures npm, installs extras.
 # --------------------------------------------------------------------------
 param(
     [Parameter(Position = 0)]
@@ -69,6 +69,7 @@ switch ($Command.ToLower()) {
         Install-NodeJs -Config $config -LogMessages $logMessages
         $prefixPath = Configure-NpmPrefix -Config $config -LogMessages $logMessages -DevDir $devDir
         Update-NodePath -Config $config -LogMessages $logMessages -PrefixPath $prefixPath
+        Install-NodeExtras -Config $config -LogMessages $logMessages
     }
     "install" {
         Install-NodeJs -Config $config -LogMessages $logMessages
@@ -76,6 +77,9 @@ switch ($Command.ToLower()) {
     "configure" {
         $prefixPath = Configure-NpmPrefix -Config $config -LogMessages $logMessages -DevDir $devDir
         Update-NodePath -Config $config -LogMessages $logMessages -PrefixPath $prefixPath
+    }
+    "extras" {
+        Install-NodeExtras -Config $config -LogMessages $logMessages
     }
     default {
         Write-Log ($logMessages.messages.unknownCommand -replace '\{command\}', $Command) -Level "error"
@@ -88,11 +92,15 @@ Write-Log $logMessages.messages.savingResolved -Level "info"
 $nodeVersion = & node --version 2>$null
 $npmVersion  = & npm --version 2>$null
 $npmPrefix   = & npm config get prefix 2>$null
+$yarnVersion = if (Get-Command yarn -ErrorAction SilentlyContinue) { & yarn --version 2>$null } else { $null }
+$bunVersion  = if (Get-Command bun -ErrorAction SilentlyContinue) { & bun --version 2>$null } else { $null }
 
-Save-ResolvedData -ScriptFolder "06-install-nodejs" -Data @{
+Save-ResolvedData -ScriptFolder "03-install-nodejs" -Data @{
     nodeVersion = $nodeVersion
     npmVersion  = $npmVersion
     npmPrefix   = $npmPrefix
+    yarnVersion = $yarnVersion
+    bunVersion  = $bunVersion
     timestamp   = (Get-Date -Format "o")
 }
 
