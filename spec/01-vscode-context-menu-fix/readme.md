@@ -102,6 +102,15 @@ cd scripts\vscode-context-menu-fix
 .\Fix-VSCodeContextMenu.ps1
 ```
 
+## Naming Conventions
+
+| Rule | Example |
+|------|---------|
+| All file names use **lowercase-hyphenated** (kebab-case) | `run.ps1`, `log-messages.json`, `config.json` |
+| Never use PascalCase or camelCase for file names | ~~`Fix-VSCodeContextMenu.ps1`~~ → `run.ps1` |
+| Folder names also use lowercase-hyphenated | `01-vscode-context-menu-fix`, `logs` |
+| PowerShell functions inside scripts may use Verb-Noun PascalCase per PS convention | `Write-Status`, `Test-Path` |
+
 ## Design Decisions
 
 | Decision | Rationale |

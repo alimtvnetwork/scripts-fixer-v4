@@ -122,6 +122,15 @@ Only `extensions` (enabled) are installed. The `disabled` list is kept for refer
 .\run.ps1 -I 2 -Merge
 ```
 
+## Naming Conventions
+
+| Rule | Example |
+|------|---------|
+| All file names use **lowercase-hyphenated** (kebab-case) | `run.ps1`, `log-messages.json`, `config.json` |
+| Never use PascalCase or camelCase for file names | ~~`Sync-VSCodeSettings.ps1`~~ → `run.ps1` |
+| Folder names also use lowercase-hyphenated | `02-vscode-settings-sync`, `logs` |
+| PowerShell functions inside scripts may use Verb-Noun PascalCase per PS convention | `Write-Status`, `Test-Path` |
+
 ## Design Decisions
 
 | Decision                    | Rationale                                                    |
