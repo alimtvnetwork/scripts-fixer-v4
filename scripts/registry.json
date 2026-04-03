@@ -15,6 +15,8 @@
     "12": "12-install-all-dev-tools",
     "13": "audit",
     "14": "14-install-winget",
-    "15": "15-windows-tweaks"
+    "15": "15-windows-tweaks",
+    "16": "16-install-php",
+    "17": "17-install-powershell"
   }
 }
