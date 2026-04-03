@@ -83,27 +83,64 @@ The script uses this priority for source data:
 
 Only `extensions` (enabled) are installed. The `disabled` list is kept for reference.
 
+## Script Architecture
+
+The script is organized into **small, focused functions** that are defined first,
+then invoked from a single `Main` entry point at the bottom of the file.
+
+### Function Breakdown
+
+| Function | Purpose |
+|----------|---------|
+| `Write-Log` | Prints a status-badged message (`[  OK  ]`, `[ FAIL ]`, etc.) and writes to transcript |
+| `Write-Banner` | Displays ASCII banner blocks in a specified color |
+| `Initialize-Logging` | Cleans and recreates `logs/`, starts transcript with timestamped file |
+| `Import-JsonConfig` | Loads and returns a JSON file with verbose logging (size, parse status) |
+| `Resolve-SourceFiles` | Scans for `.code-profile` first, extracts settings/keybindings/extensions; falls back to individual JSON files |
+| `Backup-File` | Creates a timestamped backup of an existing file before overwriting |
+| `Merge-JsonDeep` | Recursively deep-merges two hashtables (used for `-Merge` mode) |
+| `ConvertTo-OrderedHashtable` | Converts a `PSCustomObject` to an ordered hashtable for merging |
+| `Apply-Settings` | Backs up and copies/merges `settings.json` to the target edition path |
+| `Apply-Keybindings` | Backs up and copies `keybindings.json` to the target edition path |
+| `Install-Extensions` | Installs each extension via the VS Code CLI (`--install-extension --force`) |
+| `Invoke-Edition` | Orchestrates the full update for a single edition (CLI check, path setup, apply settings/keybindings, install extensions, verify) |
+| `Main` | Orchestrates the full flow -- called at the end of the file |
+
+### Verbose Logging Rules
+
+Every function MUST log:
+- **What it is about to do** (the intent)
+- **The values it is working with** (paths, keys, file sizes)
+- **The outcome** (success, failure, skip, fallback)
+
+Example: source file resolution must log which `.code-profile` was found,
+what was extracted from it, and which fallback JSON files were used.
+
 ## Execution Flow
 
-1. Clean and recreate `logs/` subfolder in the script directory
-2. Start logging all output to `logs/run-<timestamp>.log`
-3. Load `log-messages.json` → display banner
-4. Load `config.json` → determine enabled editions
-5. Check for `.code-profile` → parse settings, keybindings, extensions if found
-6. Fall back to individual JSON files for any missing data
-7. For each enabled edition:
-   a. Check if the CLI command is available (`code` / `code-insiders`)
-   b. Backup existing `settings.json` and `keybindings.json` (timestamp + suffix)
-   c. Copy settings and keybindings to the edition's settings path
-   d. Install each enabled extension via CLI
+1. `Main` is called at the bottom of the script
+2. `Initialize-Logging` -- clean `logs/`, start transcript
+3. `Import-JsonConfig` -- load `log-messages.json`, display banner
+4. `Import-JsonConfig` -- load `config.json`, determine enabled editions
+5. `Resolve-SourceFiles` -- find `.code-profile` or individual JSON files
+6. Log merge/replace mode and extension count
+7. For each enabled edition -> `Invoke-Edition`:
+   a. Check CLI command availability (`code` / `code-insiders`)
+   b. Resolve and create settings directory if needed
+   c. `Apply-Settings` -- backup existing, then copy or deep-merge
+   d. `Apply-Keybindings` -- backup existing, then copy
+   e. `Install-Extensions` -- install each extension via CLI
+   f. Verify applied files exist at destination
 8. Display summary footer
 
 ## Logging
 
 - Each run creates a `logs/` subfolder inside the script directory
-- The `logs/` folder is cleaned (deleted and recreated) at the start of every run
+- The `logs/` folder is **deleted and recreated** at the start of every run
 - A timestamped log file (`run-YYYYMMDD-HHmmss.log`) captures all terminal output
 - The `logs` folder is already gitignored by the project-level `.gitignore`
+- All file operations use `-Confirm:$false` to prevent interactive prompts
+- **Every decision point** logs its inputs and outputs for easy debugging
 
 ## Prerequisites
 
@@ -127,16 +164,19 @@ Only `extensions` (enabled) are installed. The `disabled` list is kept for refer
 | Rule | Example |
 |------|---------|
 | All file names use **lowercase-hyphenated** (kebab-case) | `run.ps1`, `log-messages.json`, `config.json` |
-| Never use PascalCase or camelCase for file names | ~~`Sync-VSCodeSettings.ps1`~~ → `run.ps1` |
+| Never use PascalCase or camelCase for file names | ~~`Sync-VSCodeSettings.ps1`~~ -> `run.ps1` |
 | Folder names also use lowercase-hyphenated | `02-vscode-settings-sync`, `logs` |
-| PowerShell functions inside scripts may use Verb-Noun PascalCase per PS convention | `Write-Status`, `Test-Path` |
+| PowerShell functions inside scripts may use Verb-Noun PascalCase per PS convention | `Write-Log`, `Apply-Settings` |
 
 ## Design Decisions
 
 | Decision                    | Rationale                                                    |
 |-----------------------------|--------------------------------------------------------------|
-| Profile-first parsing       | Users can drop a .code-profile export and it just works      |
-| Fallback to individual JSON | Flexibility — users can also curate files manually           |
+| Small focused functions     | Each function does one thing; easy to test and debug         |
+| Main entry point at bottom  | All functions defined first, single orchestration call       |
+| Verbose logging at every step | Every path, value, and decision is logged for debugging    |
+| Profile-first parsing       | Users can drop a .code-profile export and it just works     |
+| Fallback to individual JSON | Flexibility -- users can also curate files manually          |
 | Keybindings support         | Profiles include keybindings; a complete import requires them |
 | Separate extensions.json    | Easy to maintain extension list without editing script logic |
 | Timestamp backup            | Never lose existing settings, multiple backups coexist       |
@@ -145,3 +185,5 @@ Only `extensions` (enabled) are installed. The `disabled` list is kept for refer
 | No admin required           | Settings and extensions are per-user, no elevation needed    |
 | Plain ASCII banners         | Avoids Unicode alignment bugs in terminals                   |
 | Per-run log files           | Debugging aid; cleaned each run to avoid clutter             |
+| -Confirm:$false on all ops  | Prevents interactive prompts that hang the script            |
+| try/catch/finally in Main   | Ensures Stop-Transcript always runs, even on errors          |
