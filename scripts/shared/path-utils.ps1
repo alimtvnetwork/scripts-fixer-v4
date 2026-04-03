@@ -34,7 +34,7 @@ function Add-ToUserPath {
     )
 
     if (Test-InPath -Directory $Directory -Scope "User") {
-        Write-Log "Already in user PATH: $Directory" "skip"
+        Write-Log "Already in user PATH: $Directory" -Level "info"
         return $true
     }
 
@@ -49,10 +49,10 @@ function Add-ToUserPath {
         [Environment]::SetEnvironmentVariable("Path", $newPath, "User")
         # Also update current session
         $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + $newPath
-        Write-Log "Added to user PATH: $Directory" "ok"
+        Write-Log "Added to user PATH: $Directory" -Level "success"
         return $true
     } catch {
-        Write-Log "Failed to update user PATH: $_" "fail"
+        Write-Log "Failed to update user PATH: $_" -Level "error"
         return $false
     }
 }
@@ -68,7 +68,7 @@ function Add-ToMachinePath {
     )
 
     if (Test-InPath -Directory $Directory -Scope "Machine") {
-        Write-Log "Already in machine PATH: $Directory" "skip"
+        Write-Log "Already in machine PATH: $Directory" -Level "info"
         return $true
     }
 
@@ -82,10 +82,10 @@ function Add-ToMachinePath {
 
         [Environment]::SetEnvironmentVariable("Path", $newPath, "Machine")
         $env:Path = $newPath + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
-        Write-Log "Added to machine PATH: $Directory" "ok"
+        Write-Log "Added to machine PATH: $Directory" -Level "success"
         return $true
     } catch {
-        Write-Log "Failed to update machine PATH: $_" "fail"
+        Write-Log "Failed to update machine PATH: $_" -Level "error"
         return $false
     }
 }

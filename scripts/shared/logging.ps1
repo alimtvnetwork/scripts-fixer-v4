@@ -103,16 +103,16 @@ function Import-JsonConfig {
 
     if (-not $Label) { $Label = Split-Path -Leaf $FilePath }
 
-    Write-Log "Loading $Label from: $FilePath"
+    Write-Log "Loading $Label from: $FilePath" -Level "info"
     if (-not (Test-Path $FilePath)) {
-        Write-Log "$Label not found at path: $FilePath" "fail"
+        Write-Log "$Label not found at path: $FilePath" -Level "error"
         return $null
     }
 
     $content = Get-Content $FilePath -Raw
-    Write-Log "$Label file size: $($content.Length) chars" "info"
+    Write-Log "$Label file size: $($content.Length) chars" -Level "info"
 
     $parsed = $content | ConvertFrom-Json
-    Write-Log "$Label loaded successfully" "ok"
+    Write-Log "$Label loaded successfully" -Level "success"
     return $parsed
 }

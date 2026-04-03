@@ -6,24 +6,24 @@
 function Backup-File {
     param([string]$FilePath, [string]$BackupSuffix)
 
-    Write-Log "Checking backup target: $FilePath"
+    Write-Log "Checking backup target: $FilePath" -Level "info"
     if (Test-Path $FilePath) {
         $dir       = Split-Path $FilePath -Parent
         $name      = Split-Path $FilePath -Leaf
         $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
         $backupName = "$name.$timestamp$BackupSuffix"
         $backupPath = Join-Path $dir $backupName
-        Write-Log "Backup destination: $backupPath"
+        Write-Log "Backup destination: $backupPath" -Level "info"
         try {
             Copy-Item -Path $FilePath -Destination $backupPath -Force
-            Write-Log "Backup created: $backupName" "ok"
+            Write-Log "Backup created: $backupName" -Level "success"
             return $true
         } catch {
-            Write-Log "Backup failed for $name -- $_" "fail"
+            Write-Log "Backup failed for $name -- $_" -Level "error"
             return $false
         }
     } else {
-        Write-Log "No existing $(Split-Path $FilePath -Leaf) to back up" "skip"
+        Write-Log "No existing $(Split-Path $FilePath -Leaf) to back up" -Level "info"
         return $true
     }
 }

@@ -26,7 +26,7 @@ function Get-ResolvedDir {
 
     if (-not (Test-Path $resolvedDir)) {
         New-Item -Path $resolvedDir -ItemType Directory -Force -Confirm:$false | Out-Null
-        Write-Log "Created .resolved directory: $resolvedDir" "info"
+        Write-Log "Created .resolved directory: $resolvedDir" -Level "info"
     }
 
     return $resolvedDir
@@ -74,7 +74,7 @@ function Save-ResolvedData {
                 $existing[$prop.Name] = $prop.Value
             }
         } catch {
-            Write-Log "Could not read existing resolved.json -- overwriting" "warn"
+            Write-Log "Could not read existing resolved.json -- overwriting" -Level "warn"
         }
     }
 
@@ -86,8 +86,8 @@ function Save-ResolvedData {
     try {
         $json = $existing | ConvertTo-Json -Depth 10
         [System.IO.File]::WriteAllText($resolvedFile, $json)
-        Write-Log "Resolved data saved: $resolvedFile" "ok"
+        Write-Log "Resolved data saved: $resolvedFile" -Level "success"
     } catch {
-        Write-Log "Failed to save resolved data: $_" "warn"
+        Write-Log "Failed to save resolved data: $_" -Level "warn"
     }
 }
