@@ -3,7 +3,7 @@
   "version": "1.1.0",
   "description": "Installs pnpm globally via npm and configures the global store.",
   "messages": {
-    "startingPnpmInstall": "Starting pnpm installation...",
+    
     "pnpmAlreadyInstalled": "pnpm is already installed: {version}",
     "pnpmInstallSuccess": "pnpm installed successfully: {version}",
     "pnpmUpgradeSuccess": "pnpm upgraded to latest: {version}",
