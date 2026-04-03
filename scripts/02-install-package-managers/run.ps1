@@ -1,11 +1,8 @@
 # --------------------------------------------------------------------------
-#  Script 02 -- Install Package Managers
-#  Installs and updates Chocolatey and Winget package managers.
+#  Script 02 -- Install Chocolatey
+#  Installs and updates the Chocolatey package manager.
 # --------------------------------------------------------------------------
 param(
-    [Parameter(Position = 0)]
-    [string]$Command = "all",
-
     [switch]$Help
 )
 
@@ -26,14 +23,13 @@ $script:ScriptDir = $scriptDir
 
 # -- Dot-source script helpers ------------------------------------------------
 . (Join-Path $scriptDir "helpers\choco.ps1")
-. (Join-Path $scriptDir "helpers\winget.ps1")
 
 # -- Load config & log messages -----------------------------------------------
 $config      = Import-JsonConfig (Join-Path $scriptDir "config.json")
 $logMessages = Import-JsonConfig (Join-Path $scriptDir "log-messages.json")
 
 # -- Help ---------------------------------------------------------------------
-if ($Help -or $Command -eq "--help") {
+if ($Help) {
     Show-ScriptHelp -LogMessages $logMessages
     return
 }
@@ -60,35 +56,11 @@ if ($isNotAdmin) {
     return
 }
 
-# -- Execute subcommand --------------------------------------------------------
-$isAllSuccessful = $true
-
-switch ($Command.ToLower()) {
-    "choco" {
-        Write-Log $logMessages.messages.commandChoco -Level "info"
-        $ok = Install-Chocolatey -Config $config.chocolatey -LogMessages $logMessages
-        $hasFailed = -not $ok
-        if ($hasFailed) { $isAllSuccessful = $false }
-    }
-    "winget" {
-        Write-Log $logMessages.messages.commandWinget -Level "info"
-        $ok = Install-Winget -Config $config.winget -LogMessages $logMessages
-        $hasFailed = -not $ok
-        if ($hasFailed) { $isAllSuccessful = $false }
-    }
-    default {
-        Write-Log $logMessages.messages.commandAll -Level "info"
-        $ok = Install-Chocolatey -Config $config.chocolatey -LogMessages $logMessages
-        $hasFailed = -not $ok
-        if ($hasFailed) { $isAllSuccessful = $false }
-        $ok = Install-Winget -Config $config.winget -LogMessages $logMessages
-        $hasFailed = -not $ok
-        if ($hasFailed) { $isAllSuccessful = $false }
-    }
-}
+# -- Install Chocolatey --------------------------------------------------------
+$ok = Install-Chocolatey -Config $config.chocolatey -LogMessages $logMessages
 
 # -- Summary -------------------------------------------------------------------
-if ($isAllSuccessful) {
+if ($ok) {
     Write-Log $logMessages.messages.done -Level "success"
 } else {
     Write-Log $logMessages.messages.completedWithWarnings -Level "warn"
