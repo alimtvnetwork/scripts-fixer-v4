@@ -36,7 +36,8 @@
     "addingToPath": "Adding Git to PATH: {path}",
     "pathAlreadyContains": "PATH already contains: {path}",
     "scriptDisabled": "Git installation is disabled in config.",
-    "savingResolved": "Saving resolved state..."
+    "savingResolved": "Saving resolved state...",
+    "notAdmin": "This script requires administrator privileges."
   },
   "help": {
     "commands": {

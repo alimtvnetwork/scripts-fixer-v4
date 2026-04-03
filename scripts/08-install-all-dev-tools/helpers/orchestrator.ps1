@@ -4,7 +4,7 @@
 
 function Resolve-ScriptList {
     param(
-        [hashtable]$Config,
+        $Config,
         [string]$Skip,
         [string]$Only
     )
@@ -45,7 +45,7 @@ function Invoke-ScriptSequence {
     param(
         [array]$ScriptList,
         [string]$ScriptsRoot,
-        [hashtable]$LogMessages,
+        $LogMessages,
         [string]$Skip
     )
 
@@ -92,7 +92,7 @@ function Invoke-ScriptSequence {
 function Show-Summary {
     param(
         [array]$Results,
-        [hashtable]$LogMessages
+        $LogMessages
     )
 
     Write-Host ""

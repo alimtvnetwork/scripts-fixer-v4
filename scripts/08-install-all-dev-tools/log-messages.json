@@ -17,7 +17,7 @@
   },
   "help": {
     "commands": {
-      "(default)": "Run all enabled scripts (03-07) in sequence",
+      "(default)": "Run all enabled scripts (03-10) in sequence",
       "--skip 05,07": "Skip specific scripts by number",
       "--only 03,04": "Run only specific scripts"
     },

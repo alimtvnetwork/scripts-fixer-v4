@@ -50,7 +50,7 @@ if (-not $config.enabled) {
 # -- Assert admin --------------------------------------------------------------
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
-    Write-Log "This script requires administrator privileges." -Level "error"
+    Write-Log $logMessages.messages.notAdmin -Level "error"
     return
 }
 
