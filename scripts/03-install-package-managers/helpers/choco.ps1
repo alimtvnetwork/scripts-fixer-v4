@@ -7,7 +7,7 @@ function Install-Chocolatey {
     param([PSCustomObject]$Config)
 
     if (-not $Config.enabled) {
-        Write-Log "Chocolatey is disabled in config -- skipping" "skip"
+        Write-Log "Chocolatey is disabled in config -- skipping" -Level "info"
         return $true
     }
 
@@ -15,16 +15,16 @@ function Install-Chocolatey {
     if (-not $chocoOk) { return $false }
 
     if ($Config.upgradeOnRun) {
-        Write-Log "Upgrading Chocolatey itself to latest..." "info"
+        Write-Log "Upgrading Chocolatey itself to latest..." -Level "info"
         try {
             $output = & choco.exe upgrade chocolatey -y 2>&1
             if ($LASTEXITCODE -ne 0) {
-                Write-Log "Chocolatey self-upgrade had issues: $output" "warn"
+                Write-Log "Chocolatey self-upgrade had issues: $output" -Level "warn"
             } else {
-                Write-Log "Chocolatey is up to date" "ok"
+                Write-Log "Chocolatey is up to date" -Level "success"
             }
         } catch {
-            Write-Log "Failed to upgrade Chocolatey: $_" "warn"
+            Write-Log "Failed to upgrade Chocolatey: $_" -Level "warn"
         }
     }
 

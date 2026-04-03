@@ -4,8 +4,8 @@
 
 function Install-NodeJs {
     param(
-        [hashtable]$Config,
-        [hashtable]$LogMessages
+        $Config,
+        $LogMessages
     )
 
     $packageName = $Config.chocoPackageName
@@ -36,8 +36,8 @@ function Install-NodeJs {
 
 function Configure-NpmPrefix {
     param(
-        [hashtable]$Config,
-        [hashtable]$LogMessages,
+        $Config,
+        $LogMessages,
         [string]$DevDir
     )
 
@@ -72,8 +72,8 @@ function Configure-NpmPrefix {
 
 function Update-NodePath {
     param(
-        [hashtable]$Config,
-        [hashtable]$LogMessages,
+        $Config,
+        $LogMessages,
         [string]$PrefixPath
     )
 
