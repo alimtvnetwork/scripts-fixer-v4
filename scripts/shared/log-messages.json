@@ -64,6 +64,7 @@
     "helpFlagItem": "    {label}{description}",
     "helpExamplesLabel": "  Examples:",
     "helpExampleItem": "    {example}",
-    "helpDescription": "  {description}"
+    "helpDescription": "  {description}",
+    "adminTip": "  Tip: Right-click PowerShell -> 'Run as Administrator'"
   }
 }

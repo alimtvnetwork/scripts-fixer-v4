@@ -54,7 +54,7 @@ $hasAdminRights = ([Security.Principal.WindowsPrincipal] [Security.Principal.Win
 $isNotAdmin = -not $hasAdminRights
 if ($isNotAdmin) {
     Write-Log $logMessages.messages.notAdmin -Level "error"
-    Write-Host "  Tip: Right-click PowerShell -> 'Run as Administrator'" -ForegroundColor Yellow
+    Write-Host $script:SharedLogMessages.messages.adminTip -ForegroundColor Yellow
     return
 }
 
