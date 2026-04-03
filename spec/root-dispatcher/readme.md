@@ -28,6 +28,8 @@ When run with no parameters, it performs a git pull and shows help
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `-d` | switch | No | Shortcut for `-I 12` -- launches the interactive dev tools menu |
+| `-a` | switch | No | Shortcut for `-I 13` -- runs the audit scanner |
+| `-v` | switch | No | Shortcut for `-I 1` -- installs VS Code |
 | `-I` | int | No | Script number to run (resolved via `scripts/registry.json`) |
 | `-Merge` | switch | No | Passed through to child script (used by script 02 for deep-merge) |
 | `-Clean` | switch | No | Wipes all `.resolved/` data before running, forcing fresh detection |
