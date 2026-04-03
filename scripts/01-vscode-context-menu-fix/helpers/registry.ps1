@@ -21,8 +21,30 @@ function Assert-Admin {
 function Resolve-VsCodePath {
     param(
         [PSCustomObject]$PathConfig,
-        [string]$PreferredType
+        [string]$PreferredType,
+        [string]$ScriptDir,
+        [string]$EditionName
     )
+
+    # Check .resolved/ cache first
+    if ($ScriptDir -and $EditionName) {
+        $resolvedDir  = Get-ResolvedDir -ScriptDir $ScriptDir
+        $resolvedFile = Join-Path $resolvedDir "resolved.json"
+        if (Test-Path $resolvedFile) {
+            try {
+                $cached = Get-Content $resolvedFile -Raw | ConvertFrom-Json
+                $cachedExe = $cached.$EditionName.resolvedExe
+                if ($cachedExe -and (Test-Path $cachedExe)) {
+                    Write-Log "Using cached path from .resolved/: $cachedExe" "ok"
+                    return $cachedExe
+                } elseif ($cachedExe) {
+                    Write-Log "Cached path no longer valid: $cachedExe -- re-detecting" "warn"
+                }
+            } catch {
+                Write-Log "Could not read resolved cache -- re-detecting" "warn"
+            }
+        }
+    }
 
     Write-Log "Preferred installation type: $PreferredType"
 
@@ -168,7 +190,7 @@ function Invoke-Edition {
 
     # Resolve exe
     Write-Log $Steps.detectInstall
-    $VsCodeExe = Resolve-VsCodePath -PathConfig $Edition.vscodePath -PreferredType $InstallType
+    $VsCodeExe = Resolve-VsCodePath -PathConfig $Edition.vscodePath -PreferredType $InstallType -ScriptDir $ScriptDir -EditionName $EditionName
 
     if (-not $VsCodeExe) {
         Write-Log "$($Edition.contextMenuLabel): executable not found -- skipping" "warn"
