@@ -28,7 +28,8 @@ function Resolve-ScriptList {
     $result = @()
     foreach ($id in $sequence) {
         $entry = $scripts.$id
-        if (-not $entry) { continue }
+        $hasNoEntry = -not $entry
+        if ($hasNoEntry) { continue }
 
         $result += @{
             Id      = $id
@@ -57,14 +58,16 @@ function Invoke-ScriptSequence {
         $name = $script.Name
 
         # Skip disabled
-        if (-not $script.Enabled) {
+        $isDisabled = -not $script.Enabled
+        if ($isDisabled) {
             Write-Log ($LogMessages.messages.scriptDisabled -replace '\{id\}', $id -replace '\{name\}', $name) -Level "warn"
             $results += @{ Id = $id; Name = $name; Status = "disabled" }
             continue
         }
 
         # Skip user-requested
-        if ($id -in $skipList) {
+        $isSkipped = $id -in $skipList
+        if ($isSkipped) {
             Write-Log ($LogMessages.messages.scriptSkipped -replace '\{id\}', $id -replace '\{name\}', $name) -Level "warn"
             $results += @{ Id = $id; Name = $name; Status = "skipped" }
             continue

@@ -42,14 +42,15 @@ Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
 Invoke-GitPull
 
 # -- Disabled check ------------------------------------------------------------
-if (-not $config.enabled) {
+$isDisabled = -not $config.enabled
+if ($isDisabled) {
     Write-Log $logMessages.messages.scriptDisabled -Level "warn"
     return
 }
 
 # -- Assert admin --------------------------------------------------------------
-$isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-not $isAdmin) {
+$hasAdminRights = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+if (-not $hasAdminRights) {
     Write-Log $logMessages.messages.notAdmin -Level "error"
     return
 }

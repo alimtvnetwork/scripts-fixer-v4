@@ -12,9 +12,11 @@ function Install-GitHubDesktop {
 
     # GitHub Desktop installs to AppData -- check common locations
     $ghDesktop = Get-Command "GitHubDesktop" -ErrorAction SilentlyContinue
-    if (-not $ghDesktop) {
+    $isCommandMissing = -not $ghDesktop
+    if ($isCommandMissing) {
         $localAppPath = Join-Path $env:LOCALAPPDATA "GitHubDesktop\GitHubDesktop.exe"
-        if (Test-Path $localAppPath) { $ghDesktop = $true }
+        $isLocalAppFound = Test-Path $localAppPath
+        if ($isLocalAppFound) { $ghDesktop = $true }
     }
 
     if ($ghDesktop) {

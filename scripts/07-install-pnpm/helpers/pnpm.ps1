@@ -9,8 +9,9 @@ function Install-Pnpm {
     )
 
     # Ensure npm is available
-    $npmExists = Get-Command npm -ErrorAction SilentlyContinue
-    if (-not $npmExists) {
+    $hasNpm = Get-Command npm -ErrorAction SilentlyContinue
+    $isNpmMissing = -not $hasNpm
+    if ($isNpmMissing) {
         Write-Log $LogMessages.messages.nodeRequired -Level "error"
         throw "npm is not available. Install Node.js first (script 05)."
     }
@@ -46,7 +47,8 @@ function Configure-PnpmStore {
     )
 
     $storeConfig = $Config.store
-    if (-not $storeConfig.setStorePath) { return }
+    $isStorePathDisabled = -not $storeConfig.setStorePath
+    if ($isStorePathDisabled) { return }
 
     # Resolve store path
     $storePath = if ($DevDir) {
@@ -56,7 +58,8 @@ function Configure-PnpmStore {
     }
 
     # Ensure directory exists
-    if (-not (Test-Path $storePath)) {
+    $isDirMissing = -not (Test-Path $storePath)
+    if ($isDirMissing) {
         New-Item -Path $storePath -ItemType Directory -Force | Out-Null
     }
 
@@ -80,17 +83,20 @@ function Update-PnpmPath {
         $LogMessages
     )
 
-    if (-not $Config.path.updateUserPath) { return }
+    $isPathUpdateDisabled = -not $Config.path.updateUserPath
+    if ($isPathUpdateDisabled) { return }
 
     # pnpm global bin directory
     $pnpmHome = & pnpm config get global-bin-dir 2>$null
-    if (-not $pnpmHome) {
+    $hasPnpmHome = [bool]$pnpmHome
+    if (-not $hasPnpmHome) {
         # Fallback: use PNPM_HOME or default location
         $pnpmHome = if ($env:PNPM_HOME) { $env:PNPM_HOME }
                     else { Join-Path $env:LOCALAPPDATA "pnpm" }
     }
 
-    if (Test-InPath -Directory $pnpmHome) {
+    $isAlreadyInPath = Test-InPath -Directory $pnpmHome
+    if ($isAlreadyInPath) {
         Write-Log ($LogMessages.messages.pathAlreadyContains -replace '\{path\}', $pnpmHome) -Level "info"
     }
     else {

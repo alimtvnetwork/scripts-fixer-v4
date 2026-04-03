@@ -41,7 +41,8 @@ Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
 Invoke-GitPull
 
 # -- Disabled check ------------------------------------------------------------
-if (-not $config.enabled) {
+$isDisabled = -not $config.enabled
+if ($isDisabled) {
     Write-Log $logMessages.messages.scriptDisabled -Level "warn"
     return
 }

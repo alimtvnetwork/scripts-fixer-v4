@@ -42,7 +42,8 @@ function Configure-NpmPrefix {
     )
 
     $npmConfig = $Config.npm
-    if (-not $npmConfig.setGlobalPrefix) { return }
+    $isSetPrefixDisabled = -not $npmConfig.setGlobalPrefix
+    if ($isSetPrefixDisabled) { return }
 
     # Resolve prefix path
     $prefixPath = if ($DevDir) {
@@ -52,7 +53,8 @@ function Configure-NpmPrefix {
     }
 
     # Ensure directory exists
-    if (-not (Test-Path $prefixPath)) {
+    $isDirMissing = -not (Test-Path $prefixPath)
+    if ($isDirMissing) {
         New-Item -Path $prefixPath -ItemType Directory -Force | Out-Null
     }
 
@@ -77,11 +79,15 @@ function Update-NodePath {
         [string]$PrefixPath
     )
 
-    if (-not $Config.path.updateUserPath) { return }
-    if (-not $PrefixPath) { return }
+    $isPathUpdateDisabled = -not $Config.path.updateUserPath
+    if ($isPathUpdateDisabled) { return }
+
+    $hasNoPrefixPath = -not $PrefixPath
+    if ($hasNoPrefixPath) { return }
 
     # npm installs global bins directly into the prefix on Windows
-    if (Test-InPath -Directory $PrefixPath) {
+    $isAlreadyInPath = Test-InPath -Directory $PrefixPath
+    if ($isAlreadyInPath) {
         Write-Log ($LogMessages.messages.pathAlreadyContains -replace '\{path\}', $PrefixPath) -Level "info"
     }
     else {
@@ -92,7 +98,9 @@ function Update-NodePath {
     # Also ensure node_modules/.bin if needed
     if ($Config.path.ensureNpmBinInPath) {
         $nodeModulesBin = Join-Path $PrefixPath "node_modules\.bin"
-        if ((Test-Path $nodeModulesBin) -and -not (Test-InPath -Directory $nodeModulesBin)) {
+        $isNpmBinPresent = Test-Path $nodeModulesBin
+        $isNpmBinInPath = Test-InPath -Directory $nodeModulesBin
+        if ($isNpmBinPresent -and -not $isNpmBinInPath) {
             Add-ToUserPath -Directory $nodeModulesBin
         }
     }

@@ -40,7 +40,8 @@ function Install-GitLfs {
     )
 
     $lfsConfig = $Config.gitLfs
-    if (-not $lfsConfig.enabled) { return }
+    $isLfsDisabled = -not $lfsConfig.enabled
+    if ($isLfsDisabled) { return }
 
     $packageName = $lfsConfig.chocoPackageName
 
@@ -78,7 +79,8 @@ function Install-GitHubCli {
     )
 
     $ghConfig = $Config.githubCli
-    if (-not $ghConfig.enabled) { return }
+    $isGhDisabled = -not $ghConfig.enabled
+    if ($isGhDisabled) { return }
 
     $packageName = $ghConfig.chocoPackageName
 
@@ -108,7 +110,8 @@ function Install-GitHubCli {
     # Prompt for login if configured
     if ($ghConfig.promptLogin) {
         $authStatus = & gh auth status 2>&1
-        if ($LASTEXITCODE -eq 0) {
+        $isAuthenticated = $LASTEXITCODE -eq 0
+        if ($isAuthenticated) {
             $ghUser = & gh api user --jq '.login' 2>$null
             Write-Log ($LogMessages.messages.ghAlreadyAuthenticated -replace '\{user\}', $ghUser) -Level "info"
         }
@@ -137,7 +140,8 @@ function Configure-GitGlobal {
     }
     else {
         $name = $nameConfig.value
-        if ((-not $name) -and $nameConfig.promptOnFirstRun) {
+        $hasNoName = -not $name
+        if ($hasNoName -and $nameConfig.promptOnFirstRun) {
             $name = Read-Host $LogMessages.messages.promptUserName
         }
         if ($name) {
@@ -155,7 +159,8 @@ function Configure-GitGlobal {
     }
     else {
         $email = $emailConfig.value
-        if ((-not $email) -and $emailConfig.promptOnFirstRun) {
+        $hasNoEmail = -not $email
+        if ($hasNoEmail -and $emailConfig.promptOnFirstRun) {
             $email = Read-Host $LogMessages.messages.promptUserEmail
         }
         if ($email) {
@@ -220,7 +225,8 @@ function Configure-GitGlobal {
     $pushConfig = $gc.pushAutoSetupRemote
     if ($pushConfig.enabled) {
         $currentPush = & git config --global push.autoSetupRemote 2>$null
-        if ($currentPush -eq "true") {
+        $isAlreadySet = $currentPush -eq "true"
+        if ($isAlreadySet) {
             Write-Log ($LogMessages.messages.pushAutoSetupAlreadySet -replace '\{value\}', $currentPush) -Level "info"
         }
         else {
@@ -236,14 +242,17 @@ function Update-GitPath {
         $LogMessages
     )
 
-    if (-not $Config.path.updateUserPath) { return }
+    $isPathUpdateDisabled = -not $Config.path.updateUserPath
+    if ($isPathUpdateDisabled) { return }
 
     $gitExe = Get-Command git -ErrorAction SilentlyContinue
-    if (-not $gitExe) { return }
+    $isGitMissing = -not $gitExe
+    if ($isGitMissing) { return }
 
     $gitDir = Split-Path -Parent $gitExe.Source
 
-    if (Test-InPath -Directory $gitDir) {
+    $isAlreadyInPath = Test-InPath -Directory $gitDir
+    if ($isAlreadyInPath) {
         Write-Log ($LogMessages.messages.pathAlreadyContains -replace '\{path\}', $gitDir) -Level "info"
     }
     else {

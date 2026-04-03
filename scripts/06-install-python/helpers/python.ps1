@@ -41,7 +41,8 @@ function Configure-PipSite {
     )
 
     $pipConfig = $Config.pip
-    if (-not $pipConfig.setUserSite) { return }
+    $isSetSiteDisabled = -not $pipConfig.setUserSite
+    if ($isSetSiteDisabled) { return }
 
     # Resolve site path
     $sitePath = if ($DevDir) {
@@ -51,7 +52,8 @@ function Configure-PipSite {
     }
 
     # Ensure directory exists
-    if (-not (Test-Path $sitePath)) {
+    $isDirMissing = -not (Test-Path $sitePath)
+    if ($isDirMissing) {
         New-Item -Path $sitePath -ItemType Directory -Force | Out-Null
     }
 
@@ -77,17 +79,22 @@ function Update-PythonPath {
         [string]$SitePath
     )
 
-    if (-not $Config.path.updateUserPath) { return }
-    if (-not $SitePath) { return }
+    $isPathUpdateDisabled = -not $Config.path.updateUserPath
+    if ($isPathUpdateDisabled) { return }
+
+    $hasNoSitePath = -not $SitePath
+    if ($hasNoSitePath) { return }
 
     # Python user Scripts directory
     $scriptsDir = Join-Path $SitePath "Scripts"
 
-    if (-not (Test-Path $scriptsDir)) {
+    $isDirMissing = -not (Test-Path $scriptsDir)
+    if ($isDirMissing) {
         New-Item -Path $scriptsDir -ItemType Directory -Force | Out-Null
     }
 
-    if (Test-InPath -Directory $scriptsDir) {
+    $isAlreadyInPath = Test-InPath -Directory $scriptsDir
+    if ($isAlreadyInPath) {
         Write-Log ($LogMessages.messages.pathAlreadyContains -replace '\{path\}', $scriptsDir) -Level "info"
     }
     else {
