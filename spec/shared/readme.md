@@ -12,7 +12,8 @@ by individual scripts. This avoids duplicating common logic across scripts.
 ```
 scripts/
 └── shared/
-    └── git-pull.ps1    # Provides Invoke-GitPull function
+    ├── git-pull.ps1    # Provides Invoke-GitPull function
+    └── logging.ps1     # Provides Write-Log, Write-Banner, Initialize-Logging, Import-JsonConfig
 ```
 
 ## git-pull.ps1
