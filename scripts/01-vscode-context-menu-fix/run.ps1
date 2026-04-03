@@ -299,9 +299,6 @@ function Main {
         $Config = Import-JsonConfig -FilePath $cfgPath -Label "config.json"
         if (-not $Config) { exit 1 }
 
-        # Map HKCR
-        Mount-RegistryDrive
-
         $installType     = $Config.installationType
         $enabledEditions = $Config.enabledEditions
         $totalSuccess    = $true
