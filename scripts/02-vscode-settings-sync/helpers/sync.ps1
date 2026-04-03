@@ -7,52 +7,55 @@
 #>
 
 function Resolve-SourceFiles {
-    param([string]$ScriptDir)
+    param(
+        [string]$ScriptDir,
+        $LogMessages
+    )
 
     $result = @{ Settings = $null; Keybindings = $null; Extensions = @() }
 
     # Check for .code-profile first
     $profileFiles = Get-ChildItem -Path $ScriptDir -Filter "*.code-profile" -ErrorAction SilentlyContinue
-    Write-Log "Scanning for .code-profile files in: $ScriptDir" -Level "info"
-    Write-Log "Found $(@($profileFiles).Count) .code-profile file(s)" -Level "info"
+    Write-Log ($LogMessages.messages.scanningProfiles -replace '\{dir\}', $ScriptDir) -Level "info"
+    Write-Log ($LogMessages.messages.profileFilesFound -replace '\{count\}', @($profileFiles).Count) -Level "info"
 
     $hasProfileFiles = $profileFiles -and $profileFiles.Count -gt 0
     if ($hasProfileFiles) {
         $profilePath = $profileFiles[0].FullName
-        Write-Log "Using profile: $($profileFiles[0].Name)" -Level "success"
+        Write-Log ($LogMessages.messages.usingProfile -replace '\{name\}', $profileFiles[0].Name) -Level "success"
 
         try {
             $profileData = Get-Content $profilePath -Raw | ConvertFrom-Json
 
             if ($profileData.settings) {
-                Write-Log "Extracting settings from profile..." -Level "info"
+                Write-Log $LogMessages.messages.extractingSettings -Level "info"
                 $settingsWrapper = $profileData.settings | ConvertFrom-Json
                 $settingsContent = $settingsWrapper.settings
                 $tmpSettings = Join-Path $env:TEMP "vscode-profile-settings.json"
                 $settingsContent | Out-File -FilePath $tmpSettings -Encoding utf8 -Force
                 $result.Settings = $tmpSettings
-                Write-Log "Settings extracted to: $tmpSettings" -Level "success"
+                Write-Log ($LogMessages.messages.settingsExtracted -replace '\{path\}', $tmpSettings) -Level "success"
             }
 
             if ($profileData.keybindings) {
-                Write-Log "Extracting keybindings from profile..." -Level "info"
+                Write-Log $LogMessages.messages.extractingKeybindings -Level "info"
                 $kbWrapper = $profileData.keybindings | ConvertFrom-Json
                 $kbContent = $kbWrapper.keybindings
                 $tmpKeybindings = Join-Path $env:TEMP "vscode-profile-keybindings.json"
                 $kbContent | Out-File -FilePath $tmpKeybindings -Encoding utf8 -Force
                 $result.Keybindings = $tmpKeybindings
-                Write-Log "Keybindings extracted to: $tmpKeybindings" -Level "success"
+                Write-Log ($LogMessages.messages.keybindingsExtracted -replace '\{path\}', $tmpKeybindings) -Level "success"
             }
 
             if ($profileData.extensions) {
-                Write-Log "Extracting extensions from profile..." -Level "info"
+                Write-Log $LogMessages.messages.extractingExtensions -Level "info"
                 $profileExtensions = $profileData.extensions | ConvertFrom-Json
                 $result.Extensions = @($profileExtensions | Where-Object { $_.disabled -ne $true } | ForEach-Object { $_.identifier.id })
-                Write-Log "Extracted $($result.Extensions.Count) extension(s) from profile" -Level "success"
+                Write-Log ($LogMessages.messages.extensionsExtracted -replace '\{count\}', $result.Extensions.Count) -Level "success"
             }
         } catch {
-            Write-Log "Failed to parse profile: $_" -Level "error"
-            Write-Log "Falling back to individual JSON files..." -Level "warn"
+            Write-Log ($LogMessages.messages.profileParseFailed -replace '\{error\}', $_) -Level "error"
+            Write-Log $LogMessages.messages.profileFallback -Level "warn"
         }
     }
 
@@ -60,13 +63,13 @@ function Resolve-SourceFiles {
     $hasNoSettings = -not $result.Settings
     if ($hasNoSettings) {
         $settingsPath = Join-Path $ScriptDir "settings.json"
-        Write-Log "Checking individual settings.json: $settingsPath" -Level "info"
+        Write-Log ($LogMessages.messages.checkingSettingsJson -replace '\{path\}', $settingsPath) -Level "info"
         $isSettingsFound = Test-Path $settingsPath
         if ($isSettingsFound) {
             $result.Settings = $settingsPath
-            Write-Log "Source settings.json found" -Level "success"
+            Write-Log $LogMessages.messages.settingsJsonFound -Level "success"
         } else {
-            Write-Log "settings.json not found -- cannot continue" -Level "error"
+            Write-Log $LogMessages.messages.settingsJsonMissing -Level "error"
         }
     }
 
@@ -74,27 +77,27 @@ function Resolve-SourceFiles {
     $hasNoKeybindings = -not $result.Keybindings
     if ($hasNoKeybindings) {
         $kbPath = Join-Path $ScriptDir "keybindings.json"
-        Write-Log "Checking individual keybindings.json: $kbPath" -Level "info"
+        Write-Log ($LogMessages.messages.checkingKeybindingsJson -replace '\{path\}', $kbPath) -Level "info"
         $isKbFound = Test-Path $kbPath
         if ($isKbFound) {
             $result.Keybindings = $kbPath
-            Write-Log "Source keybindings.json found" -Level "success"
+            Write-Log $LogMessages.messages.keybindingsJsonFound -Level "success"
         } else {
-            Write-Log "No keybindings.json -- skipping keybindings" -Level "info"
+            Write-Log $LogMessages.messages.noKeybindingsJson -Level "info"
         }
     }
 
     # Fallback: extensions.json
     if ($result.Extensions.Count -eq 0) {
         $extPath = Join-Path $ScriptDir "extensions.json"
-        Write-Log "Checking individual extensions.json: $extPath" -Level "info"
+        Write-Log ($LogMessages.messages.checkingExtensionsJson -replace '\{path\}', $extPath) -Level "info"
         $isExtFound = Test-Path $extPath
         if ($isExtFound) {
             $extData = Get-Content $extPath -Raw | ConvertFrom-Json
             $result.Extensions = @($extData.extensions)
-            Write-Log "$($result.Extensions.Count) extension(s) loaded from extensions.json" -Level "success"
+            Write-Log ($LogMessages.messages.extensionsLoaded -replace '\{count\}', $result.Extensions.Count) -Level "success"
         } else {
-            Write-Log "No extensions.json found" -Level "warn"
+            Write-Log $LogMessages.messages.noExtensionsJson -Level "warn"
         }
     }
 
@@ -106,10 +109,11 @@ function Apply-Settings {
         [string]$SourcePath,
         [string]$DestPath,
         [string]$BackupSuffix,
-        [bool]$MergeMode
+        [bool]$MergeMode,
+        $LogMessages
     )
 
-    Write-Log "Applying settings to: $DestPath" -Level "info"
+    Write-Log ($LogMessages.messages.applyingSettings -replace '\{path\}', $DestPath) -Level "info"
     $isBackupOk = Backup-File -FilePath $DestPath -BackupSuffix $BackupSuffix
 
     $hasBackupFailed = -not $isBackupOk
@@ -117,7 +121,7 @@ function Apply-Settings {
 
     $hasExistingFile = Test-Path $DestPath
     if ($MergeMode -and $hasExistingFile) {
-        Write-Log "Merge mode: deep-merging into existing settings.json" -Level "info"
+        Write-Log $LogMessages.messages.mergingSettings -Level "info"
         try {
             $existingObj = Get-Content $DestPath -Raw | ConvertFrom-Json
             $incomingObj = Get-Content $SourcePath -Raw | ConvertFrom-Json
@@ -125,20 +129,20 @@ function Apply-Settings {
             $incomingHt  = ConvertTo-OrderedHashtable -InputObject $incomingObj
             $merged      = Merge-JsonDeep -Base $existingHt -Override $incomingHt
             $merged | ConvertTo-Json -Depth 20 | Out-File -FilePath $DestPath -Encoding utf8 -Force
-            Write-Log "settings.json merged successfully" -Level "success"
+            Write-Log $LogMessages.messages.settingsMerged -Level "success"
             return $true
         } catch {
-            Write-Log "Merge failed: $_ -- falling back to replace" -Level "warn"
+            Write-Log ($LogMessages.messages.mergeFailed -replace '\{error\}', $_) -Level "warn"
         }
     }
 
-    Write-Log "Copying settings.json..." -Level "info"
+    Write-Log $LogMessages.messages.copyingSettings -Level "info"
     try {
         Copy-Item -Path $SourcePath -Destination $DestPath -Force
-        Write-Log "settings.json applied" -Level "success"
+        Write-Log $LogMessages.messages.settingsApplied -Level "success"
         return $true
     } catch {
-        Write-Log "Failed to copy settings: $_" -Level "error"
+        Write-Log ($LogMessages.messages.settingsCopyFailed -replace '\{error\}', $_) -Level "error"
         return $false
     }
 }
@@ -147,10 +151,11 @@ function Apply-Keybindings {
     param(
         [string]$SourcePath,
         [string]$DestPath,
-        [string]$BackupSuffix
+        [string]$BackupSuffix,
+        $LogMessages
     )
 
-    Write-Log "Applying keybindings to: $DestPath" -Level "info"
+    Write-Log ($LogMessages.messages.applyingKeybindings -replace '\{path\}', $DestPath) -Level "info"
     $isBackupOk = Backup-File -FilePath $DestPath -BackupSuffix $BackupSuffix
 
     $hasBackupFailed = -not $isBackupOk
@@ -158,10 +163,10 @@ function Apply-Keybindings {
 
     try {
         Copy-Item -Path $SourcePath -Destination $DestPath -Force
-        Write-Log "keybindings.json applied" -Level "success"
+        Write-Log $LogMessages.messages.keybindingsApplied -Level "success"
         return $true
     } catch {
-        Write-Log "Failed to copy keybindings: $_" -Level "error"
+        Write-Log ($LogMessages.messages.keybindingsCopyFailed -replace '\{error\}', $_) -Level "error"
         return $false
     }
 }
@@ -169,25 +174,26 @@ function Apply-Keybindings {
 function Install-Extensions {
     param(
         [string]$CliCommand,
-        [string[]]$Extensions
+        [string[]]$Extensions,
+        $LogMessages
     )
 
     $isAllOk = $true
-    Write-Log "Installing $($Extensions.Count) extension(s) via '$CliCommand'..." -Level "info"
+    Write-Log ($LogMessages.messages.installingExtensions -replace '\{count\}', $Extensions.Count -replace '\{cli\}', $CliCommand) -Level "info"
 
     foreach ($ext in $Extensions) {
-        Write-Log "Installing: $ext" -Level "info"
+        Write-Log ($LogMessages.messages.installingExt -replace '\{ext\}', $ext) -Level "info"
         try {
             $output = & $CliCommand --install-extension $ext --force 2>&1
             $hasInstallIssue = $LASTEXITCODE -ne 0 -or $output -match 'Failed|error'
             if ($hasInstallIssue) {
-                Write-Log "Extension install may have failed: $ext -- $output" -Level "warn"
+                Write-Log ($LogMessages.messages.extInstallIssue -replace '\{ext\}', $ext -replace '\{output\}', $output) -Level "warn"
                 $isAllOk = $false
             } else {
-                Write-Log "Installed $ext" -Level "success"
+                Write-Log ($LogMessages.messages.extInstalled -replace '\{ext\}', $ext) -Level "success"
             }
         } catch {
-            Write-Log "Failed to install $ext -- $_" -Level "error"
+            Write-Log ($LogMessages.messages.extInstallFailed -replace '\{ext\}', $ext -replace '\{error\}', $_) -Level "error"
             $isAllOk = $false
         }
     }
@@ -202,7 +208,8 @@ function Invoke-Edition {
         $Sources,
         [string]$BackupSuffix,
         [bool]$MergeMode,
-        [string]$ScriptDir
+        [string]$ScriptDir,
+        $LogMessages
     )
 
     Write-Host ""
@@ -214,26 +221,26 @@ function Invoke-Edition {
     $isAllOk = $true
 
     # Check CLI
-    Write-Log "Checking CLI command: $cliCmd" -Level "info"
+    Write-Log ($LogMessages.messages.checkingCli -replace '\{cli\}', $cliCmd) -Level "info"
     $cliExists = Get-Command $cliCmd -ErrorAction SilentlyContinue
     $isCliMissing = -not $cliExists
     if ($isCliMissing) {
-        Write-Log "'$cliCmd' not found in PATH -- skipping this edition" -Level "warn"
+        Write-Log ($LogMessages.messages.cliMissing -replace '\{cli\}', $cliCmd) -Level "warn"
         return $false
     }
-    Write-Log "'$cliCmd' found in PATH" -Level "success"
+    Write-Log ($LogMessages.messages.cliFound -replace '\{cli\}', $cliCmd) -Level "success"
 
     # Resolve settings directory
     $rawPath     = $Edition.settingsPath
     $settingsDir = [System.Environment]::ExpandEnvironmentVariables($rawPath)
-    Write-Log "Settings path (raw): $rawPath" -Level "info"
-    Write-Log "Settings path (expanded): $settingsDir" -Level "info"
+    Write-Log ($LogMessages.messages.settingsPathRaw -replace '\{path\}', $rawPath) -Level "info"
+    Write-Log ($LogMessages.messages.settingsPathExpanded -replace '\{path\}', $settingsDir) -Level "info"
 
     $isDirMissing = -not (Test-Path $settingsDir)
     if ($isDirMissing) {
-        Write-Log "Settings directory does not exist -- creating..." -Level "info"
+        Write-Log $LogMessages.messages.settingsDirMissing -Level "info"
         New-Item -Path $settingsDir -ItemType Directory -Force -Confirm:$false | Out-Null
-        Write-Log "Created: $settingsDir" -Level "success"
+        Write-Log ($LogMessages.messages.settingsDirCreated -replace '\{path\}', $settingsDir) -Level "success"
     }
 
     # Save resolved settings path to .resolved/
@@ -255,7 +262,8 @@ function Invoke-Edition {
             -SourcePath   $Sources.Settings `
             -DestPath     $destSettings `
             -BackupSuffix $BackupSuffix `
-            -MergeMode    $MergeMode
+            -MergeMode    $MergeMode `
+            -LogMessages  $LogMessages
         $hasFailed = -not $ok
         if ($hasFailed) { $isAllOk = $false }
     }
@@ -265,7 +273,8 @@ function Invoke-Edition {
         $ok = Apply-Keybindings `
             -SourcePath   $Sources.Keybindings `
             -DestPath     $destKeybindings `
-            -BackupSuffix $BackupSuffix
+            -BackupSuffix $BackupSuffix `
+            -LogMessages  $LogMessages
         $hasFailed = -not $ok
         if ($hasFailed) { $isAllOk = $false }
     }
@@ -273,24 +282,24 @@ function Invoke-Edition {
     # Install extensions
     $hasExtensions = $Sources.Extensions.Count -gt 0
     if ($hasExtensions) {
-        $ok = Install-Extensions -CliCommand $cliCmd -Extensions $Sources.Extensions
+        $ok = Install-Extensions -CliCommand $cliCmd -Extensions $Sources.Extensions -LogMessages $LogMessages
         $hasFailed = -not $ok
         if ($hasFailed) { $isAllOk = $false }
     }
 
     # Verify
-    Write-Log "Verifying applied files..." -Level "info"
+    Write-Log $LogMessages.messages.verifyingFiles -Level "info"
     $isSettingsPresent = Test-Path $destSettings
     if ($isSettingsPresent) {
-        Write-Log "settings.json present at $destSettings" -Level "success"
+        Write-Log ($LogMessages.messages.settingsPresent -replace '\{path\}', $destSettings) -Level "success"
     } else {
-        Write-Log "settings.json NOT found at $destSettings" -Level "error"
+        Write-Log ($LogMessages.messages.settingsMissing -replace '\{path\}', $destSettings) -Level "error"
         $isAllOk = $false
     }
 
     $hasKeybindingsFile = $Sources.Keybindings -and (Test-Path $destKeybindings)
     if ($hasKeybindingsFile) {
-        Write-Log "keybindings.json present at $destKeybindings" -Level "success"
+        Write-Log ($LogMessages.messages.keybindingsPresent -replace '\{path\}', $destKeybindings) -Level "success"
     }
 
     return $isAllOk

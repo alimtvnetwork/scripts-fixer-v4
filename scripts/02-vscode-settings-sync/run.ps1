@@ -46,23 +46,23 @@ if ($isDisabled) {
 }
 
 # -- Resolve source files ------------------------------------------------------
-$sources = Resolve-SourceFiles -ScriptDir $scriptDir
+$sources = Resolve-SourceFiles -ScriptDir $scriptDir -LogMessages $logMessages
 
 $hasNoSettings = -not $sources.Settings
 if ($hasNoSettings) {
-    Write-Log "No settings source found -- cannot continue" -Level "error"
+    Write-Log $logMessages.messages.noSettingsSource -Level "error"
     return
 }
 
 $enabledEditions = $config.enabledEditions
 $isAllSuccessful = $true
 
-Write-Log "Enabled editions: $($enabledEditions -join ', ')" -Level "info"
-Write-Log "Extensions to install: $($sources.Extensions.Count)" -Level "info"
+Write-Log ($logMessages.messages.enabledEditions -replace '\{editions\}', ($enabledEditions -join ', ')) -Level "info"
+Write-Log ($logMessages.messages.extensionCount -replace '\{count\}', $sources.Extensions.Count) -Level "info"
 if ($Merge) {
-    Write-Log "Merge mode enabled -- settings will be deep-merged" -Level "info"
+    Write-Log $logMessages.messages.mergeEnabled -Level "info"
 } else {
-    Write-Log "Replace mode -- existing settings will be backed up and replaced" -Level "info"
+    Write-Log $logMessages.messages.replaceMode -Level "info"
 }
 
 # -- Process each edition ------------------------------------------------------
@@ -71,7 +71,7 @@ foreach ($editionName in $enabledEditions) {
 
     $isEditionMissing = -not $edition
     if ($isEditionMissing) {
-        Write-Log "Unknown edition '$editionName' -- skipping" -Level "warn"
+        Write-Log ($logMessages.messages.unknownEdition -replace '\{name\}', $editionName) -Level "warn"
         $isAllSuccessful = $false
         continue
     }
@@ -82,7 +82,8 @@ foreach ($editionName in $enabledEditions) {
         -Sources      $sources `
         -BackupSuffix $config.backupSuffix `
         -MergeMode    $Merge.IsPresent `
-        -ScriptDir    $scriptDir
+        -ScriptDir    $scriptDir `
+        -LogMessages  $logMessages
 
     $hasFailed = -not $result
     if ($hasFailed) { $isAllSuccessful = $false }
@@ -92,7 +93,7 @@ foreach ($editionName in $enabledEditions) {
 if ($isAllSuccessful) {
     Write-Log $logMessages.messages.done -Level "success"
 } else {
-    Write-Log "Completed with some warnings -- check output above." -Level "warn"
+    Write-Log $logMessages.messages.completedWithWarnings -Level "warn"
 }
 
 # -- Save resolved state -------------------------------------------------------

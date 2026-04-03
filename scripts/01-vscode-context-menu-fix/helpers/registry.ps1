@@ -125,11 +125,11 @@ function Register-ContextMenu {
         [PSObject]$LogMsgs
     )
 
-    Write-Log "$StepLabel" -Level "info"
-    Write-Log "  Registry path : $RegistryPath" -Level "info"
-    Write-Log "  Label         : $Label" -Level "info"
-    Write-Log "  Icon          : $IconValue" -Level "info"
-    Write-Log "  Command       : $CommandArg" -Level "info"
+    Write-Log ($LogMsgs.messages.registerStep -replace '\{step\}', $StepLabel) -Level "info"
+    Write-Log ($LogMsgs.messages.regPathDetail -replace '\{path\}', $RegistryPath) -Level "info"
+    Write-Log ($LogMsgs.messages.regLabelDetail -replace '\{label\}', $Label) -Level "info"
+    Write-Log ($LogMsgs.messages.regIconDetail -replace '\{icon\}', $IconValue) -Level "info"
+    Write-Log ($LogMsgs.messages.regCommandDetail -replace '\{command\}', $CommandArg) -Level "info"
 
     $regPath = ConvertTo-RegPath $RegistryPath
 
@@ -207,10 +207,10 @@ function Invoke-Edition {
 
     $isExeMissing = -not $VsCodeExe
     if ($isExeMissing) {
-        Write-Log "$($Edition.contextMenuLabel): executable not found -- skipping" -Level "warn"
+        Write-Log ($logMsgs.messages.exeNotFound -replace '\{label\}', $Edition.contextMenuLabel) -Level "warn"
         return $false
     }
-    Write-Log "Using executable: $VsCodeExe" -Level "success"
+    Write-Log ($logMsgs.messages.usingExe -replace '\{path\}', $VsCodeExe) -Level "success"
 
     # Persist resolved path to .resolved/ (not config.json)
     if ($ScriptDir) {

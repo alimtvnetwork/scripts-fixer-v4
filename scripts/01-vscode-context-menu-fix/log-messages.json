@@ -1,6 +1,6 @@
 {
   "scriptName": "VS Code Context Menu Fix",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "Restores 'Open with Code' to the Windows right-click context menu.",
   "messages": {
     "detectInstall": "Detecting VS Code installation type...",
@@ -33,7 +33,18 @@
     "registryStack": "Stack: {stack}",
     "verifyingEntry": "Verifying: {path}",
     "verifyPass": "[pass] {label} -- {path}",
-    "verifyMiss": "[miss] {label} -- {path}"
+    "verifyMiss": "[miss] {label} -- {path}",
+    "installTypePref": "Installation type preference: {type}",
+    "enabledEditions": "Enabled editions: {editions}",
+    "unknownEdition": "Unknown edition '{name}' in enabledEditions -- skipping",
+    "completedWithWarnings": "Completed with some warnings -- check output above.",
+    "registerStep": "{step}",
+    "regPathDetail": "  Registry path : {path}",
+    "regLabelDetail": "  Label         : {label}",
+    "regIconDetail": "  Icon          : {icon}",
+    "regCommandDetail": "  Command       : {command}",
+    "exeNotFound": "{label}: executable not found -- skipping",
+    "usingExe": "Using executable: {path}"
   },
   "help": {
     "commands": {},

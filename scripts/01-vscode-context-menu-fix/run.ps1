@@ -57,15 +57,15 @@ $installType     = $config.installationType
 $enabledEditions = $config.enabledEditions
 $isAllSuccessful = $true
 
-Write-Log "Installation type preference: $installType" -Level "info"
-Write-Log "Enabled editions: $($enabledEditions -join ', ')" -Level "info"
+Write-Log ($logMessages.messages.installTypePref -replace '\{type\}', $installType) -Level "info"
+Write-Log ($logMessages.messages.enabledEditions -replace '\{editions\}', ($enabledEditions -join ', ')) -Level "info"
 
 foreach ($editionName in $enabledEditions) {
     $edition = $config.editions.$editionName
 
     $isEditionMissing = -not $edition
     if ($isEditionMissing) {
-        Write-Log "Unknown edition '$editionName' in enabledEditions -- skipping" -Level "warn"
+        Write-Log ($logMessages.messages.unknownEdition -replace '\{name\}', $editionName) -Level "warn"
         $isAllSuccessful = $false
         continue
     }
@@ -91,7 +91,7 @@ foreach ($editionName in $enabledEditions) {
 if ($isAllSuccessful) {
     Write-Log $logMessages.messages.done -Level "success"
 } else {
-    Write-Log "Completed with some warnings -- check output above." -Level "warn"
+    Write-Log $logMessages.messages.completedWithWarnings -Level "warn"
 }
 
 # -- Save resolved state -------------------------------------------------------
