@@ -96,18 +96,6 @@ function Import-JsonConfig {
     return $parsed
 }
 
-function Mount-RegistryDrive {
-    Write-Log "Checking HKCR PSDrive..."
-    $existing = Get-PSDrive -Name HKCR -ErrorAction SilentlyContinue
-    if ($existing) {
-        Write-Log "HKCR PSDrive already mapped -- skipping" "skip"
-        return
-    }
-
-    Write-Log "Mapping HKCR PSDrive to HKEY_CLASSES_ROOT..."
-    New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT -Scope Global -Confirm:$false | Out-Null
-    Write-Log "HKCR PSDrive mapped successfully" "ok"
-}
 
 function Resolve-VsCodePath {
     param(
