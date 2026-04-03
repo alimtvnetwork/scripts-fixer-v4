@@ -77,6 +77,12 @@ if ($hasFilter -or $All -or $DryRun) {
     Write-Log ($logMessages.messages.menuRunning -replace '\{count\}', $scriptList.Count) -Level "info"
 }
 
+# -- Dry run -------------------------------------------------------------------
+if ($DryRun) {
+    Show-DryRun -ScriptList $scriptList -LogMessages $logMessages
+    return
+}
+
 # -- Run scripts in sequence ---------------------------------------------------
 $results = Invoke-ScriptSequence -ScriptList $scriptList -ScriptsRoot $scriptsRoot -LogMessages $logMessages -Skip $Skip
 
