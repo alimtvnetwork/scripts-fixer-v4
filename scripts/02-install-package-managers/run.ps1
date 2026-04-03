@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------
-#  Script 03 -- Install Package Managers
+#  Script 02 -- Install Package Managers
 #  Installs and updates Chocolatey and Winget package managers.
 # --------------------------------------------------------------------------
 param(

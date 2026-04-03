@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------
-#  Script 10 -- Install GitHub Desktop
+#  Script 08 -- Install GitHub Desktop
 #  Installs GitHub Desktop via Chocolatey.
 # --------------------------------------------------------------------------
 param(

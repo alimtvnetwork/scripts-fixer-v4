@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------
-#  Script 09 -- Install Git, Git LFS, and GitHub CLI
+#  Script 07 -- Install Git, Git LFS, and GitHub CLI
 #  Installs Git + Git LFS + GitHub CLI via Chocolatey and configures settings.
 # --------------------------------------------------------------------------
 param(
