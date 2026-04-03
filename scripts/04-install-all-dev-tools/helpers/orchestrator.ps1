@@ -126,6 +126,32 @@ function Show-InteractiveMenu {
     return $result
 }
 
+function Show-DryRun {
+    param(
+        [array]$ScriptList,
+        $LogMessages
+    )
+
+    Write-Host ""
+    Write-Log $LogMessages.messages.dryRunBanner -Level "warn"
+    Write-Host ""
+
+    foreach ($script in $ScriptList) {
+        $isDisabled = -not $script.Enabled
+        if ($isDisabled) {
+            $msg = $LogMessages.messages.dryRunSkipped -replace '\{id\}', $script.Id -replace '\{name\}', $script.Name
+            Write-Log $msg -Level "skip"
+        } else {
+            $msg = $LogMessages.messages.dryRunItem -replace '\{id\}', $script.Id -replace '\{name\}', $script.Name -replace '\{desc\}', $script.Desc
+            Write-Log $msg -Level "info"
+        }
+    }
+
+    $enabledCount = @($ScriptList | Where-Object { $_.Enabled }).Count
+    Write-Host ""
+    Write-Log ($LogMessages.messages.dryRunComplete -replace '\{count\}', $enabledCount) -Level "success"
+}
+
 function Invoke-ScriptSequence {
     param(
         [array]$ScriptList,

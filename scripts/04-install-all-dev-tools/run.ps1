@@ -7,6 +7,7 @@ param(
     [string]$Skip,
     [string]$Only,
     [switch]$All,
+    [switch]$DryRun,
     [switch]$Help
 )
 
@@ -61,7 +62,7 @@ Write-Log ($logMessages.messages.devDirResolved -replace '\{path\}', $devDir) -L
 
 # -- Build script list ---------------------------------------------------------
 $hasFilter = $Skip -or $Only
-if ($hasFilter -or $All) {
+if ($hasFilter -or $All -or $DryRun) {
     # Flag-based mode: skip interactive menu
     $scriptList = Resolve-ScriptList -Config $config -Skip $Skip -Only $Only
 } else {
@@ -74,6 +75,12 @@ if ($hasFilter -or $All) {
         return
     }
     Write-Log ($logMessages.messages.menuRunning -replace '\{count\}', $scriptList.Count) -Level "info"
+}
+
+# -- Dry run -------------------------------------------------------------------
+if ($DryRun) {
+    Show-DryRun -ScriptList $scriptList -LogMessages $logMessages
+    return
 }
 
 # -- Run scripts in sequence ---------------------------------------------------

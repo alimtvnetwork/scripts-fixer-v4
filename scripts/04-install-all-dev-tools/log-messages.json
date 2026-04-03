@@ -17,12 +17,17 @@
     "menuTitle": "Install All Dev Tools -- Interactive Menu",
     "menuPrompt": "Toggle by number (e.g. \"2 5 8\"), A=all, N=none, Enter=run selected: ",
     "menuNoneSelected": "No scripts selected. Exiting.",
-    "menuRunning": "Running {count} selected script(s)..."
+    "menuRunning": "Running {count} selected script(s)...",
+    "dryRunBanner": "--- DRY RUN -- no changes will be made ---",
+    "dryRunItem": "  [WOULD RUN] {id} - {name}: {desc}",
+    "dryRunSkipped": "  [SKIP]      {id} - {name} (disabled in config)",
+    "dryRunComplete": "Dry run complete. {count} script(s) would be executed."
   },
   "help": {
     "commands": {
       "(default)": "Interactive menu -- pick what to install",
       "-All": "Run all enabled scripts without prompting",
+      "-DryRun": "Show what would be installed without making changes",
       "-Skip 06,08": "Skip specific scripts by number",
       "-Only 03,05": "Run only specific scripts"
     },
@@ -43,6 +48,8 @@
     "examples": [
       ".\\run.ps1",
       ".\\run.ps1 -All",
+      ".\\run.ps1 -DryRun",
+      ".\\run.ps1 -DryRun -Only 03,05",
       ".\\run.ps1 -Skip 06,08",
       ".\\run.ps1 -Only 03,05",
       ".\\run.ps1 -Help"
