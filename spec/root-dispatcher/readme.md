@@ -26,7 +26,7 @@ When run with no parameters, it performs a git pull and shows help
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `-I` | int | No | Script number to run (maps to `scripts/<NN>-*/run.ps1`) |
+| `-I` | int | No | Script number to run (resolved via `scripts/registry.json`) |
 | `-Merge` | switch | No | Passed through to child script (used by script 02 for deep-merge) |
 | `-Clean` | switch | No | Wipes all `.resolved/` data before running, forcing fresh detection |
 | `-CleanOnly` | switch | No | Wipes all `.resolved/` data and exits without running any script |
