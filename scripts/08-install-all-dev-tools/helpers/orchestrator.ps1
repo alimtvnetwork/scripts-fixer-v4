@@ -4,7 +4,7 @@
 
 function Resolve-ScriptList {
     param(
-        [hashtable]$Config,
+        $Config,
         [string]$Skip,
         [string]$Only
     )
