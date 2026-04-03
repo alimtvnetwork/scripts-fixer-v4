@@ -52,6 +52,10 @@
     "resolvedDirCreated": "Created .resolved directory: {path}",
     "resolvedReadFailed": "Could not read existing resolved.json -- overwriting",
     "resolvedSaved": "Resolved data saved: {path}",
-    "resolvedSaveFailed": "Failed to save resolved data: {error}"
+    "resolvedSaveFailed": "Failed to save resolved data: {error}",
+    "gitPullSkipped": "git pull -- already run by root dispatcher",
+    "gitPulling": "Pulling latest changes...",
+    "gitPullSuccess": "{output}",
+    "gitPullFailed": "git pull failed: {error}  (continuing anyway)"
   }
 }
