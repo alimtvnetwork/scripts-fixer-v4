@@ -2,6 +2,14 @@
 #  Git, Git LFS, and GitHub CLI helper functions
 # --------------------------------------------------------------------------
 
+# -- Bootstrap shared helpers --------------------------------------------------
+$_sharedDir = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) "shared"
+$_loggingPath = Join-Path $_sharedDir "logging.ps1"
+if ((Test-Path $_loggingPath) -and -not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
+    . $_loggingPath
+}
+
+
 function Install-Git {
     param(
         $Config,
