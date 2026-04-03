@@ -76,7 +76,8 @@ scripts/
   06-.../              # Python
   07-.../              # pnpm
   08-.../              # Orchestrator
-  09-.../              # Git
+  09-.../              # Git + GitHub CLI
+  10-.../              # GitHub Desktop
 spec/                  # Specifications per script
 suggestions/           # Improvement ideas
 .resolved/             # Runtime state (git-ignored)
