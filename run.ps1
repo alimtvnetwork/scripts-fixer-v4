@@ -102,6 +102,7 @@ function Show-RootHelp {
     Write-Host ""
     Write-Host "    Utilities" -ForegroundColor Magenta
     Write-Host "    13  Audit Mode                    " -NoNewline; Write-Host "Scan configs, specs, suggestions for stale IDs" -ForegroundColor DarkGray
+    Write-Host "    14  Install Winget                " -NoNewline; Write-Host "Install/verify Winget package manager (standalone)" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Script 12 (Install All Dev Tools):" -ForegroundColor Yellow
     Write-Host "    .\run.ps1 -I 12                         " -NoNewline; Write-Host "Interactive menu -- pick what to install" -ForegroundColor DarkGray
