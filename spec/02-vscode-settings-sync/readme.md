@@ -124,19 +124,22 @@ what was extracted from it, and which fallback JSON files were used.
 ## Execution Flow
 
 1. `Main` is called at the bottom of the script
-2. `Initialize-Logging` -- clean `logs/`, start transcript
-3. `Import-JsonConfig` -- load `log-messages.json`, display banner
-4. `Import-JsonConfig` -- load `config.json`, determine enabled editions
-5. `Resolve-SourceFiles` -- find `.code-profile` or individual JSON files
-6. Log merge/replace mode and extension count
-7. For each enabled edition -> `Invoke-Edition`:
+2. Dot-source `scripts/shared/git-pull.ps1` and call `Invoke-GitPull`
+   - If `$env:SCRIPTS_ROOT_RUN` is `"1"` (set by root dispatcher), git pull is skipped
+   - If run standalone, git pull executes normally
+3. `Initialize-Logging` -- clean `logs/`, start transcript
+4. `Import-JsonConfig` -- load `log-messages.json`, display banner
+5. `Import-JsonConfig` -- load `config.json`, determine enabled editions
+6. `Resolve-SourceFiles` -- find `.code-profile` or individual JSON files
+7. Log merge/replace mode and extension count
+8. For each enabled edition -> `Invoke-Edition`:
    a. Check CLI command availability (`code` / `code-insiders`)
    b. Resolve and create settings directory if needed
    c. `Apply-Settings` -- backup existing, then copy or deep-merge
    d. `Apply-Keybindings` -- backup existing, then copy
    e. `Install-Extensions` -- install each extension via CLI
    f. Verify applied files exist at destination
-8. Display summary footer
+9. Display summary footer
 
 ## Logging
 
