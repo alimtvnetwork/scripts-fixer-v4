@@ -98,6 +98,8 @@ function Show-RootHelp {
     Write-Host "    07  Git + LFS + gh                " -NoNewline; Write-Host "Install Git, Git LFS, GitHub CLI, configure settings" -ForegroundColor DarkGray
     Write-Host "    08  GitHub Desktop                " -NoNewline; Write-Host "Install GitHub Desktop via Chocolatey" -ForegroundColor DarkGray
     Write-Host "    09  C++ (MinGW-w64)               " -NoNewline; Write-Host "Install MinGW-w64 C++ compiler, verify g++/gcc/make" -ForegroundColor DarkGray
+    Write-Host "    16  PHP                           " -NoNewline; Write-Host "Install PHP via Chocolatey" -ForegroundColor DarkGray
+    Write-Host "    17  PowerShell (latest)           " -NoNewline; Write-Host "Install latest PowerShell via Winget/Chocolatey" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "    Optional" -ForegroundColor Magenta
     Write-Host "    10  VSCode Context Menu Fix       " -NoNewline; Write-Host "Add/repair VSCode right-click context menu entries" -ForegroundColor DarkGray
