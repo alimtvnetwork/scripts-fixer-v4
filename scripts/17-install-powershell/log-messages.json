@@ -1,0 +1,28 @@
+{
+  "scriptName": "Install PowerShell",
+  "version": "1.0.0",
+  "description": "Installs the latest PowerShell (pwsh) via Winget or Chocolatey.",
+  "messages": {
+    "notAdmin": "This script must be run as Administrator.",
+    "scriptDisabled": "PowerShell installation is disabled in config.",
+    "pwshDisabled": "PowerShell install is disabled in config -- skipping.",
+    "pwshChecking": "Checking for PowerShell (pwsh)...",
+    "pwshFound": "PowerShell found: {version}",
+    "pwshNotFound": "PowerShell (pwsh) not found -- installing...",
+    "pwshInstallingWinget": "Installing PowerShell via Winget ({id})...",
+    "pwshInstallingChoco": "Winget not available -- installing PowerShell via Chocolatey ({package})...",
+    "pwshInstallSuccess": "PowerShell installed successfully: {version}",
+    "pwshInstallFailed": "Failed to install PowerShell: {error}",
+    "pwshNotInPath": "PowerShell installed but pwsh not found in PATH -- restart your terminal.",
+    "done": "PowerShell (latest) is installed and ready.",
+    "completedWithWarnings": "Completed with some warnings -- check output above.",
+    "setupComplete": "PowerShell setup complete."
+  },
+  "help": {
+    "commands": {},
+    "examples": [
+      ".\\run.ps1",
+      ".\\run.ps1 -Help"
+    ]
+  }
+}
