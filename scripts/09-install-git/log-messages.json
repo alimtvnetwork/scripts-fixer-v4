@@ -3,7 +3,7 @@
   "version": "1.3.0",
   "description": "Installs Git, Git LFS, and GitHub CLI via Chocolatey and configures global settings.",
   "messages": {
-    "startingGitInstall": "Starting Git installation...",
+    
     "gitAlreadyInstalled": "Git is already installed: {version}",
     "gitInstallSuccess": "Git installed successfully: {version}",
     "gitUpgradeSuccess": "Git upgraded successfully: {version}",
