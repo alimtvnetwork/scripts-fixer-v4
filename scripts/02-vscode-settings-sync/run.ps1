@@ -41,13 +41,14 @@ Invoke-GitPull
 # -- Resolve source files ------------------------------------------------------
 $sources = Resolve-SourceFiles -ScriptDir $scriptDir
 
-if (-not $sources.Settings) {
+$hasNoSettings = -not $sources.Settings
+if ($hasNoSettings) {
     Write-Log "No settings source found -- cannot continue" -Level "error"
     return
 }
 
 $enabledEditions = $config.enabledEditions
-$totalSuccess    = $true
+$isAllSuccessful = $true
 
 Write-Log "Enabled editions: $($enabledEditions -join ', ')" -Level "info"
 Write-Log "Extensions to install: $($sources.Extensions.Count)" -Level "info"
@@ -61,9 +62,10 @@ if ($Merge) {
 foreach ($editionName in $enabledEditions) {
     $edition = $config.editions.$editionName
 
-    if (-not $edition) {
+    $isEditionMissing = -not $edition
+    if ($isEditionMissing) {
         Write-Log "Unknown edition '$editionName' -- skipping" -Level "warn"
-        $totalSuccess = $false
+        $isAllSuccessful = $false
         continue
     }
 
@@ -75,11 +77,12 @@ foreach ($editionName in $enabledEditions) {
         -MergeMode    $Merge.IsPresent `
         -ScriptDir    $scriptDir
 
-    if (-not $result) { $totalSuccess = $false }
+    $hasFailed = -not $result
+    if ($hasFailed) { $isAllSuccessful = $false }
 }
 
 # -- Summary -------------------------------------------------------------------
-if ($totalSuccess) {
+if ($isAllSuccessful) {
     Write-Log $logMessages.messages.done -Level "success"
 } else {
     Write-Log "Completed with some warnings -- check output above." -Level "warn"

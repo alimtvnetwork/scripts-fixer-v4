@@ -45,38 +45,42 @@ Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
 Invoke-GitPull
 
 # -- Assert admin --------------------------------------------------------------
-$isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-not $isAdmin) {
+$hasAdminRights = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+if (-not $hasAdminRights) {
     Write-Log $logMessages.messages.notAdmin -Level "error"
     Write-Host "  Tip: Right-click PowerShell -> 'Run as Administrator'" -ForegroundColor Yellow
     return
 }
 
 # -- Execute subcommand --------------------------------------------------------
-$totalSuccess = $true
+$isAllSuccessful = $true
 
 switch ($Command.ToLower()) {
     "choco" {
         Write-Log "Command: choco -- Chocolatey only" -Level "info"
         $ok = Install-Chocolatey -Config $config.chocolatey
-        if (-not $ok) { $totalSuccess = $false }
+        $hasFailed = -not $ok
+        if ($hasFailed) { $isAllSuccessful = $false }
     }
     "winget" {
         Write-Log "Command: winget -- Winget only" -Level "info"
         $ok = Install-Winget -Config $config.winget
-        if (-not $ok) { $totalSuccess = $false }
+        $hasFailed = -not $ok
+        if ($hasFailed) { $isAllSuccessful = $false }
     }
     default {
         Write-Log "Command: all -- Installing both package managers" -Level "info"
         $ok = Install-Chocolatey -Config $config.chocolatey
-        if (-not $ok) { $totalSuccess = $false }
+        $hasFailed = -not $ok
+        if ($hasFailed) { $isAllSuccessful = $false }
         $ok = Install-Winget -Config $config.winget
-        if (-not $ok) { $totalSuccess = $false }
+        $hasFailed = -not $ok
+        if ($hasFailed) { $isAllSuccessful = $false }
     }
 }
 
 # -- Summary -------------------------------------------------------------------
-if ($totalSuccess) {
+if ($isAllSuccessful) {
     Write-Log $logMessages.messages.done -Level "success"
 } else {
     Write-Log "Completed with some warnings -- check output above." -Level "warn"

@@ -6,13 +6,14 @@
 function Install-Chocolatey {
     param([PSCustomObject]$Config)
 
-    if (-not $Config.enabled) {
+    $isDisabled = -not $Config.enabled
+    if ($isDisabled) {
         Write-Log "Chocolatey is disabled in config -- skipping" -Level "info"
         return $true
     }
 
-    $chocoOk = Assert-Choco
-    if (-not $chocoOk) { return $false }
+    $isChocoReady = Assert-Choco
+    if (-not $isChocoReady) { return $false }
 
     if ($Config.upgradeOnRun) {
         Write-Log "Upgrading Chocolatey itself to latest..." -Level "info"

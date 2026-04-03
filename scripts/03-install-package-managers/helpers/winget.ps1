@@ -6,7 +6,8 @@
 function Install-Winget {
     param([PSCustomObject]$Config)
 
-    if (-not $Config.enabled) {
+    $isDisabled = -not $Config.enabled
+    if ($isDisabled) {
         Write-Log "Winget is disabled in config -- skipping" -Level "info"
         return $true
     }
@@ -29,7 +30,8 @@ function Install-Winget {
         return $true
     }
 
-    if (-not $Config.installIfMissing) {
+    $isInstallDisabled = -not $Config.installIfMissing
+    if ($isInstallDisabled) {
         Write-Log "Winget not found and installIfMissing is false -- skipping" -Level "warn"
         return $false
     }

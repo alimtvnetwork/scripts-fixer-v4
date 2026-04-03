@@ -21,15 +21,18 @@ function Install-Go {
 
     $goCmd = Get-Command go.exe -ErrorAction SilentlyContinue
 
-    if (-not $goCmd) {
+    $isGoMissing = -not $goCmd
+    if ($isGoMissing) {
         Write-Log "Go is not installed -- installing via Chocolatey..." -Level "info"
         $ok = Install-ChocoPackage -PackageName $packageName
-        if (-not $ok) { return $false }
+        $hasFailed = -not $ok
+        if ($hasFailed) { return $false }
 
         # Refresh PATH so go.exe is available in this session
         $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
         $goCmd = Get-Command go.exe -ErrorAction SilentlyContinue
-        if (-not $goCmd) {
+        $isStillMissing = -not $goCmd
+        if ($isStillMissing) {
             Write-Log "Go installed but go.exe not found in PATH -- may need a new terminal" -Level "warn"
             return $false
         }
@@ -57,13 +60,15 @@ function Resolve-Gopath {
     )
 
     # If orchestrator set DEV_DIR, derive GOPATH from it
-    if (-not [string]::IsNullOrWhiteSpace($env:DEV_DIR) -and $DevDirSubfolder) {
+    $hasDevDir = -not [string]::IsNullOrWhiteSpace($env:DEV_DIR)
+    if ($hasDevDir -and $DevDirSubfolder) {
         $derived = Join-Path $env:DEV_DIR $DevDirSubfolder
         Write-Log "Using GOPATH derived from DEV_DIR: $derived" -Level "success"
         return $derived
     }
 
-    if (-not $GopathConfig) {
+    $hasNoConfig = -not $GopathConfig
+    if ($hasNoConfig) {
         $fallback = "E:\dev\go"
         Write-Log "No gopath config -- using fallback: $fallback" -Level "warn"
         return $fallback
@@ -72,7 +77,8 @@ function Resolve-Gopath {
     $default  = if ($GopathConfig.default)  { $GopathConfig.default }  else { "E:\dev\go" }
     $override = if ($GopathConfig.override) { $GopathConfig.override } else { "" }
 
-    if (-not [string]::IsNullOrWhiteSpace($override)) {
+    $hasOverride = -not [string]::IsNullOrWhiteSpace($override)
+    if ($hasOverride) {
         Write-Log "Using GOPATH override from config: $override" -Level "info"
         return $override
     }
@@ -84,7 +90,8 @@ function Resolve-Gopath {
 
     # Prompt mode
     $userInput = Read-Host -Prompt "Enter GOPATH (default: $default)"
-    if (-not [string]::IsNullOrWhiteSpace($userInput)) {
+    $hasUserInput = -not [string]::IsNullOrWhiteSpace($userInput)
+    if ($hasUserInput) {
         Write-Log "User provided GOPATH: $userInput" -Level "info"
         return $userInput
     }
@@ -106,7 +113,8 @@ function Initialize-Gopath {
     $gopathFull = [System.IO.Path]::GetFullPath($GopathValue)
     Write-Log "Resolved GOPATH to: $gopathFull" -Level "info"
 
-    if (-not (Test-Path $gopathFull)) {
+    $isDirMissing = -not (Test-Path $gopathFull)
+    if ($isDirMissing) {
         Write-Log "Creating GOPATH directory: $gopathFull" -Level "info"
         New-Item -Path $gopathFull -ItemType Directory -Force -Confirm:$false | Out-Null
         Write-Log "GOPATH directory created" -Level "success"
@@ -136,14 +144,16 @@ function Update-GoPath {
         [string]$GopathFull
     )
 
-    if (-not $PathConfig.updateUserPath) {
+    $isPathUpdateDisabled = -not $PathConfig.updateUserPath
+    if ($isPathUpdateDisabled) {
         Write-Log "User PATH update is disabled in config" -Level "info"
         return $true
     }
 
     $goBin = Join-Path $GopathFull "bin"
 
-    if (-not (Test-Path $goBin)) {
+    $isBinMissing = -not (Test-Path $goBin)
+    if ($isBinMissing) {
         Write-Log "Creating Go bin directory: $goBin" -Level "info"
         New-Item -Path $goBin -ItemType Directory -Force -Confirm:$false | Out-Null
     }
@@ -195,19 +205,21 @@ function Configure-GoEnv {
         [string]$GopathFull
     )
 
-    if (-not $GoEnvConfig -or -not $GoEnvConfig.settings) {
+    $hasNoConfig = -not $GoEnvConfig -or -not $GoEnvConfig.settings
+    if ($hasNoConfig) {
         Write-Log "No goEnv settings in config -- skipping" -Level "info"
         return $true
     }
 
     $settings = $GoEnvConfig.settings
     $relativeToGopath = $GoEnvConfig.relativeToGopath
-    $allOk = $true
+    $isAllOk = $true
 
     foreach ($key in $settings.PSObject.Properties.Name) {
         $entry = $settings.$key
 
-        if (-not $entry.enabled) {
+        $isEntryDisabled = -not $entry.enabled
+        if ($isEntryDisabled) {
             Write-Log "go env $key is disabled -- skipping" -Level "info"
             continue
         }
@@ -215,15 +227,18 @@ function Configure-GoEnv {
         $finalValue = $null
 
         # Resolve value: relative path or direct value
-        if ($relativeToGopath -and ($entry.PSObject.Properties.Name -contains "relativePath")) {
+        $hasRelativePath = $relativeToGopath -and ($entry.PSObject.Properties.Name -contains "relativePath")
+        if ($hasRelativePath) {
             $rel = $entry.relativePath
-            if ([string]::IsNullOrWhiteSpace($rel)) {
+            $isRelEmpty = [string]::IsNullOrWhiteSpace($rel)
+            if ($isRelEmpty) {
                 Write-Log "go env $key has empty relativePath -- skipping" -Level "warn"
                 continue
             }
 
             $absolutePath = Join-Path $GopathFull $rel
-            if (-not (Test-Path $absolutePath)) {
+            $isDirMissing = -not (Test-Path $absolutePath)
+            if ($isDirMissing) {
                 Write-Log "Creating directory for $key -- $absolutePath" -Level "info"
                 New-Item -Path $absolutePath -ItemType Directory -Force -Confirm:$false | Out-Null
             }
@@ -235,21 +250,24 @@ function Configure-GoEnv {
         # Prompt if configured
         if ($GoEnvConfig.applyMode -eq "json-or-prompt" -and $entry.promptOnFirstRun) {
             $userInput = Read-Host -Prompt "Enter value for $key (default: $finalValue)"
-            if (-not [string]::IsNullOrWhiteSpace($userInput)) {
+            $hasUserInput = -not [string]::IsNullOrWhiteSpace($userInput)
+            if ($hasUserInput) {
                 $finalValue = $userInput
                 Write-Log "User provided value for $key -- $finalValue" -Level "info"
             }
         }
 
-        if (-not [string]::IsNullOrWhiteSpace($finalValue)) {
+        $hasValue = -not [string]::IsNullOrWhiteSpace($finalValue)
+        if ($hasValue) {
             $ok = Set-GoEnvSetting -Key $key -Value $finalValue
-            if (-not $ok) { $allOk = $false }
+            $hasFailed = -not $ok
+            if ($hasFailed) { $isAllOk = $false }
         } else {
             Write-Log "No value resolved for go env $key -- skipping" -Level "warn"
         }
     }
 
-    return $allOk
+    return $isAllOk
 }
 
 function Invoke-GoSetup {
@@ -263,35 +281,41 @@ function Invoke-GoSetup {
         [string]$Command
     )
 
-    $allOk = $true
+    $isAllOk = $true
 
     # Install/upgrade
-    if ($Command -ne "configure") {
+    $isNotConfigureOnly = $Command -ne "configure"
+    if ($isNotConfigureOnly) {
         $ok = Install-Go -Config $Config
-        if (-not $ok) {
+        $hasFailed = -not $ok
+        if ($hasFailed) {
             Write-Log "Go install failed -- cannot continue" -Level "error"
             return $false
         }
     }
 
     # Configure (skip if command is "install" only)
-    if ($Command -ne "install") {
+    $isNotInstallOnly = $Command -ne "install"
+    if ($isNotInstallOnly) {
         # Resolve GOPATH
         $gopathValue = Resolve-Gopath -GopathConfig $Config.gopath -DevDirSubfolder $Config.devDirSubfolder
         $gopathFull = Initialize-Gopath -GopathValue $gopathValue
 
-        if (-not $gopathFull) {
+        $isGopathFailed = -not $gopathFull
+        if ($isGopathFailed) {
             Write-Log "Failed to initialize GOPATH" -Level "error"
             return $false
         }
 
         # Update PATH
         $ok = Update-GoPath -PathConfig $Config.path -GopathFull $gopathFull
-        if (-not $ok) { $allOk = $false }
+        $hasFailed = -not $ok
+        if ($hasFailed) { $isAllOk = $false }
 
         # Configure go env
         $ok = Configure-GoEnv -GoEnvConfig $Config.goEnv -GopathFull $gopathFull
-        if (-not $ok) { $allOk = $false }
+        $hasFailed = -not $ok
+        if ($hasFailed) { $isAllOk = $false }
 
         # Save resolved data
         Save-ResolvedData -ScriptFolder "04-install-golang" -Data @{
@@ -304,5 +328,5 @@ function Invoke-GoSetup {
         }
     }
 
-    return $allOk
+    return $isAllOk
 }

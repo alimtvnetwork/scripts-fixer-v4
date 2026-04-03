@@ -16,7 +16,8 @@ function Resolve-SourceFiles {
     Write-Log "Scanning for .code-profile files in: $ScriptDir" -Level "info"
     Write-Log "Found $(@($profileFiles).Count) .code-profile file(s)" -Level "info"
 
-    if ($profileFiles -and $profileFiles.Count -gt 0) {
+    $hasProfileFiles = $profileFiles -and $profileFiles.Count -gt 0
+    if ($hasProfileFiles) {
         $profilePath = $profileFiles[0].FullName
         Write-Log "Using profile: $($profileFiles[0].Name)" -Level "success"
 
@@ -46,7 +47,7 @@ function Resolve-SourceFiles {
             if ($profileData.extensions) {
                 Write-Log "Extracting extensions from profile..." -Level "info"
                 $profileExtensions = $profileData.extensions | ConvertFrom-Json
-                $result.Extensions = @($profileExtensions | Where-Object { -not $_.disabled } | ForEach-Object { $_.identifier.id })
+                $result.Extensions = @($profileExtensions | Where-Object { $_.disabled -ne $true } | ForEach-Object { $_.identifier.id })
                 Write-Log "Extracted $($result.Extensions.Count) extension(s) from profile" -Level "success"
             }
         } catch {
@@ -56,10 +57,12 @@ function Resolve-SourceFiles {
     }
 
     # Fallback: individual settings.json
-    if (-not $result.Settings) {
+    $hasNoSettings = -not $result.Settings
+    if ($hasNoSettings) {
         $settingsPath = Join-Path $ScriptDir "settings.json"
         Write-Log "Checking individual settings.json: $settingsPath" -Level "info"
-        if (Test-Path $settingsPath) {
+        $isSettingsFound = Test-Path $settingsPath
+        if ($isSettingsFound) {
             $result.Settings = $settingsPath
             Write-Log "Source settings.json found" -Level "success"
         } else {
@@ -68,10 +71,12 @@ function Resolve-SourceFiles {
     }
 
     # Fallback: individual keybindings.json
-    if (-not $result.Keybindings) {
+    $hasNoKeybindings = -not $result.Keybindings
+    if ($hasNoKeybindings) {
         $kbPath = Join-Path $ScriptDir "keybindings.json"
         Write-Log "Checking individual keybindings.json: $kbPath" -Level "info"
-        if (Test-Path $kbPath) {
+        $isKbFound = Test-Path $kbPath
+        if ($isKbFound) {
             $result.Keybindings = $kbPath
             Write-Log "Source keybindings.json found" -Level "success"
         } else {
@@ -83,7 +88,8 @@ function Resolve-SourceFiles {
     if ($result.Extensions.Count -eq 0) {
         $extPath = Join-Path $ScriptDir "extensions.json"
         Write-Log "Checking individual extensions.json: $extPath" -Level "info"
-        if (Test-Path $extPath) {
+        $isExtFound = Test-Path $extPath
+        if ($isExtFound) {
             $extData = Get-Content $extPath -Raw | ConvertFrom-Json
             $result.Extensions = @($extData.extensions)
             Write-Log "$($result.Extensions.Count) extension(s) loaded from extensions.json" -Level "success"
@@ -104,11 +110,12 @@ function Apply-Settings {
     )
 
     Write-Log "Applying settings to: $DestPath" -Level "info"
-    $backupOk = Backup-File -FilePath $DestPath -BackupSuffix $BackupSuffix
+    $isBackupOk = Backup-File -FilePath $DestPath -BackupSuffix $BackupSuffix
 
-    if (-not $backupOk) { return $false }
+    if (-not $isBackupOk) { return $false }
 
-    if ($MergeMode -and (Test-Path $DestPath)) {
+    $hasExistingFile = Test-Path $DestPath
+    if ($MergeMode -and $hasExistingFile) {
         Write-Log "Merge mode: deep-merging into existing settings.json" -Level "info"
         try {
             $existingObj = Get-Content $DestPath -Raw | ConvertFrom-Json
@@ -143,9 +150,9 @@ function Apply-Keybindings {
     )
 
     Write-Log "Applying keybindings to: $DestPath" -Level "info"
-    $backupOk = Backup-File -FilePath $DestPath -BackupSuffix $BackupSuffix
+    $isBackupOk = Backup-File -FilePath $DestPath -BackupSuffix $BackupSuffix
 
-    if (-not $backupOk) { return $false }
+    if (-not $isBackupOk) { return $false }
 
     try {
         Copy-Item -Path $SourcePath -Destination $DestPath -Force
@@ -163,26 +170,27 @@ function Install-Extensions {
         [string[]]$Extensions
     )
 
-    $allOk = $true
+    $isAllOk = $true
     Write-Log "Installing $($Extensions.Count) extension(s) via '$CliCommand'..." -Level "info"
 
     foreach ($ext in $Extensions) {
         Write-Log "Installing: $ext" -Level "info"
         try {
             $output = & $CliCommand --install-extension $ext --force 2>&1
-            if ($LASTEXITCODE -ne 0 -or $output -match 'Failed|error') {
+            $hasInstallIssue = $LASTEXITCODE -ne 0 -or $output -match 'Failed|error'
+            if ($hasInstallIssue) {
                 Write-Log "Extension install may have failed: $ext -- $output" -Level "warn"
-                $allOk = $false
+                $isAllOk = $false
             } else {
                 Write-Log "Installed $ext" -Level "success"
             }
         } catch {
             Write-Log "Failed to install $ext -- $_" -Level "error"
-            $allOk = $false
+            $isAllOk = $false
         }
     }
 
-    return $allOk
+    return $isAllOk
 }
 
 function Invoke-Edition {
@@ -201,12 +209,13 @@ function Invoke-Edition {
     Write-Host "  +----------------------------------------------" -ForegroundColor DarkCyan
 
     $cliCmd = $Edition.cliCommand
-    $allOk  = $true
+    $isAllOk = $true
 
     # Check CLI
     Write-Log "Checking CLI command: $cliCmd" -Level "info"
     $cliExists = Get-Command $cliCmd -ErrorAction SilentlyContinue
-    if (-not $cliExists) {
+    $isCliMissing = -not $cliExists
+    if ($isCliMissing) {
         Write-Log "'$cliCmd' not found in PATH -- skipping this edition" -Level "warn"
         return $false
     }
@@ -218,7 +227,8 @@ function Invoke-Edition {
     Write-Log "Settings path (raw): $rawPath" -Level "info"
     Write-Log "Settings path (expanded): $settingsDir" -Level "info"
 
-    if (-not (Test-Path $settingsDir)) {
+    $isDirMissing = -not (Test-Path $settingsDir)
+    if ($isDirMissing) {
         Write-Log "Settings directory does not exist -- creating..." -Level "info"
         New-Item -Path $settingsDir -ItemType Directory -Force -Confirm:$false | Out-Null
         Write-Log "Created: $settingsDir" -Level "success"
@@ -244,7 +254,8 @@ function Invoke-Edition {
             -DestPath     $destSettings `
             -BackupSuffix $BackupSuffix `
             -MergeMode    $MergeMode
-        if (-not $ok) { $allOk = $false }
+        $hasFailed = -not $ok
+        if ($hasFailed) { $isAllOk = $false }
     }
 
     # Apply keybindings
@@ -253,27 +264,32 @@ function Invoke-Edition {
             -SourcePath   $Sources.Keybindings `
             -DestPath     $destKeybindings `
             -BackupSuffix $BackupSuffix
-        if (-not $ok) { $allOk = $false }
+        $hasFailed = -not $ok
+        if ($hasFailed) { $isAllOk = $false }
     }
 
     # Install extensions
-    if ($Sources.Extensions.Count -gt 0) {
+    $hasExtensions = $Sources.Extensions.Count -gt 0
+    if ($hasExtensions) {
         $ok = Install-Extensions -CliCommand $cliCmd -Extensions $Sources.Extensions
-        if (-not $ok) { $allOk = $false }
+        $hasFailed = -not $ok
+        if ($hasFailed) { $isAllOk = $false }
     }
 
     # Verify
     Write-Log "Verifying applied files..." -Level "info"
-    if (Test-Path $destSettings) {
+    $isSettingsPresent = Test-Path $destSettings
+    if ($isSettingsPresent) {
         Write-Log "settings.json present at $destSettings" -Level "success"
     } else {
         Write-Log "settings.json NOT found at $destSettings" -Level "error"
-        $allOk = $false
+        $isAllOk = $false
     }
 
-    if ($Sources.Keybindings -and (Test-Path $destKeybindings)) {
+    $hasKeybindingsFile = $Sources.Keybindings -and (Test-Path $destKeybindings)
+    if ($hasKeybindingsFile) {
         Write-Log "keybindings.json present at $destKeybindings" -Level "success"
     }
 
-    return $allOk
+    return $isAllOk
 }

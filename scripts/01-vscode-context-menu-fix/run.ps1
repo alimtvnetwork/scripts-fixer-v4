@@ -37,8 +37,8 @@ Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
 Invoke-GitPull
 
 # -- Assert admin --------------------------------------------------------------
-$isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-not $isAdmin) {
+$hasAdminRights = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+if (-not $hasAdminRights) {
     Write-Log $logMessages.messages.notAdmin -Level "error"
     Write-Host "  Tip: Right-click PowerShell -> 'Run as Administrator'" -ForegroundColor Yellow
     return
@@ -47,7 +47,7 @@ if (-not $isAdmin) {
 # -- Process editions ----------------------------------------------------------
 $installType     = $config.installationType
 $enabledEditions = $config.enabledEditions
-$totalSuccess    = $true
+$isAllSuccessful = $true
 
 Write-Log "Installation type preference: $installType" -Level "info"
 Write-Log "Enabled editions: $($enabledEditions -join ', ')" -Level "info"
@@ -55,9 +55,10 @@ Write-Log "Enabled editions: $($enabledEditions -join ', ')" -Level "info"
 foreach ($editionName in $enabledEditions) {
     $edition = $config.editions.$editionName
 
-    if (-not $edition) {
+    $isEditionMissing = -not $edition
+    if ($isEditionMissing) {
         Write-Log "Unknown edition '$editionName' in enabledEditions -- skipping" -Level "warn"
-        $totalSuccess = $false
+        $isAllSuccessful = $false
         continue
     }
 
@@ -74,11 +75,12 @@ foreach ($editionName in $enabledEditions) {
             verify        = $logMessages.messages.verify
         }
 
-    if (-not $result) { $totalSuccess = $false }
+    $hasFailed = -not $result
+    if ($hasFailed) { $isAllSuccessful = $false }
 }
 
 # -- Summary -------------------------------------------------------------------
-if ($totalSuccess) {
+if ($isAllSuccessful) {
     Write-Log $logMessages.messages.done -Level "success"
 } else {
     Write-Log "Completed with some warnings -- check output above." -Level "warn"

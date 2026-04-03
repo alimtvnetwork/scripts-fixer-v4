@@ -12,10 +12,10 @@ function Assert-Admin {
     Write-Log "Checking Administrator privileges..." -Level "info"
     $identity  = [Security.Principal.WindowsIdentity]::GetCurrent()
     $principal = New-Object Security.Principal.WindowsPrincipal($identity)
-    $isAdmin   = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    $hasAdminRights = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
     Write-Log "Current user: $($identity.Name)" -Level "info"
-    Write-Log "Is Administrator: $isAdmin" -Level $(if ($isAdmin) { "success" } else { "error" })
-    return $isAdmin
+    Write-Log "Is Administrator: $hasAdminRights" -Level $(if ($hasAdminRights) { "success" } else { "error" })
+    return $hasAdminRights
 }
 
 function Resolve-VsCodePath {
@@ -30,11 +30,13 @@ function Resolve-VsCodePath {
     if ($ScriptDir -and $EditionName) {
         $resolvedDir  = Get-ResolvedDir -ScriptDir $ScriptDir
         $resolvedFile = Join-Path $resolvedDir "resolved.json"
-        if (Test-Path $resolvedFile) {
+        $hasCacheFile = Test-Path $resolvedFile
+        if ($hasCacheFile) {
             try {
                 $cached = Get-Content $resolvedFile -Raw | ConvertFrom-Json
                 $cachedExe = $cached.$EditionName.resolvedExe
-                if ($cachedExe -and (Test-Path $cachedExe)) {
+                $isCachedPathValid = $cachedExe -and (Test-Path $cachedExe)
+                if ($isCachedPathValid) {
                     Write-Log "Using cached path from .resolved/: $cachedExe" -Level "success"
                     return $cachedExe
                 } elseif ($cachedExe) {
@@ -54,10 +56,10 @@ function Resolve-VsCodePath {
     $exePath = [System.Environment]::ExpandEnvironmentVariables($rawPath)
     Write-Log "Expanded path: $exePath" -Level "info"
 
-    $exists = Test-Path $exePath
-    Write-Log "File exists at expanded path: $exists" -Level $(if ($exists) { "success" } else { "warn" })
+    $isPreferredFound = Test-Path $exePath
+    Write-Log "File exists at expanded path: $isPreferredFound" -Level $(if ($isPreferredFound) { "success" } else { "warn" })
 
-    if ($exists) { return $exePath }
+    if ($isPreferredFound) { return $exePath }
 
     # Fallback
     $fallbackType = if ($PreferredType -eq "user") { "system" } else { "user" }
@@ -68,10 +70,10 @@ function Resolve-VsCodePath {
     $fallbackExe = [System.Environment]::ExpandEnvironmentVariables($fallbackRaw)
     Write-Log "Expanded fallback path: $fallbackExe" -Level "info"
 
-    $fallbackExists = Test-Path $fallbackExe
-    Write-Log "File exists at fallback path: $fallbackExists" -Level $(if ($fallbackExists) { "success" } else { "error" })
+    $isFallbackFound = Test-Path $fallbackExe
+    Write-Log "File exists at fallback path: $isFallbackFound" -Level $(if ($isFallbackFound) { "success" } else { "error" })
 
-    if ($fallbackExists) { return $fallbackExe }
+    if ($isFallbackFound) { return $fallbackExe }
 
     Write-Log "No valid VS Code executable found for either type" -Level "error"
     return $null
@@ -192,7 +194,8 @@ function Invoke-Edition {
     Write-Log $Steps.detectInstall -Level "info"
     $VsCodeExe = Resolve-VsCodePath -PathConfig $Edition.vscodePath -PreferredType $InstallType -ScriptDir $ScriptDir -EditionName $EditionName
 
-    if (-not $VsCodeExe) {
+    $isExeMissing = -not $VsCodeExe
+    if ($isExeMissing) {
         Write-Log "$($Edition.contextMenuLabel): executable not found -- skipping" -Level "warn"
         return $false
     }
@@ -213,7 +216,7 @@ function Invoke-Edition {
         @{ Step = $Steps.regBg;   Path = $Edition.registryPaths.background; CmdArg = "`"$VsCodeExe`" `"%V`"" }
     )
 
-    $allOk = $true
+    $isAllOk = $true
 
     # Register
     foreach ($entry in $entries) {
@@ -223,15 +226,17 @@ function Invoke-Edition {
             -Label      $Label `
             -IconValue  $IconVal `
             -CommandArg $entry.CmdArg
-        if (-not $result) { $allOk = $false }
+        $hasFailed = -not $result
+        if ($hasFailed) { $isAllOk = $false }
     }
 
     # Verify
     Write-Log $Steps.verify -Level "info"
     foreach ($entry in $entries) {
         $result = Test-RegistryEntry -RegistryPath $entry.Path -Label $entry.Step
-        if (-not $result) { $allOk = $false }
+        $hasFailed = -not $result
+        if ($hasFailed) { $isAllOk = $false }
     }
 
-    return $allOk
+    return $isAllOk
 }

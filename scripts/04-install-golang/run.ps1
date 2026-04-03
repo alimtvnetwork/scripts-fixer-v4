@@ -43,30 +43,32 @@ Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
 Invoke-GitPull
 
 # -- Disabled check ------------------------------------------------------------
-if (-not $config.enabled) {
+$isDisabled = -not $config.enabled
+if ($isDisabled) {
     Write-Log $logMessages.messages.scriptDisabled -Level "warn"
     return
 }
 
 # -- Assert admin --------------------------------------------------------------
-$isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-not $isAdmin) {
+$hasAdminRights = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+if (-not $hasAdminRights) {
     Write-Log $logMessages.messages.notAdmin -Level "error"
     Write-Host "  Tip: Right-click PowerShell -> 'Run as Administrator'" -ForegroundColor Yellow
     return
 }
 
 # -- Assert Chocolatey (skip for configure-only) -------------------------------
-if ($Command.ToLower() -ne "configure") {
+$isConfigureOnly = $Command.ToLower() -eq "configure"
+if (-not $isConfigureOnly) {
     Assert-Choco
 }
 
 # -- Execute subcommand --------------------------------------------------------
 Write-Log "Command: $Command" -Level "info"
-$success = Invoke-GoSetup -Config $config -ScriptDir $scriptDir -Command $Command.ToLower()
+$isSuccess = Invoke-GoSetup -Config $config -ScriptDir $scriptDir -Command $Command.ToLower()
 
 # -- Summary -------------------------------------------------------------------
-if ($success) {
+if ($isSuccess) {
     Write-Log $logMessages.messages.done -Level "success"
 } else {
     Write-Log "Completed with some warnings -- check output above." -Level "warn"
