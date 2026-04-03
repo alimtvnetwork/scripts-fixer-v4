@@ -32,6 +32,8 @@ A structured PowerShell script that:
 ```
 run.ps1                              # Root dispatcher (git pull + delegate)
 scripts/
+├── shared/
+│   └── git-pull.ps1                 # Shared git-pull helper (dot-sourced)
 └── 01-vscode-context-menu-fix/
     ├── config.json                  # Paths & settings (user-editable)
     ├── log-messages.json            # All display strings & banners
@@ -40,6 +42,8 @@ scripts/
         └── run-<timestamp>.log      # Timestamped execution log
 
 spec/
+├── shared/
+│   └── readme.md                    # Shared helpers specification
 └── 01-vscode-context-menu-fix/
     └── readme.md                    # This specification
 ```

@@ -35,7 +35,10 @@ A structured PowerShell script that:
 ## File Structure
 
 ```
+run.ps1                                # Root dispatcher (git pull + delegate)
 scripts/
+├── shared/
+│   └── git-pull.ps1                   # Shared git-pull helper (dot-sourced)
 └── 02-vscode-settings-sync/
     ├── config.json                    # Paths & edition settings
     ├── log-messages.json              # All display strings & banners
@@ -48,6 +51,8 @@ scripts/
         └── run-<timestamp>.log        # Timestamped execution log
 
 spec/
+├── shared/
+│   └── readme.md                      # Shared helpers specification
 └── 02-vscode-settings-sync/
     └── readme.md                      # This specification
 ```
