@@ -43,7 +43,7 @@ Invoke-GitPull
 # -- Assert admin --------------------------------------------------------------
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
-    Write-Log $logMessages.messages.adminRequired -Level "error"
+    Write-Log $logMessages.messages.notAdmin -Level "error"
     return
 }
 

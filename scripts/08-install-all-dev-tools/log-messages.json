@@ -13,7 +13,7 @@
     "allComplete": "All dev tools setup complete!",
     "summaryHeader": "--- Summary ---",
     "summaryItem": "  [{status}] {id} - {name}",
-    "adminRequired": "This script requires administrator privileges."
+    "notAdmin": "This script requires administrator privileges."
   },
   "help": {
     "commands": {
