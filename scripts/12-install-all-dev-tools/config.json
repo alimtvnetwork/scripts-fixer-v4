@@ -5,16 +5,12 @@
     "override": ""
   },
   "groups": [
-    {
-      "label": "Core Tools",
-      "checkedByDefault": true,
-      "ids": ["01", "02", "03", "04", "05", "06", "07", "08", "09"]
-    },
-    {
-      "label": "Optional",
-      "checkedByDefault": false,
-      "ids": ["10", "11"]
-    }
+    { "letter": "a", "label": "All Core (01-09)",    "ids": ["01", "02", "03", "04", "05", "06", "07", "08", "09"] },
+    { "letter": "b", "label": "Dev Runtimes (03-08)", "ids": ["03", "04", "05", "06", "07", "08"] },
+    { "letter": "c", "label": "JS Stack (03-04)",     "ids": ["03", "04"] },
+    { "letter": "d", "label": "Languages (05-06)",    "ids": ["05", "06"] },
+    { "letter": "e", "label": "Git Tools (07-08)",    "ids": ["07", "08"] },
+    { "letter": "f", "label": "Web Dev (03,04,06,08)","ids": ["03", "04", "06", "08"] }
   ],
   "scripts": {
     "01": { "enabled": true, "folder": "01-install-vscode",           "name": "VS Code",              "desc": "Install Visual Studio Code (Stable/Insiders)" },

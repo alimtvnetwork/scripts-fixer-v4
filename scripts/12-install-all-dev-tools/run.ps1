@@ -65,35 +65,65 @@ $hasFilter = $Skip -or $Only
 if ($hasFilter -or $All -or $DryRun) {
     # Flag-based mode: skip interactive menu
     $scriptList = Resolve-ScriptList -Config $config -Skip $Skip -Only $Only
-} else {
-    # Interactive menu mode with groups
-    $scriptList = Resolve-ScriptList -Config $config -Skip "" -Only ""
-    $groups = if ($config.groups) { $config.groups } else { $null }
-    $scriptList = Show-InteractiveMenu -ScriptList $scriptList -LogMessages $logMessages -Groups $groups
-    $hasNoSelection = -not $scriptList -or $scriptList.Count -eq 0
-    if ($hasNoSelection) {
-        Write-Log $logMessages.messages.menuNoneSelected -Level "warn"
+
+    # -- Dry run ---------------------------------------------------------------
+    if ($DryRun) {
+        Show-DryRun -ScriptList $scriptList -LogMessages $logMessages
         return
     }
-    Write-Log ($logMessages.messages.menuRunning -replace '\{count\}', $scriptList.Count) -Level "info"
-}
 
-# -- Dry run -------------------------------------------------------------------
-if ($DryRun) {
-    Show-DryRun -ScriptList $scriptList -LogMessages $logMessages
-    return
-}
+    # -- Run scripts in sequence -----------------------------------------------
+    $results = Invoke-ScriptSequence -ScriptList $scriptList -ScriptsRoot $scriptsRoot -LogMessages $logMessages -Skip $Skip
 
-# -- Run scripts in sequence ---------------------------------------------------
-$results = Invoke-ScriptSequence -ScriptList $scriptList -ScriptsRoot $scriptsRoot -LogMessages $logMessages -Skip $Skip
+    # -- Summary ---------------------------------------------------------------
+    Show-Summary -Results $results -LogMessages $logMessages
+    Write-Log $logMessages.messages.allComplete -Level "success"
 
-# -- Summary -------------------------------------------------------------------
-Show-Summary -Results $results -LogMessages $logMessages
-Write-Log $logMessages.messages.allComplete -Level "success"
+    # -- Save resolved state ---------------------------------------------------
+    Save-ResolvedData -ScriptFolder "12-install-all-dev-tools" -Data @{
+        devDir    = $devDir
+        results   = $results
+        timestamp = (Get-Date -Format "o")
+    }
+} else {
+    # Interactive menu mode with loop-back
+    $fullList = Resolve-ScriptList -Config $config -Skip "" -Only ""
+    $groups = if ($config.groups) { $config.groups } else { $null }
 
-# -- Save resolved state -------------------------------------------------------
-Save-ResolvedData -ScriptFolder "12-install-all-dev-tools" -Data @{
-    devDir    = $devDir
-    results   = $results
-    timestamp = (Get-Date -Format "o")
+    while ($true) {
+        $scriptList = Show-InteractiveMenu -ScriptList $fullList -LogMessages $logMessages -Groups $groups
+
+        # null = user pressed Q
+        $isUserQuit = $null -eq $scriptList
+        if ($isUserQuit) {
+            Write-Log $logMessages.messages.menuNoneSelected -Level "warn"
+            break
+        }
+
+        $hasNoSelection = $scriptList.Count -eq 0
+        if ($hasNoSelection) {
+            Write-Log $logMessages.messages.menuNoneSelected -Level "warn"
+            continue
+        }
+
+        Write-Log ($logMessages.messages.menuRunning -replace '\{count\}', $scriptList.Count) -Level "info"
+
+        # Run selected scripts
+        $results = Invoke-ScriptSequence -ScriptList $scriptList -ScriptsRoot $scriptsRoot -LogMessages $logMessages -Skip $Skip
+
+        # Summary
+        Show-Summary -Results $results -LogMessages $logMessages
+        Write-Log $logMessages.messages.allComplete -Level "success"
+
+        # Save resolved state
+        Save-ResolvedData -ScriptFolder "12-install-all-dev-tools" -Data @{
+            devDir    = $devDir
+            results   = $results
+            timestamp = (Get-Date -Format "o")
+        }
+
+        # Loop back
+        Write-Host ""
+        Write-Log $logMessages.messages.menuLoopBack -Level "info"
+    }
 }

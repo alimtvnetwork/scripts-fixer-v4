@@ -31,17 +31,6 @@ function Resolve-ScriptList {
         $sequence = $sequence | Where-Object { $_ -notin $skipList }
     }
 
-    # Build groups lookup for default selection state
-    $groupDefaults = @{}
-    $hasGroups = $null -ne $Config.groups
-    if ($hasGroups) {
-        foreach ($group in $Config.groups) {
-            foreach ($gid in $group.ids) {
-                $groupDefaults[$gid] = $group.checkedByDefault
-            }
-        }
-    }
-
     # Build result list using ArrayList to prevent single-item unwrapping
     $result = New-Object System.Collections.ArrayList
     foreach ($id in $sequence) {
@@ -49,15 +38,12 @@ function Resolve-ScriptList {
         $hasNoEntry = -not $entry
         if ($hasNoEntry) { continue }
 
-        $checkedByDefault = if ($groupDefaults.ContainsKey($id)) { $groupDefaults[$id] } else { $entry.enabled }
-
         [void]$result.Add(@{
             Id              = $id
             Folder          = $entry.folder
             Name            = $entry.name
             Desc            = if ($entry.desc) { $entry.desc } else { "" }
             Enabled         = $entry.enabled
-            CheckedByDefault = $checkedByDefault
         })
     }
 
