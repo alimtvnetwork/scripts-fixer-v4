@@ -1,0 +1,9 @@
+{
+  "enabled": true,
+  "php": {
+    "enabled": true,
+    "chocoPackage": "php",
+    "verifyCommand": "php",
+    "versionFlag": "--version"
+  }
+}

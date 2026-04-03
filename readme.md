@@ -54,6 +54,8 @@ A modular collection of **15 PowerShell scripts** that automate everything from 
 | 07 | **Git + LFS + gh** | Install Git, Git LFS, GitHub CLI, configure settings | Yes |
 | 08 | **GitHub Desktop** | Install GitHub Desktop via Chocolatey | Yes |
 | 09 | **C++ (MinGW-w64)** | Install MinGW-w64 C++ compiler, verify g++/gcc/make | Yes |
+| 16 | **PHP** | Install PHP via Chocolatey | Yes |
+| 17 | **PowerShell (latest)** | Install latest PowerShell via Winget/Chocolatey | Yes |
 
 ### Optional (10-11)
 
@@ -114,9 +116,10 @@ When you run `.\run.ps1 -d`, you get a full interactive menu with:
 | `a` | All Core (01-09) | 01, 02, 03, 04, 05, 06, 07, 08, 09 |
 | `b` | Dev Runtimes (03-08) | 03, 04, 05, 06, 07, 08 |
 | `c` | JS Stack (03-04) | 03, 04 |
-| `d` | Languages (05-06) | 05, 06 |
+| `d` | Languages (05-06,16) | 05, 06, 16 |
 | `e` | Git Tools (07-08) | 07, 08 |
-| `f` | Web Dev (03,04,06,08) | 03, 04, 06, 08 |
+| `f` | Web Dev (03,04,06,08,16) | 03, 04, 06, 08, 16 |
+| `g` | All + Extras (01-11,16-17) | 01-11, 16, 17 |
 
 - **Select All / None** -- `A` to select all, `N` to deselect all
 - **Loop-back** -- after install + summary, returns to the menu

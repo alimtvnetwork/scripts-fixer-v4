@@ -1,0 +1,27 @@
+{
+  "scriptName": "Install PHP",
+  "version": "1.0.0",
+  "description": "Installs PHP via Chocolatey and verifies the installation.",
+  "messages": {
+    "notAdmin": "This script must be run as Administrator.",
+    "scriptDisabled": "PHP installation is disabled in config.",
+    "phpDisabled": "PHP is disabled in config -- skipping.",
+    "phpChecking": "Checking for PHP...",
+    "phpFound": "PHP found: {version}",
+    "phpNotFound": "PHP not found -- installing via Chocolatey...",
+    "phpInstalling": "Installing PHP via Chocolatey...",
+    "phpInstallSuccess": "PHP installed successfully: {version}",
+    "phpInstallFailed": "Failed to install PHP: {error}",
+    "phpNotInPath": "PHP installed but not found in PATH -- restart your terminal.",
+    "done": "PHP is installed and ready.",
+    "completedWithWarnings": "Completed with some warnings -- check output above.",
+    "setupComplete": "PHP setup complete."
+  },
+  "help": {
+    "commands": {},
+    "examples": [
+      ".\\run.ps1",
+      ".\\run.ps1 -Help"
+    ]
+  }
+}
