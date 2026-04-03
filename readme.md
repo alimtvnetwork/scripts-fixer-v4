@@ -54,6 +54,8 @@ A modular collection of **15 PowerShell scripts** that automate everything from 
 | 07 | **Git + LFS + gh** | Install Git, Git LFS, GitHub CLI, configure settings | Yes |
 | 08 | **GitHub Desktop** | Install GitHub Desktop via Chocolatey | Yes |
 | 09 | **C++ (MinGW-w64)** | Install MinGW-w64 C++ compiler, verify g++/gcc/make | Yes |
+| 16 | **PHP** | Install PHP via Chocolatey | Yes |
+| 17 | **PowerShell (latest)** | Install latest PowerShell via Winget/Chocolatey | Yes |
 
 ### Optional (10-11)
 
