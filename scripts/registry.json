@@ -1,0 +1,15 @@
+{
+  "scripts": {
+    "01": "01-install-vscode",
+    "02": "02-install-package-managers",
+    "03": "03-install-nodejs",
+    "04": "04-install-pnpm",
+    "05": "05-install-python",
+    "06": "06-install-golang",
+    "07": "07-install-git",
+    "08": "08-install-github-desktop",
+    "09": "09-vscode-context-menu-fix",
+    "10": "10-vscode-settings-sync",
+    "11": "11-install-all-dev-tools"
+  }
+}
