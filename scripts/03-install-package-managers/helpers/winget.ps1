@@ -18,7 +18,7 @@ function Install-Winget {
         $version = & winget.exe --version 2>&1
         Write-Log "Winget found: $version" -Level "success"
 
-        Save-ResolvedData -ScriptDir $script:ScriptDir -Data @{
+        Save-ResolvedData -ScriptFolder "03-install-package-managers" -Data @{
             winget = @{
                 version    = "$version".Trim()
                 resolvedAt = (Get-Date -Format "o")
