@@ -36,7 +36,7 @@ function Resolve-DevDir {
 
     if (-not $DevDirConfig) {
         $fallback = "E:\dev"
-        Write-Log "No dev directory config -- using fallback: $fallback" "warn"
+        Write-Log "No dev directory config -- using fallback: $fallback" -Level "warn"
         return $fallback
     }
 
