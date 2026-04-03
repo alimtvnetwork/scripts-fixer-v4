@@ -32,6 +32,9 @@ if (Test-Path $sharedLogging) {
     exit 1
 }
 
+$sharedResolved = Join-Path $PSScriptRoot "..\shared\resolved.ps1"
+if (Test-Path $sharedResolved) { . $sharedResolved }
+
 function Backup-File {
     param([string]$FilePath, [string]$BackupSuffix)
 
