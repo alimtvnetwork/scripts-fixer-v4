@@ -46,7 +46,8 @@ if ($isDisabled) {
 
 # -- Assert admin --------------------------------------------------------------
 $hasAdminRights = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-not $hasAdminRights) {
+$isNotAdmin = -not $hasAdminRights
+if ($isNotAdmin) {
     Write-Log $logMessages.messages.notAdmin -Level "error"
     return
 }

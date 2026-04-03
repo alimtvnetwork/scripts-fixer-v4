@@ -9,6 +9,7 @@
 
     Use -Clean to wipe all .resolved/ data before running, forcing fresh detection.
     Use -CleanOnly to wipe .resolved/ without running any script.
+    Use -Help to see all available scripts and usage information.
 
 .PARAMETER I
     The script number to run (e.g. 1, 2, 3). Maps to folders like 01-*, 02-*, etc.
@@ -19,15 +20,19 @@
 .PARAMETER CleanOnly
     Wipe all .resolved/ data and exit without running any script.
 
+.PARAMETER Help
+    Show usage information and list all available scripts.
+
 .EXAMPLE
     .\run.ps1 -I 1            # git pull, then run scripts/01-*/run.ps1
     .\run.ps1 -I 2 -Merge     # git pull, then run scripts/02-*/run.ps1 with merge
     .\run.ps1 -I 1 -Clean     # wipe .resolved/, then run scripts/01-*/run.ps1
     .\run.ps1 -CleanOnly       # wipe .resolved/ and exit
+    .\run.ps1 -Help            # show all available scripts
 
 .NOTES
     Author : Lovable AI
-    Version: 3.0.0
+    Version: 4.0.0
 #>
 
 param(
@@ -37,11 +42,50 @@ param(
 
     [switch]$Clean,
 
-    [switch]$CleanOnly
+    [switch]$CleanOnly,
+
+    [switch]$Help
 )
 
 $ErrorActionPreference = "Stop"
 $RootDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+
+# ── Help ─────────────────────────────────────────────────────────────
+if ($Help) {
+    Write-Host ""
+    Write-Host "  Dev Tools Setup Scripts" -ForegroundColor Cyan
+    Write-Host "  =======================" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "  Usage:" -ForegroundColor Yellow
+    Write-Host "    .\run.ps1 -I <number>          Run a specific script"
+    Write-Host "    .\run.ps1 -I <number> -Merge   Run with merge flag"
+    Write-Host "    .\run.ps1 -I <number> -Clean   Wipe cache, then run"
+    Write-Host "    .\run.ps1 -CleanOnly            Wipe all cached data"
+    Write-Host "    .\run.ps1 -Help                 Show this help"
+    Write-Host ""
+    Write-Host "  Available Scripts:" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "    01  VSCode Context Menu Fix     " -NoNewline; Write-Host "Add/repair VSCode right-click context menu entries" -ForegroundColor DarkGray
+    Write-Host "    02  VSCode Settings Sync        " -NoNewline; Write-Host "Sync VSCode settings, keybindings, and extensions" -ForegroundColor DarkGray
+    Write-Host "    03  Package Managers             " -NoNewline; Write-Host "Install Chocolatey and Winget" -ForegroundColor DarkGray
+    Write-Host "    04  Install All Dev Tools        " -NoNewline; Write-Host "Orchestrator: runs scripts 03, 05-10 in sequence" -ForegroundColor DarkGray
+    Write-Host "    05  Install Golang               " -NoNewline; Write-Host "Install Go, configure GOPATH and go env" -ForegroundColor DarkGray
+    Write-Host "    06  Install Node.js              " -NoNewline; Write-Host "Install Node.js LTS, configure npm prefix" -ForegroundColor DarkGray
+    Write-Host "    07  Install Python               " -NoNewline; Write-Host "Install Python, configure pip user site" -ForegroundColor DarkGray
+    Write-Host "    08  Install pnpm                 " -NoNewline; Write-Host "Install pnpm, configure global store" -ForegroundColor DarkGray
+    Write-Host "    09  Install Git + LFS + gh       " -NoNewline; Write-Host "Install Git, Git LFS, GitHub CLI, configure settings" -ForegroundColor DarkGray
+    Write-Host "    10  Install GitHub Desktop       " -NoNewline; Write-Host "Install GitHub Desktop via Chocolatey" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "  Script 04 (Install All) Options:" -ForegroundColor Yellow
+    Write-Host "    .\run.ps1 -I 4                          Run all enabled scripts"
+    Write-Host "    .\run.ps1 -I 4 -- --skip 06,08          Skip Node.js and pnpm"
+    Write-Host "    .\run.ps1 -I 4 -- --only 03,05          Run only Package Managers + Go"
+    Write-Host ""
+    Write-Host "  Each script also supports -Help for its own usage:" -ForegroundColor Yellow
+    Write-Host "    .\run.ps1 -I 5 -- -Help                 Show Go install help"
+    Write-Host ""
+    exit 0
+}
 
 # ── Handle -CleanOnly (no -I required) ───────────────────────────────
 if ($CleanOnly) {
@@ -58,15 +102,12 @@ if ($CleanOnly) {
 }
 
 # ── Validate -I is provided ──────────────────────────────────────────
-if (-not $I) {
+$isMissingParam = -not $I
+if ($isMissingParam) {
     Write-Host "  [ FAIL  ] " -ForegroundColor Red -NoNewline
     Write-Host "Missing -I parameter. Usage: .\run.ps1 -I <number>"
     Write-Host ""
-    Write-Host "  Examples:" -ForegroundColor Cyan
-    Write-Host "    .\run.ps1 -I 1              # Run script 01"
-    Write-Host "    .\run.ps1 -I 2 -Merge       # Run script 02 with merge"
-    Write-Host "    .\run.ps1 -I 1 -Clean       # Wipe cache, then run script 01"
-    Write-Host "    .\run.ps1 -CleanOnly         # Wipe all cached data"
+    Write-Host "  Run .\run.ps1 -Help to see all available scripts" -ForegroundColor Cyan
     exit 1
 }
 
@@ -86,7 +127,8 @@ if ($Clean) {
 
 # ── Load shared helper ───────────────────────────────────────────────
 $sharedGitPull = Join-Path $RootDir "scripts\shared\git-pull.ps1"
-if (-not (Test-Path $sharedGitPull)) {
+$isHelperMissing = -not (Test-Path $sharedGitPull)
+if ($isHelperMissing) {
     Write-Host "  [ FAIL  ] " -ForegroundColor Red -NoNewline
     Write-Host "Shared helper not found: $sharedGitPull"
     exit 1
@@ -98,16 +140,19 @@ $prefix = "{0:D2}" -f $I
 $pattern = Join-Path $RootDir "scripts/$prefix-*"
 $scriptDir = Get-Item $pattern -ErrorAction SilentlyContinue | Select-Object -First 1
 
-if (-not $scriptDir) {
+$isScriptMissing = -not $scriptDir
+if ($isScriptMissing) {
     Write-Host ""
     Write-Host "  [ FAIL  ] " -ForegroundColor Red -NoNewline
     Write-Host "No script folder found matching: scripts/$prefix-*"
+    Write-Host "  Run .\run.ps1 -Help to see all available scripts" -ForegroundColor Cyan
     exit 1
 }
 
 $scriptFile = Join-Path $scriptDir.FullName "run.ps1"
 
-if (-not (Test-Path $scriptFile)) {
+$isRunFileMissing = -not (Test-Path $scriptFile)
+if ($isRunFileMissing) {
     Write-Host ""
     Write-Host "  [ FAIL  ] " -ForegroundColor Red -NoNewline
     Write-Host "run.ps1 not found in $($scriptDir.Name)"
