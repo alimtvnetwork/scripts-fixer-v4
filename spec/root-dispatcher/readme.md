@@ -36,9 +36,9 @@ When run with no parameters, it performs a git pull and shows help
 
 ```powershell
 .\run.ps1                   # Pull, show help
-.\run.ps1 -I 1              # Pull, then run scripts/01-*/run.ps1
-.\run.ps1 -I 2 -Merge       # Pull, then run scripts/02-*/run.ps1 with merge mode
-.\run.ps1 -I 4              # Pull, then run install-all-dev-tools (interactive menu)
+.\run.ps1 -I 1              # Pull, then run scripts/01-install-vscode/run.ps1
+.\run.ps1 -I 2 -Merge       # Pull, then run scripts/02-install-package-managers/run.ps1 with merge mode
+.\run.ps1 -I 11             # Pull, then run install-all-dev-tools (interactive menu)
 .\run.ps1 -I 1 -Clean       # Wipe cache, pull, then run scripts/01-*/run.ps1
 .\run.ps1 -CleanOnly         # Wipe all cached resolved data
 ```
