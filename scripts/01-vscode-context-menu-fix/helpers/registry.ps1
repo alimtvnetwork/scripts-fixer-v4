@@ -190,7 +190,7 @@ function Invoke-Edition {
 
     # Resolve exe
     Write-Log $Steps.detectInstall
-    $VsCodeExe = Resolve-VsCodePath -PathConfig $Edition.vscodePath -PreferredType $InstallType
+    $VsCodeExe = Resolve-VsCodePath -PathConfig $Edition.vscodePath -PreferredType $InstallType -ScriptDir $ScriptDir -EditionName $EditionName
 
     if (-not $VsCodeExe) {
         Write-Log "$($Edition.contextMenuLabel): executable not found -- skipping" "warn"
