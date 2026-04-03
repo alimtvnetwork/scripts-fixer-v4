@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "checks": {
+    "registryVsFolders": true,
+    "orchestratorConfig": true,
+    "orchestratorGroups": true,
+    "specCoverage": true,
+    "configLogMessages": true,
+    "staleRefsSpecs": true,
+    "staleRefsSuggestions": true,
+    "staleRefsPowerShell": true
+  }
+}
