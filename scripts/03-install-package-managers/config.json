@@ -1,4 +1,5 @@
 {
+  "enabled": true,
   "chocolatey": {
     "enabled": true,
     "installUrl": "https://chocolatey.org/install.ps1",

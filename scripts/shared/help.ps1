@@ -22,9 +22,12 @@ function Show-ScriptHelp {
 
     # New-style: extract from LogMessages object
     if ($LogMessages) {
-        if (-not $Name -and $LogMessages.scriptName)   { $Name = $LogMessages.scriptName }
-        if (-not $Version -and $LogMessages.version)    { $Version = $LogMessages.version }
-        if (-not $Description -and $LogMessages.description) { $Description = $LogMessages.description }
+        $isNameMissing        = -not $Name -and $LogMessages.scriptName
+        $isVersionMissing     = -not $Version -and $LogMessages.version
+        $isDescriptionMissing = -not $Description -and $LogMessages.description
+        if ($isNameMissing)        { $Name = $LogMessages.scriptName }
+        if ($isVersionMissing)     { $Version = $LogMessages.version }
+        if ($isDescriptionMissing) { $Description = $LogMessages.description }
 
         # Extract commands from log messages help block
         if ($Commands.Count -eq 0 -and $LogMessages.help -and $LogMessages.help.commands) {

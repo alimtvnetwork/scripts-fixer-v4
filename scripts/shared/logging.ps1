@@ -28,7 +28,8 @@ function Write-Log {
     if ($Status -notin $validStatuses) { $Status = "info" }
 
     $badge  = $script:LogMessages.status.$Status
-    if (-not $badge) {
+    $isBadgeMissing = -not $badge
+    if ($isBadgeMissing) {
         # Fallback badges when log-messages.json doesn't have a status block
         $fallbackBadges = @{ ok = "[  OK  ]"; fail = "[ FAIL ]"; info = "[ INFO ]"; warn = "[ WARN ]"; skip = "[ SKIP ]" }
         $badge = $fallbackBadges[$Status]
@@ -101,10 +102,12 @@ function Import-JsonConfig {
         [string]$Label
     )
 
-    if (-not $Label) { $Label = Split-Path -Leaf $FilePath }
+    $isLabelMissing = -not $Label
+    if ($isLabelMissing) { $Label = Split-Path -Leaf $FilePath }
 
     Write-Log "Loading $Label from: $FilePath" -Level "info"
-    if (-not (Test-Path $FilePath)) {
+    $isFileMissing = -not (Test-Path $FilePath)
+    if ($isFileMissing) {
         Write-Log "$Label not found at path: $FilePath" -Level "error"
         return $null
     }

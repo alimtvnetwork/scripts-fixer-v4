@@ -20,7 +20,8 @@ function Invoke-GitPull {
     )
 
     # Auto-detect repo root if not provided
-    if (-not $RepoRoot) {
+    $isRepoRootMissing = -not $RepoRoot
+    if ($isRepoRootMissing) {
         $callerDir = if ($script:ScriptDir) { $script:ScriptDir }
                      elseif ($scriptDir) { $scriptDir }
                      else { Split-Path -Parent $MyInvocation.PSCommandPath }

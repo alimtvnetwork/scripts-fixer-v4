@@ -36,9 +36,17 @@ Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
 # -- Git pull ------------------------------------------------------------------
 Invoke-GitPull
 
+# -- Disabled check ------------------------------------------------------------
+$isDisabled = -not $config.enabled
+if ($isDisabled) {
+    Write-Log $logMessages.messages.scriptDisabled -Level "warn"
+    return
+}
+
 # -- Assert admin --------------------------------------------------------------
 $hasAdminRights = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-not $hasAdminRights) {
+$isNotAdmin = -not $hasAdminRights
+if ($isNotAdmin) {
     Write-Log $logMessages.messages.notAdmin -Level "error"
     Write-Host "  Tip: Right-click PowerShell -> 'Run as Administrator'" -ForegroundColor Yellow
     return

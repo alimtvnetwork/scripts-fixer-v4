@@ -38,6 +38,13 @@ Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
 # -- Git pull ------------------------------------------------------------------
 Invoke-GitPull
 
+# -- Disabled check ------------------------------------------------------------
+$isDisabled = -not $config.enabled
+if ($isDisabled) {
+    Write-Log $logMessages.messages.scriptDisabled -Level "warn"
+    return
+}
+
 # -- Resolve source files ------------------------------------------------------
 $sources = Resolve-SourceFiles -ScriptDir $scriptDir
 

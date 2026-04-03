@@ -1,4 +1,5 @@
 {
+  "enabled": true,
   "editions": {
     "stable": {
       "settingsPath": "%APPDATA%\\Code\\User",

@@ -9,12 +9,13 @@
 #>
 
 function Assert-Admin {
-    Write-Log "Checking Administrator privileges..." -Level "info"
+    $logMsgs = Import-JsonConfig (Join-Path $script:ScriptDir "log-messages.json")
+    Write-Log $logMsgs.messages.checkingAdmin -Level "info"
     $identity  = [Security.Principal.WindowsIdentity]::GetCurrent()
     $principal = New-Object Security.Principal.WindowsPrincipal($identity)
     $hasAdminRights = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-    Write-Log "Current user: $($identity.Name)" -Level "info"
-    Write-Log "Is Administrator: $hasAdminRights" -Level $(if ($hasAdminRights) { "success" } else { "error" })
+    Write-Log ($logMsgs.messages.currentUser -replace '\{name\}', $identity.Name) -Level "info"
+    Write-Log ($logMsgs.messages.isAdministrator -replace '\{value\}', $hasAdminRights) -Level $(if ($hasAdminRights) { "success" } else { "error" })
     return $hasAdminRights
 }
 
@@ -25,6 +26,8 @@ function Resolve-VsCodePath {
         [string]$ScriptDir,
         [string]$EditionName
     )
+
+    $logMsgs = Import-JsonConfig (Join-Path $ScriptDir "log-messages.json")
 
     # Check .resolved/ cache first
     if ($ScriptDir -and $EditionName) {
@@ -37,45 +40,45 @@ function Resolve-VsCodePath {
                 $cachedExe = $cached.$EditionName.resolvedExe
                 $isCachedPathValid = $cachedExe -and (Test-Path $cachedExe)
                 if ($isCachedPathValid) {
-                    Write-Log "Using cached path from .resolved/: $cachedExe" -Level "success"
+                    Write-Log ($logMsgs.messages.usingCachedPath -replace '\{path\}', $cachedExe) -Level "success"
                     return $cachedExe
                 } elseif ($cachedExe) {
-                    Write-Log "Cached path no longer valid: $cachedExe -- re-detecting" -Level "warn"
+                    Write-Log ($logMsgs.messages.cachedPathInvalid -replace '\{path\}', $cachedExe) -Level "warn"
                 }
             } catch {
-                Write-Log "Could not read resolved cache -- re-detecting" -Level "warn"
+                Write-Log $logMsgs.messages.cacheReadFailed -Level "warn"
             }
         }
     }
 
-    Write-Log "Preferred installation type: $PreferredType" -Level "info"
+    Write-Log ($logMsgs.messages.preferredInstallType -replace '\{type\}', $PreferredType) -Level "info"
 
     # Try preferred path
     $rawPath = $PathConfig.$PreferredType
-    Write-Log "Raw config value ($PreferredType): $rawPath" -Level "info"
+    Write-Log (($logMsgs.messages.rawConfigValue -replace '\{type\}', $PreferredType) -replace '\{path\}', $rawPath) -Level "info"
     $exePath = [System.Environment]::ExpandEnvironmentVariables($rawPath)
-    Write-Log "Expanded path: $exePath" -Level "info"
+    Write-Log ($logMsgs.messages.expandedPath -replace '\{path\}', $exePath) -Level "info"
 
     $isPreferredFound = Test-Path $exePath
-    Write-Log "File exists at expanded path: $isPreferredFound" -Level $(if ($isPreferredFound) { "success" } else { "warn" })
+    Write-Log (($logMsgs.messages.fileExistsAtPath -replace '\{result\}', $isPreferredFound)) -Level $(if ($isPreferredFound) { "success" } else { "warn" })
 
     if ($isPreferredFound) { return $exePath }
 
     # Fallback
     $fallbackType = if ($PreferredType -eq "user") { "system" } else { "user" }
-    Write-Log "Trying fallback type: $fallbackType" -Level "warn"
+    Write-Log ($logMsgs.messages.tryingFallback -replace '\{type\}', $fallbackType) -Level "warn"
 
     $fallbackRaw = $PathConfig.$fallbackType
-    Write-Log "Raw config value ($fallbackType): $fallbackRaw" -Level "info"
+    Write-Log (($logMsgs.messages.rawConfigValue -replace '\{type\}', $fallbackType) -replace '\{path\}', $fallbackRaw) -Level "info"
     $fallbackExe = [System.Environment]::ExpandEnvironmentVariables($fallbackRaw)
-    Write-Log "Expanded fallback path: $fallbackExe" -Level "info"
+    Write-Log ($logMsgs.messages.expandedPath -replace '\{path\}', $fallbackExe) -Level "info"
 
     $isFallbackFound = Test-Path $fallbackExe
-    Write-Log "File exists at fallback path: $isFallbackFound" -Level $(if ($isFallbackFound) { "success" } else { "error" })
+    Write-Log (($logMsgs.messages.fileExistsAtPath -replace '\{result\}', $isFallbackFound)) -Level $(if ($isFallbackFound) { "success" } else { "error" })
 
     if ($isFallbackFound) { return $fallbackExe }
 
-    Write-Log "No valid VS Code executable found for either type" -Level "error"
+    Write-Log $logMsgs.messages.noExeFound -Level "error"
     return $null
 }
 
@@ -118,7 +121,8 @@ function Register-ContextMenu {
         [string]$RegistryPath,
         [string]$Label,
         [string]$IconValue,
-        [string]$CommandArg
+        [string]$CommandArg,
+        [PSObject]$LogMsgs
     )
 
     Write-Log "$StepLabel" -Level "info"
@@ -131,28 +135,31 @@ function Register-ContextMenu {
 
     try {
         # Set (Default) value = label
-        Write-Log "  Setting (Default) = $Label" -Level "info"
+        Write-Log ("  " + ($LogMsgs.messages.settingRegistryDefault -replace '\{label\}', $Label)) -Level "info"
         $out = reg.exe add $regPath /ve /d $Label /f 2>&1
-        if ($LASTEXITCODE -ne 0) { throw "reg add (Default) failed: $out" }
-        Write-Log "  (Default) set" -Level "success"
+        $hasRegFailed = $LASTEXITCODE -ne 0
+        if ($hasRegFailed) { throw "reg add (Default) failed: $out" }
+        Write-Log ("  " + $LogMsgs.messages.registryDefaultSet) -Level "success"
 
         # Set Icon
-        Write-Log "  Setting Icon = $IconValue" -Level "info"
+        Write-Log ("  " + ($LogMsgs.messages.settingIcon -replace '\{icon\}', $IconValue)) -Level "info"
         $out = reg.exe add $regPath /v "Icon" /d $IconValue /f 2>&1
-        if ($LASTEXITCODE -ne 0) { throw "reg add Icon failed: $out" }
-        Write-Log "  Icon set" -Level "success"
+        $hasRegFailed = $LASTEXITCODE -ne 0
+        if ($hasRegFailed) { throw "reg add Icon failed: $out" }
+        Write-Log ("  " + $LogMsgs.messages.iconSet) -Level "success"
 
         # Create command subkey with (Default) = command
         $cmdRegPath = "$regPath\command"
-        Write-Log "  Setting command = $CommandArg" -Level "info"
+        Write-Log ("  " + ($LogMsgs.messages.settingCommand -replace '\{command\}', $CommandArg)) -Level "info"
         $out = reg.exe add $cmdRegPath /ve /d $CommandArg /f 2>&1
-        if ($LASTEXITCODE -ne 0) { throw "reg add command failed: $out" }
-        Write-Log "  Command set" -Level "success"
+        $hasRegFailed = $LASTEXITCODE -ne 0
+        if ($hasRegFailed) { throw "reg add command failed: $out" }
+        Write-Log ("  " + $LogMsgs.messages.commandSet) -Level "success"
 
         return $true
     } catch {
-        Write-Log "  FAILED: $_" -Level "error"
-        Write-Log "  Stack: $($_.ScriptStackTrace)" -Level "error"
+        Write-Log ("  " + ($LogMsgs.messages.registryFailed -replace '\{error\}', $_)) -Level "error"
+        Write-Log ("  " + ($LogMsgs.messages.registryStack -replace '\{stack\}', $_.ScriptStackTrace)) -Level "error"
         return $false
     }
 }
@@ -160,18 +167,20 @@ function Register-ContextMenu {
 function Test-RegistryEntry {
     param(
         [string]$RegistryPath,
-        [string]$Label
+        [string]$Label,
+        [PSObject]$LogMsgs
     )
 
     $regPath = ConvertTo-RegPath $RegistryPath
-    Write-Log "  Verifying: $regPath" -Level "info"
+    Write-Log ("  " + ($LogMsgs.messages.verifyingEntry -replace '\{path\}', $regPath)) -Level "info"
 
     $out = reg.exe query $regPath 2>&1
-    if ($LASTEXITCODE -eq 0) {
-        Write-Log "  [pass] $Label -- $regPath" -Level "success"
+    $isEntryFound = $LASTEXITCODE -eq 0
+    if ($isEntryFound) {
+        Write-Log ("  " + (($LogMsgs.messages.verifyPass -replace '\{label\}', $Label) -replace '\{path\}', $regPath)) -Level "success"
         return $true
     } else {
-        Write-Log "  [miss] $Label -- $regPath" -Level "error"
+        Write-Log ("  " + (($LogMsgs.messages.verifyMiss -replace '\{label\}', $Label) -replace '\{path\}', $regPath)) -Level "error"
         return $false
     }
 }
@@ -184,6 +193,8 @@ function Invoke-Edition {
         $Steps,
         [string]$ScriptDir
     )
+
+    $logMsgs = Import-JsonConfig (Join-Path $ScriptDir "log-messages.json")
 
     Write-Host ""
     Write-Host "  +----------------------------------------------" -ForegroundColor DarkCyan
@@ -225,7 +236,8 @@ function Invoke-Edition {
             -RegistryPath $entry.Path `
             -Label      $Label `
             -IconValue  $IconVal `
-            -CommandArg $entry.CmdArg
+            -CommandArg $entry.CmdArg `
+            -LogMsgs    $logMsgs
         $hasFailed = -not $result
         if ($hasFailed) { $isAllOk = $false }
     }
@@ -233,7 +245,7 @@ function Invoke-Edition {
     # Verify
     Write-Log $Steps.verify -Level "info"
     foreach ($entry in $entries) {
-        $result = Test-RegistryEntry -RegistryPath $entry.Path -Label $entry.Step
+        $result = Test-RegistryEntry -RegistryPath $entry.Path -Label $entry.Step -LogMsgs $logMsgs
         $hasFailed = -not $result
         if ($hasFailed) { $isAllOk = $false }
     }

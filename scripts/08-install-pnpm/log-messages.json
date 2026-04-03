@@ -13,6 +13,7 @@
     "addingToPath": "Adding pnpm global bin to PATH: {path}",
     "pathAlreadyContains": "PATH already contains: {path}",
     "scriptDisabled": "pnpm installation is disabled in config.",
+    "notAdmin": "This script requires administrator privileges.",
     "pnpmUpgrading": "Upgrading pnpm to latest...",
     "pnpmNotFound": "pnpm not found, installing via npm...",
     "nodeRequired": "Node.js (npm) is required to install pnpm. Run script 06 first.",
