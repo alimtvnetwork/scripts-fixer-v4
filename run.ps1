@@ -7,27 +7,82 @@
     so child scripts skip their own git pull, then delegates to
     scripts/<NN>-*/run.ps1 based on the -I parameter.
 
+    Use -Clean to wipe all .resolved/ data before running, forcing fresh detection.
+    Use -CleanOnly to wipe .resolved/ without running any script.
+
 .PARAMETER I
     The script number to run (e.g. 1, 2, 3). Maps to folders like 01-*, 02-*, etc.
 
+.PARAMETER Clean
+    Wipe all .resolved/ data before running the script.
+
+.PARAMETER CleanOnly
+    Wipe all .resolved/ data and exit without running any script.
+
 .EXAMPLE
-    .\run.ps1 -I 1    # git pull, then run scripts/01-*/run.ps1
-    .\run.ps1 -I 2    # git pull, then run scripts/02-*/run.ps1
+    .\run.ps1 -I 1            # git pull, then run scripts/01-*/run.ps1
+    .\run.ps1 -I 2 -Merge     # git pull, then run scripts/02-*/run.ps1 with merge
+    .\run.ps1 -I 1 -Clean     # wipe .resolved/, then run scripts/01-*/run.ps1
+    .\run.ps1 -CleanOnly       # wipe .resolved/ and exit
 
 .NOTES
     Author : Lovable AI
-    Version: 2.0.0
+    Version: 3.0.0
 #>
 
 param(
-    [Parameter(Mandatory = $true)]
     [int]$I,
 
-    [switch]$Merge
+    [switch]$Merge,
+
+    [switch]$Clean,
+
+    [switch]$CleanOnly
 )
 
 $ErrorActionPreference = "Stop"
 $RootDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+
+# ── Handle -CleanOnly (no -I required) ───────────────────────────────
+if ($CleanOnly) {
+    $resolvedDir = Join-Path $RootDir ".resolved"
+    if (Test-Path $resolvedDir) {
+        Get-ChildItem -Path $resolvedDir -Recurse -Force | Remove-Item -Recurse -Force
+        Write-Host "  [ CLEAN ] " -ForegroundColor Green -NoNewline
+        Write-Host "All .resolved/ data wiped"
+    } else {
+        Write-Host "  [ SKIP  ] " -ForegroundColor DarkGray -NoNewline
+        Write-Host "Nothing to clean -- .resolved/ does not exist"
+    }
+    exit 0
+}
+
+# ── Validate -I is provided ──────────────────────────────────────────
+if (-not $I) {
+    Write-Host "  [ FAIL  ] " -ForegroundColor Red -NoNewline
+    Write-Host "Missing -I parameter. Usage: .\run.ps1 -I <number>"
+    Write-Host ""
+    Write-Host "  Examples:" -ForegroundColor Cyan
+    Write-Host "    .\run.ps1 -I 1              # Run script 01"
+    Write-Host "    .\run.ps1 -I 2 -Merge       # Run script 02 with merge"
+    Write-Host "    .\run.ps1 -I 1 -Clean       # Wipe cache, then run script 01"
+    Write-Host "    .\run.ps1 -CleanOnly         # Wipe all cached data"
+    exit 1
+}
+
+# ── Handle -Clean ────────────────────────────────────────────────────
+if ($Clean) {
+    $resolvedDir = Join-Path $RootDir ".resolved"
+    if (Test-Path $resolvedDir) {
+        Get-ChildItem -Path $resolvedDir -Recurse -Force | Remove-Item -Recurse -Force
+        Write-Host "  [ CLEAN ] " -ForegroundColor Green -NoNewline
+        Write-Host "All .resolved/ data wiped -- fresh detection will run"
+    } else {
+        Write-Host "  [ SKIP  ] " -ForegroundColor DarkGray -NoNewline
+        Write-Host "Nothing to clean -- .resolved/ does not exist"
+    }
+    Write-Host ""
+}
 
 # ── Load shared helper ───────────────────────────────────────────────
 $sharedGitPull = Join-Path $RootDir "scripts\shared\git-pull.ps1"
