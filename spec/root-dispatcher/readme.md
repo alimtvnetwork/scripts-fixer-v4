@@ -99,8 +99,8 @@ Only the first match is used.
 
 The help display shows:
 - Project title and usage syntax
-- All available scripts with ID, name, and description of what each folder does
-- Script 04 specific options (interactive menu, -All, -Skip, -Only)
+- All available scripts with ID, name, and description (grouped: Core Tools, Optional, Orchestrator)
+- Script 11 specific options (interactive menu, -All, -Skip, -Only)
 - How to get per-script help
 
 ## Environment Variables
