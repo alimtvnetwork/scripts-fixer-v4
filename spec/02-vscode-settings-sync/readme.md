@@ -102,21 +102,22 @@ then invoked from a single `Main` entry point at the bottom of the file.
 
 ### Function Breakdown
 
-| Function | Purpose |
-|----------|---------|
-| `Write-Log` | Prints a status-badged message (`[  OK  ]`, `[ FAIL ]`, etc.) and writes to transcript |
-| `Write-Banner` | Displays ASCII banner blocks in a specified color |
-| `Initialize-Logging` | Cleans and recreates `logs/`, starts transcript with timestamped file |
-| `Import-JsonConfig` | Loads and returns a JSON file with verbose logging (size, parse status) |
-| `Resolve-SourceFiles` | Scans for `.code-profile` first, extracts settings/keybindings/extensions; falls back to individual JSON files |
-| `Backup-File` | Creates a timestamped backup of an existing file before overwriting |
-| `Merge-JsonDeep` | Recursively deep-merges two hashtables (used for `-Merge` mode) |
-| `ConvertTo-OrderedHashtable` | Converts a `PSCustomObject` to an ordered hashtable for merging |
-| `Apply-Settings` | Backs up and copies/merges `settings.json` to the target edition path |
-| `Apply-Keybindings` | Backs up and copies `keybindings.json` to the target edition path |
-| `Install-Extensions` | Installs each extension via the VS Code CLI (`--install-extension --force`) |
-| `Invoke-Edition` | Orchestrates the full update for a single edition (CLI check, path setup, apply settings/keybindings, install extensions, verify) |
-| `Main` | Orchestrates the full flow -- called at the end of the file |
+| Function | Source | Purpose |
+|----------|--------|---------|
+| `Write-Log` | `shared/logging.ps1` | Prints a status-badged message and writes to transcript |
+| `Write-Banner` | `shared/logging.ps1` | Displays ASCII banner blocks in a specified color |
+| `Initialize-Logging` | `shared/logging.ps1` | Cleans and recreates `logs/`, starts transcript |
+| `Import-JsonConfig` | `shared/logging.ps1` | Loads and returns a JSON file with verbose logging |
+| `Backup-File` | `shared/json-utils.ps1` | Creates a timestamped backup of an existing file |
+| `Merge-JsonDeep` | `shared/json-utils.ps1` | Recursively deep-merges two hashtables |
+| `ConvertTo-OrderedHashtable` | `shared/json-utils.ps1` | Converts `PSCustomObject` to ordered hashtable |
+| `Save-ResolvedData` | `shared/resolved.ps1` | Persists runtime-discovered state to `.resolved/` |
+| `Resolve-SourceFiles` | `run.ps1` (local) | Scans for `.code-profile` first, falls back to individual JSON files |
+| `Apply-Settings` | `run.ps1` (local) | Backs up and copies/merges `settings.json` |
+| `Apply-Keybindings` | `run.ps1` (local) | Backs up and copies `keybindings.json` |
+| `Install-Extensions` | `run.ps1` (local) | Installs extensions via VS Code CLI, checks `$LASTEXITCODE` |
+| `Invoke-Edition` | `run.ps1` (local) | Orchestrates the full update for a single edition |
+| `Main` | `run.ps1` (local) | Orchestrates the full flow |
 
 ### Verbose Logging Rules
 
