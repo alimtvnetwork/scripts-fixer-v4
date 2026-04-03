@@ -13,8 +13,32 @@
     Version: 3.0.0
 #>
 
+param(
+    [switch]$Help
+)
+
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+
+# ── Load shared help helper ──────────────────────────────────────────
+$sharedHelp = Join-Path $ScriptDir "..\shared\help.ps1"
+if (Test-Path $sharedHelp) { . $sharedHelp }
+
+# ── Handle --help ────────────────────────────────────────────────────
+if ($Help) {
+    Show-ScriptHelp `
+        -Name "VS Code Context Menu Fix" `
+        -Version "3.1.0" `
+        -Description "Restores 'Open with Code' to the Windows right-click context menu." `
+        -Flags @(
+            @{ Name = "-Help"; Description = "Show this help message" }
+        ) `
+        -Examples @(
+            ".\run.ps1                # Run the fix (requires admin)",
+            ".\run.ps1 -Help          # Show this help"
+        )
+    exit 0
+}
 
 Write-Host "  [ INFO ] Script directory: $ScriptDir" -ForegroundColor Cyan
 

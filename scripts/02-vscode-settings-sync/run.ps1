@@ -20,11 +20,34 @@
 #>
 
 param(
-    [switch]$Merge
+    [switch]$Merge,
+    [switch]$Help
 )
 
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+
+# ── Load shared help helper ──────────────────────────────────────────
+$sharedHelp = Join-Path $ScriptDir "..\shared\help.ps1"
+if (Test-Path $sharedHelp) { . $sharedHelp }
+
+# ── Handle --help ────────────────────────────────────────────────────
+if ($Help) {
+    Show-ScriptHelp `
+        -Name "VS Code Settings Sync" `
+        -Version "5.0.0" `
+        -Description "Imports settings, keybindings, and extensions for VS Code." `
+        -Flags @(
+            @{ Name = "-Merge"; Description = "Deep-merge settings instead of replacing" },
+            @{ Name = "-Help";  Description = "Show this help message" }
+        ) `
+        -Examples @(
+            ".\run.ps1                # Replace mode (default)",
+            ".\run.ps1 -Merge         # Deep-merge into existing settings",
+            ".\run.ps1 -Help          # Show this help"
+        )
+    exit 0
+}
 
 Write-Host "  [ INFO ] Script directory: $ScriptDir" -ForegroundColor Cyan
 

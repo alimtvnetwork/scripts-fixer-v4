@@ -16,7 +16,11 @@ scripts/
     ├── logging.ps1       # Provides Write-Log, Write-Banner, Initialize-Logging, Import-JsonConfig
     ├── json-utils.ps1    # Provides Backup-File, Merge-JsonDeep, ConvertTo-OrderedHashtable
     ├── resolved.ps1      # Provides Save-ResolvedData, Get-ResolvedDir
-    └── cleanup.ps1       # Provides Clear-ResolvedData
+    ├── cleanup.ps1       # Provides Clear-ResolvedData
+    ├── help.ps1          # Provides Show-ScriptHelp
+    ├── path-utils.ps1    # Provides Add-ToUserPath, Add-ToMachinePath, Test-InPath
+    ├── choco-utils.ps1   # Provides Assert-Choco, Install-ChocoPackage, Upgrade-ChocoPackage
+    └── dev-dir.ps1       # Provides Resolve-DevDir, Initialize-DevDir
 
 .resolved/                # Runtime-resolved data (gitignored, never committed)
 ├── 01-vscode-context-menu-fix/
