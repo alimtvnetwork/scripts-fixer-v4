@@ -10,7 +10,7 @@
 
 .NOTES
     Author : Lovable AI
-    Version: 1.1.0
+    Version: 1.2.0
 #>
 
 # ── Helpers ──────────────────────────────────────────────────────────
@@ -78,10 +78,12 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 
 # ── Setup file logging ──────────────────────────────────────────────
 $logsDir = Join-Path $ScriptDir "logs"
-if (-not (Test-Path $logsDir)) { New-Item -Path $logsDir -ItemType Directory -Force | Out-Null }
+if (-not (Test-Path $logsDir)) { New-Item -Path $logsDir -ItemType Directory -Force -Confirm:$false | Out-Null }
 $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $logFile   = Join-Path $logsDir "run-$timestamp.log"
 Start-Transcript -Path $logFile -Force | Out-Null
+
+try {
 
 # Load log messages
 $logPath = Join-Path $ScriptDir "log-messages.json"
@@ -117,7 +119,7 @@ Write-Log "Configuration loaded" "ok"
 # Map HKCR PSDrive
 Write-Log $script:LogMessages.steps.mapDrive
 if (-not (Get-PSDrive -Name HKCR -ErrorAction SilentlyContinue)) {
-    New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
+    New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT -Confirm:$false | Out-Null
     Write-Log "HKCR PSDrive mapped" "ok"
 } else {
     Write-Log "HKCR PSDrive already exists" "skip"
@@ -136,20 +138,20 @@ foreach ($editionName in $enabledEditions) {
     $edition = $Config.editions.$editionName
 
     if (-not $edition) {
-        Write-Log "Unknown edition '$editionName' in enabledEditions — skipping" "warn"
+        Write-Log "Unknown edition '$editionName' in enabledEditions -- skipping" "warn"
         continue
     }
 
-    Write-Host "  ┌──────────────────────────────────────────────" -ForegroundColor DarkCyan
-    Write-Host "  │  Edition: $($edition.contextMenuLabel)" -ForegroundColor Cyan
-    Write-Host "  └──────────────────────────────────────────────" -ForegroundColor DarkCyan
+    Write-Host "  +----------------------------------------------" -ForegroundColor DarkCyan
+    Write-Host "  |  Edition: $($edition.contextMenuLabel)" -ForegroundColor Cyan
+    Write-Host "  +----------------------------------------------" -ForegroundColor DarkCyan
 
     # Resolve exe path
     Write-Log $script:LogMessages.steps.detectInstall
     $VsCodeExe = Resolve-VsCodePath -PathConfig $edition.vscodePath -PreferredType $installType
 
     if (-not $VsCodeExe) {
-        Write-Log "$($edition.contextMenuLabel): executable not found — skipping this edition" "warn"
+        Write-Log "$($edition.contextMenuLabel): executable not found -- skipping this edition" "warn"
         $totalSuccess = $false
         Write-Host ""
         continue
@@ -181,13 +183,13 @@ foreach ($editionName in $enabledEditions) {
     foreach ($entry in $Entries) {
         Write-Log $entry.Step
         try {
-            New-Item         -Path $entry.Path -Force -Confirm:$false | Out-Null
-            Set-ItemProperty -Path $entry.Path -Name "(Default)" -Value $Label -Force
-            Set-ItemProperty -Path $entry.Path -Name "Icon"      -Value $IconVal -Force
+            New-Item         -Path $entry.Path -Force -Confirm:$false -ErrorAction Stop | Out-Null
+            Set-ItemProperty -Path $entry.Path -Name "(Default)" -Value $Label -Force -Confirm:$false -ErrorAction Stop
+            Set-ItemProperty -Path $entry.Path -Name "Icon"      -Value $IconVal -Force -Confirm:$false -ErrorAction Stop
 
             $cmdPath = "$($entry.Path)\command"
-            New-Item         -Path $cmdPath -Force -Confirm:$false | Out-Null
-            Set-ItemProperty -Path $cmdPath -Name "(Default)" -Value $entry.CmdArg -Force
+            New-Item         -Path $cmdPath -Force -Confirm:$false -ErrorAction Stop | Out-Null
+            Set-ItemProperty -Path $cmdPath -Name "(Default)" -Value $entry.CmdArg -Force -Confirm:$false -ErrorAction Stop
 
             Write-Log "Registry key created" "ok"
         } catch {
@@ -200,9 +202,9 @@ foreach ($editionName in $enabledEditions) {
     Write-Log $script:LogMessages.steps.verify
     foreach ($entry in $Entries) {
         if (Test-Path $entry.Path) {
-            Write-Log "  ✓ $($entry.Path)" "ok"
+            Write-Log "  [pass] $($entry.Path)" "ok"
         } else {
-            Write-Log "  ✗ $($entry.Path)" "fail"
+            Write-Log "  [miss] $($entry.Path)" "fail"
             $totalSuccess = $false
         }
     }
@@ -214,9 +216,18 @@ foreach ($editionName in $enabledEditions) {
 if ($totalSuccess) {
     Write-Log $script:LogMessages.steps.done "ok"
 } else {
-    Write-Log "Completed with some warnings — check output above." "warn"
+    Write-Log "Completed with some warnings -- check output above." "warn"
 }
 
 Write-Banner $script:LogMessages.footer "Green"
 
-Stop-Transcript | Out-Null
+} catch {
+    Write-Host ""
+    Write-Host "  [ FAIL ] Unhandled error: $_" -ForegroundColor Red
+    Write-Host "  [ FAIL ] Stack: $($_.ScriptStackTrace)" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "  [ INFO ] Log saved to: $logFile" -ForegroundColor Yellow
+} finally {
+    Stop-Transcript -ErrorAction SilentlyContinue | Out-Null
+    Write-Host "  [ LOG  ] Transcript saved: $logFile" -ForegroundColor DarkGray
+}
