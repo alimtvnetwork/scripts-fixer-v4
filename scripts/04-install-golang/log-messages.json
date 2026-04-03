@@ -13,7 +13,7 @@
     "verify": "Verifying Go installation...",
     "done": "Go installation and configuration completed.",
     "notAdmin": "This script must be run as Administrator.",
-    "disabled": "Go installation is disabled in config."
+    "scriptDisabled": "Go installation is disabled in config."
   },
   "help": {
     "commands": {

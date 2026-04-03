@@ -44,7 +44,7 @@ Invoke-GitPull
 
 # -- Disabled check ------------------------------------------------------------
 if (-not $config.enabled) {
-    Write-Log $logMessages.messages.disabled -Level "warn"
+    Write-Log $logMessages.messages.scriptDisabled -Level "warn"
     return
 }
 
