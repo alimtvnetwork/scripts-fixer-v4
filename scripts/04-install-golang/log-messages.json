@@ -1,22 +1,8 @@
 {
-  "banner": [
-    "----------------------------------------------------------------",
-    "  Install Golang -- Install, configure GOPATH and go env",
-    "----------------------------------------------------------------"
-  ],
-  "footer": [
-    "----------------------------------------------------------------",
-    "  Done! Open a new terminal to pick up PATH changes.",
-    "----------------------------------------------------------------"
-  ],
-  "status": {
-    "ok":   "[  OK  ]",
-    "fail": "[ FAIL ]",
-    "info": "[ INFO ]",
-    "warn": "[ WARN ]",
-    "skip": "[ SKIP ]"
-  },
-  "steps": {
+  "scriptName": "Install Golang",
+  "version": "1.0.0",
+  "description": "Installs Go via Chocolatey, configures GOPATH, PATH, and go env settings.",
+  "messages": {
     "checkGo": "Checking Go installation...",
     "installGo": "Installing Go via Chocolatey...",
     "upgradeGo": "Upgrading Go to latest via Chocolatey...",
@@ -25,10 +11,21 @@
     "updatePath": "Updating user PATH...",
     "configureEnv": "Configuring go env settings...",
     "verify": "Verifying Go installation...",
-    "done": "Go installation and configuration completed."
-  },
-  "errors": {
+    "done": "Go installation and configuration completed.",
     "notAdmin": "This script must be run as Administrator.",
     "disabled": "Go installation is disabled in config."
+  },
+  "help": {
+    "commands": {
+      "all": "Install + configure (default)",
+      "install": "Install/upgrade Go only (skip env config)",
+      "configure": "Configure GOPATH/env only (skip install)"
+    },
+    "examples": [
+      ".\\run.ps1",
+      ".\\run.ps1 install",
+      ".\\run.ps1 configure",
+      ".\\run.ps1 -Help"
+    ]
   }
 }

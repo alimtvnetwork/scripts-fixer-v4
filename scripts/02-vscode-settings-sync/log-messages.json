@@ -1,39 +1,22 @@
 {
-  "banner": [
-    "+--------------------------------------------------------------+",
-    "|      VS Code Settings & Extensions Loader -- PowerShell      |",
-    "+--------------------------------------------------------------+"
-  ],
-  "steps": {
-    "init": "Initializing script...",
-    "loadConfig": "Loading configuration from config.json...",
-    "loadExtensions": "Loading extension list from extensions.json...",
-    "checkCli": "Checking VS Code CLI availability...",
-    "backupSettings": "Backing up existing settings.json...",
-    "applySettings": "Applying new settings.json...",
-    "installExt": "Installing extension:",
-    "verify": "Verifying applied settings...",
-    "done": "All settings and extensions applied successfully!"
-  },
-  "status": {
-    "ok": "[  OK  ]",
-    "fail": "[ FAIL ]",
-    "info": "[ INFO ]",
-    "warn": "[ WARN ]",
-    "skip": "[ SKIP ]"
-  },
-  "errors": {
-    "configNotFound": "config.json not found.",
-    "settingsNotFound": "settings.json not found in script directory. Please provide one.",
+  "scriptName": "VS Code Settings Sync",
+  "version": "5.0.0",
+  "description": "Imports settings, keybindings, and extensions for VS Code Stable and Insiders.",
+  "messages": {
+    "done": "All settings and extensions applied successfully!",
+    "settingsNotFound": "settings.json not found in script directory.",
     "extensionsNotFound": "extensions.json not found in script directory.",
-    "cliNotFound": "CLI command not found in PATH — skipping this edition.",
-    "backupFail": "Failed to create backup of existing settings.",
-    "copyFail": "Failed to copy settings.json.",
-    "extInstallFail": "Failed to install extension."
+    "cliNotFound": "CLI command not found in PATH -- skipping this edition."
   },
-  "footer": [
-    "----------------------------------------------------------------",
-    " Done! Restart VS Code for all settings and extensions to load.",
-    "----------------------------------------------------------------"
-  ]
+  "help": {
+    "commands": {
+      "(default)": "Replace mode -- back up and overwrite settings",
+      "-Merge": "Deep-merge incoming settings into existing settings.json"
+    },
+    "examples": [
+      ".\\run.ps1",
+      ".\\run.ps1 -Merge",
+      ".\\run.ps1 -Help"
+    ]
+  }
 }

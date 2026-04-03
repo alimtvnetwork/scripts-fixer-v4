@@ -1,37 +1,21 @@
 {
-  "banner": [
-    "+--------------------------------------------------------------+",
-    "|        VS Code Context Menu Fix -- PowerShell Tool           |",
-    "+--------------------------------------------------------------+"
-  ],
-  "steps": {
-    "init": "Initializing script...",
-    "loadConfig": "Loading configuration from config.json...",
+  "scriptName": "VS Code Context Menu Fix",
+  "version": "3.1.0",
+  "description": "Restores 'Open with Code' to the Windows right-click context menu.",
+  "messages": {
     "detectInstall": "Detecting VS Code installation type...",
-    "validatePath": "Validating VS Code executable path...",
-    "mapDrive": "Mapping HKCR registry PSDrive...",
     "regFile": "Creating context menu entry for FILES...",
     "regDir": "Creating context menu entry for FOLDERS...",
     "regBg": "Creating context menu entry for FOLDER BACKGROUND...",
     "verify": "Verifying registry entries...",
-    "done": "All context menu entries created successfully!"
+    "done": "All context menu entries created successfully!",
+    "notAdmin": "This script must be run as Administrator."
   },
-  "status": {
-    "ok": "[  OK  ]",
-    "fail": "[ FAIL ]",
-    "info": "[ INFO ]",
-    "warn": "[ WARN ]",
-    "skip": "[ SKIP ]"
-  },
-  "errors": {
-    "configNotFound": "config.json not found. Please ensure it exists in the script directory.",
-    "vscodeNotFound": "VS Code executable not found at the configured path.",
-    "notAdmin": "This script must be run as Administrator.",
-    "registryFail": "Failed to create registry entry."
-  },
-  "footer": [
-    "----------------------------------------------------------------",
-    " Done! Right-click any file, folder, or background to verify.",
-    "----------------------------------------------------------------"
-  ]
+  "help": {
+    "commands": {},
+    "examples": [
+      ".\\run.ps1",
+      ".\\run.ps1 -Help"
+    ]
+  }
 }

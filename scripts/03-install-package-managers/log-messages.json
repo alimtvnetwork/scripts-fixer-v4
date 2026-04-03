@@ -1,30 +1,22 @@
 {
-  "banner": [
-    "----------------------------------------------------------------",
-    "  Install Package Managers -- Chocolatey + Winget",
-    "----------------------------------------------------------------"
-  ],
-  "footer": [
-    "----------------------------------------------------------------",
-    "  Done! Package managers are ready to use.",
-    "----------------------------------------------------------------"
-  ],
-  "status": {
-    "ok":   "[  OK  ]",
-    "fail": "[ FAIL ]",
-    "info": "[ INFO ]",
-    "warn": "[ WARN ]",
-    "skip": "[ SKIP ]"
-  },
-  "steps": {
-    "chocoCheck": "Checking Chocolatey installation...",
-    "chocoInstall": "Installing Chocolatey...",
-    "chocoUpgrade": "Upgrading Chocolatey to latest...",
-    "wingetCheck": "Checking Winget installation...",
-    "wingetInstall": "Installing Winget...",
-    "done": "All package managers are installed and ready."
-  },
-  "errors": {
+  "scriptName": "Install Package Managers",
+  "version": "1.0.0",
+  "description": "Installs and updates Chocolatey and Winget package managers.",
+  "messages": {
+    "done": "All package managers are installed and ready.",
     "notAdmin": "This script must be run as Administrator."
+  },
+  "help": {
+    "commands": {
+      "all": "Install both Chocolatey and Winget (default)",
+      "choco": "Install/update Chocolatey only",
+      "winget": "Install/verify Winget only"
+    },
+    "examples": [
+      ".\\run.ps1",
+      ".\\run.ps1 choco",
+      ".\\run.ps1 winget",
+      ".\\run.ps1 -Help"
+    ]
   }
 }

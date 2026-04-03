@@ -1,139 +1,91 @@
-<#
-.SYNOPSIS
-    Restores "Open with Code" to the Windows right-click context menu.
-
-.DESCRIPTION
-    Reads paths from config.json and log messages from log-messages.json,
-    then creates the required registry entries for files, folders, and
-    folder backgrounds. Supports both VS Code Stable and Insiders editions.
-    Must be run as Administrator.
-
-.NOTES
-    Author : Lovable AI
-    Version: 3.0.0
-#>
-
+# --------------------------------------------------------------------------
+#  Script 01 -- VS Code Context Menu Fix
+#  Restores "Open with Code" to the Windows right-click context menu.
+# --------------------------------------------------------------------------
 param(
     [switch]$Help
 )
 
+Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$sharedDir = Join-Path (Split-Path -Parent $scriptDir) "shared"
 
-# ── Load shared help helper ──────────────────────────────────────────
-$sharedHelp = Join-Path $ScriptDir "..\shared\help.ps1"
-if (Test-Path $sharedHelp) { . $sharedHelp }
+# -- Dot-source shared helpers ------------------------------------------------
+. (Join-Path $sharedDir "logging.ps1")
+. (Join-Path $sharedDir "resolved.ps1")
+. (Join-Path $sharedDir "git-pull.ps1")
+. (Join-Path $sharedDir "help.ps1")
 
-# ── Handle --help ────────────────────────────────────────────────────
+# -- Dot-source script helpers ------------------------------------------------
+. (Join-Path $scriptDir "helpers\registry.ps1")
+
+# -- Load config & log messages -----------------------------------------------
+$config      = Import-JsonConfig (Join-Path $scriptDir "config.json")
+$logMessages = Import-JsonConfig (Join-Path $scriptDir "log-messages.json")
+
+# -- Help ---------------------------------------------------------------------
 if ($Help) {
-    Show-ScriptHelp `
-        -Name "VS Code Context Menu Fix" `
-        -Version "3.1.0" `
-        -Description "Restores 'Open with Code' to the Windows right-click context menu." `
-        -Flags @(
-            @{ Name = "-Help"; Description = "Show this help message" }
-        ) `
-        -Examples @(
-            ".\run.ps1                # Run the fix (requires admin)",
-            ".\run.ps1 -Help          # Show this help"
-        )
-    exit 0
+    Show-ScriptHelp -LogMessages $logMessages
+    return
 }
 
-Write-Host "  [ INFO ] Script directory: $ScriptDir" -ForegroundColor Cyan
+# -- Banner --------------------------------------------------------------------
+Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
 
-# ── Load helpers ─────────────────────────────────────────────────────
-. (Join-Path $ScriptDir "helpers\logging.ps1")
-. (Join-Path $ScriptDir "helpers\registry.ps1")
+# -- Git pull ------------------------------------------------------------------
+Invoke-GitPull
 
-$sharedResolved = Join-Path $ScriptDir "..\shared\resolved.ps1"
-if (Test-Path $sharedResolved) { . $sharedResolved }
-
-# ── Git pull (skip if called from root dispatcher) ───────────────────
-$sharedGitPull = Join-Path $ScriptDir "..\shared\git-pull.ps1"
-if (Test-Path $sharedGitPull) {
-    . $sharedGitPull
-    $repoRoot = Split-Path -Parent (Split-Path -Parent $ScriptDir)
-    Invoke-GitPull -RepoRoot $repoRoot
-} else {
-    Write-Host "  [ WARN  ] " -ForegroundColor Yellow -NoNewline
-    Write-Host "Shared git-pull helper not found -- skipping git pull"
+# -- Assert admin --------------------------------------------------------------
+$isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+if (-not $isAdmin) {
+    Write-Log $logMessages.messages.notAdmin -Level "error"
+    Write-Host "  Tip: Right-click PowerShell -> 'Run as Administrator'" -ForegroundColor Yellow
+    return
 }
 
-# ── Start logging ────────────────────────────────────────────────────
-$logFile = Initialize-Logging -ScriptDir $ScriptDir
+# -- Process editions ----------------------------------------------------------
+$installType     = $config.installationType
+$enabledEditions = $config.enabledEditions
+$totalSuccess    = $true
 
-try {
-    # Load log messages
-    $logPath = Join-Path $ScriptDir "log-messages.json"
-    $script:LogMessages = Import-JsonConfig -FilePath $logPath -Label "log-messages.json"
-    if (-not $script:LogMessages) { exit 1 }
+Write-Log "Installation type preference: $installType" -Level "info"
+Write-Log "Enabled editions: $($enabledEditions -join ', ')" -Level "info"
 
-    Write-Banner $script:LogMessages.banner
+foreach ($editionName in $enabledEditions) {
+    $edition = $config.editions.$editionName
 
-    # Check admin
-    if (-not (Assert-Admin)) {
-        Write-Log $script:LogMessages.errors.notAdmin "fail"
-        Write-Host ""
-        Write-Host "  Tip: Right-click PowerShell -> 'Run as Administrator'" -ForegroundColor Yellow
-        exit 1
+    if (-not $edition) {
+        Write-Log "Unknown edition '$editionName' in enabledEditions -- skipping" -Level "warn"
+        $totalSuccess = $false
+        continue
     }
 
-    # Load config
-    $cfgPath = Join-Path $ScriptDir "config.json"
-    $Config = Import-JsonConfig -FilePath $cfgPath -Label "config.json"
-    if (-not $Config) { exit 1 }
-
-    $installType     = $Config.installationType
-    $enabledEditions = $Config.enabledEditions
-    $totalSuccess    = $true
-
-    Write-Log "Installation type preference: $installType" "info"
-    Write-Log "Enabled editions: $($enabledEditions -join ', ')" "info"
-
-    # Process each edition
-    foreach ($editionName in $enabledEditions) {
-        $edition = $Config.editions.$editionName
-
-        if (-not $edition) {
-            Write-Log "Unknown edition '$editionName' in enabledEditions -- skipping" "warn"
-            $totalSuccess = $false
-            continue
+    $result = Invoke-Edition `
+        -Edition     $edition `
+        -EditionName $editionName `
+        -InstallType $installType `
+        -ScriptDir   $scriptDir `
+        -Steps       @{
+            detectInstall = $logMessages.messages.detectInstall
+            regFile       = $logMessages.messages.regFile
+            regDir        = $logMessages.messages.regDir
+            regBg         = $logMessages.messages.regBg
+            verify        = $logMessages.messages.verify
         }
 
-        $result = Invoke-Edition `
-            -Edition     $edition `
-            -EditionName $editionName `
-            -InstallType $installType `
-            -ScriptDir   $ScriptDir `
-            -Steps       @{
-                detectInstall = $script:LogMessages.steps.detectInstall
-                regFile       = $script:LogMessages.steps.regFile
-                regDir        = $script:LogMessages.steps.regDir
-                regBg         = $script:LogMessages.steps.regBg
-                verify        = $script:LogMessages.steps.verify
-            }
+    if (-not $result) { $totalSuccess = $false }
+}
 
-        if (-not $result) { $totalSuccess = $false }
-    }
+# -- Summary -------------------------------------------------------------------
+if ($totalSuccess) {
+    Write-Log $logMessages.messages.done -Level "success"
+} else {
+    Write-Log "Completed with some warnings -- check output above." -Level "warn"
+}
 
-    # Summary
-    Write-Host ""
-    if ($totalSuccess) {
-        Write-Log $script:LogMessages.steps.done "ok"
-    } else {
-        Write-Log "Completed with some warnings -- check output above." "warn"
-    }
-
-    Write-Banner $script:LogMessages.footer "Green"
-
-} catch {
-    Write-Host ""
-    Write-Log "Unhandled error: $_" "fail"
-    Write-Log "Stack: $($_.ScriptStackTrace)" "fail"
-    Write-Host ""
-    Write-Log "Log saved to: $logFile" "info"
-} finally {
-    Stop-Transcript -ErrorAction SilentlyContinue | Out-Null
-    Write-Host "  [ LOG  ] Transcript saved: $logFile" -ForegroundColor DarkGray
+# -- Save resolved state -------------------------------------------------------
+Save-ResolvedData -ScriptFolder "01-vscode-context-menu-fix" -Data @{
+    editions  = ($enabledEditions -join ',')
+    timestamp = (Get-Date -Format "o")
 }
