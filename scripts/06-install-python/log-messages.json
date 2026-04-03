@@ -1,0 +1,32 @@
+{
+  "scriptName": "Install Python",
+  "version": "1.0.0",
+  "description": "Installs Python via Chocolatey and configures pip user site.",
+  "messages": {
+    "startingPythonInstall": "Starting Python installation...",
+    "pythonAlreadyInstalled": "Python is already installed: {version}",
+    "pythonInstallSuccess": "Python installed successfully: {version}",
+    "pythonUpgradeSuccess": "Python upgraded successfully: {version}",
+    "configuringPipSite": "Configuring pip user site: {path}",
+    "pipSiteSet": "pip user site configured: {path}",
+    "pipSiteAlreadySet": "pip user site already configured: {path}",
+    "addingToPath": "Adding Python scripts to PATH: {path}",
+    "pathAlreadyContains": "PATH already contains: {path}",
+    "scriptDisabled": "Python installation is disabled in config.",
+    "pythonNotFound": "Python not found, installing via Chocolatey...",
+    "savingResolved": "Saving resolved state..."
+  },
+  "help": {
+    "commands": {
+      "all": "Install Python and configure pip (default)",
+      "install": "Install/upgrade Python only",
+      "configure": "Configure pip user site and PATH only"
+    },
+    "examples": [
+      ".\\run.ps1",
+      ".\\run.ps1 install",
+      ".\\run.ps1 configure",
+      ".\\run.ps1 -Help"
+    ]
+  }
+}

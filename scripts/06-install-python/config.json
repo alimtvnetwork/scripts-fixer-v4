@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "chocoPackageName": "python3",
+  "alwaysUpgradeToLatest": true,
+  "devDirSubfolder": "python",
+  "pip": {
+    "setUserSite": true,
+    "userSitePath": "E:\\dev\\python"
+  },
+  "path": {
+    "updateUserPath": true,
+    "ensurePipInPath": true
+  }
+}
