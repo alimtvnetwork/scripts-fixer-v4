@@ -69,16 +69,25 @@ function Write-MenuDisplay {
     # Group shortcuts
     $hasGroupShortcuts = $GroupLookup.Count -gt 0
     if ($hasGroupShortcuts) {
+        # Build ID -> Name lookup from script list
+        $nameLookup = @{}
+        foreach ($s in $ScriptList) {
+            $nameLookup[$s.Id] = $s.Name
+        }
+
         Write-Host ""
         Write-Host "  $($LogMessages.messages.menuGroupsLabel)" -ForegroundColor Yellow
 
         $sortedKeys = $GroupLookup.Keys | Sort-Object
         foreach ($letter in $sortedKeys) {
             $group = $GroupLookup[$letter]
-            $ids = ($group.Ids -join ",")
+            $namedIds = ($group.Ids | ForEach-Object {
+                $name = $nameLookup[$_]
+                if ($name) { "$_-$name" } else { $_ }
+            }) -join ", "
             Write-Host "    $letter. " -ForegroundColor Magenta -NoNewline
             Write-Host "$($group.Label)" -NoNewline
-            Write-Host " ($ids)" -ForegroundColor DarkGray
+            Write-Host " ($namedIds)" -ForegroundColor DarkGray
         }
     }
 }
