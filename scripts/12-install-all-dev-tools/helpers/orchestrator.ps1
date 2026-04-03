@@ -267,7 +267,7 @@ function Invoke-ScriptSequence {
         }
     }
 
-    return $results
+    return ,$results
 }
 
 function Show-Summary {
