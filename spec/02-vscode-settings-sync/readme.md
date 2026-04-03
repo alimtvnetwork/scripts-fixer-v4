@@ -41,7 +41,8 @@ scripts/
 │   ├── git-pull.ps1                   # Shared git-pull helper (dot-sourced)
 │   ├── logging.ps1                    # Write-Log, Write-Banner, Initialize-Logging, Import-JsonConfig
 │   ├── json-utils.ps1                 # Backup-File, Merge-JsonDeep, ConvertTo-OrderedHashtable
-│   └── resolved.ps1                   # Save-ResolvedData, Get-ResolvedDir
+│   ├── resolved.ps1                   # Save-ResolvedData, Get-ResolvedDir
+│   └── cleanup.ps1                    # Clear-ResolvedData
 └── 02-vscode-settings-sync/
     ├── config.json                    # Paths & edition settings (never mutated at runtime)
     ├── log-messages.json              # All display strings & banners
@@ -49,7 +50,9 @@ scripts/
     ├── keybindings.json               # Extracted/provided keybindings
     ├── extensions.json                # Extension IDs (enabled & disabled)
     ├── *.code-profile                 # (Optional) VS Code profile export
-    ├── run.ps1                        # Main script
+    ├── run.ps1                        # Thin orchestrator (loads helpers, runs flow)
+    ├── helpers/
+    │   └── sync.ps1                   # Script-specific functions (resolve, apply, install)
     └── logs/                          # Auto-created runtime log folder (gitignored)
         └── run-<timestamp>.log        # Timestamped execution log
 
