@@ -256,7 +256,12 @@ function Install-Extensions {
         Write-Log "Installing: $ext" "info"
         try {
             $output = & $CliCommand --install-extension $ext --force 2>&1
-            Write-Log "Installed $ext" "ok"
+            if ($LASTEXITCODE -ne 0 -or $output -match 'Failed|error') {
+                Write-Log "Extension install may have failed: $ext -- $output" "warn"
+                $allOk = $false
+            } else {
+                Write-Log "Installed $ext" "ok"
+            }
         } catch {
             Write-Log "Failed to install $ext -- $_" "fail"
             $allOk = $false
@@ -360,15 +365,17 @@ function Main {
 
     Write-Host "  [ INFO ] Script directory: $ScriptDir" -ForegroundColor Cyan
 
-    # Load shared git-pull helper and run
-    $sharedGitPull = Join-Path $ScriptDir "..\shared\git-pull.ps1"
-    if (Test-Path $sharedGitPull) {
-        . $sharedGitPull
-        $repoRoot = Split-Path -Parent (Split-Path -Parent $ScriptDir)
-        Invoke-GitPull -RepoRoot $repoRoot
-    } else {
-        Write-Host "  [ WARN  ] " -ForegroundColor Yellow -NoNewline
-        Write-Host "Shared git-pull helper not found -- skipping git pull"
+    # Load shared git-pull helper and run (skip if called from root dispatcher)
+    if (-not $env:SCRIPTS_ROOT_RUN) {
+        $sharedGitPull = Join-Path $ScriptDir "..\shared\git-pull.ps1"
+        if (Test-Path $sharedGitPull) {
+            . $sharedGitPull
+            $repoRoot = Split-Path -Parent (Split-Path -Parent $ScriptDir)
+            Invoke-GitPull -RepoRoot $repoRoot
+        } else {
+            Write-Host "  [ WARN  ] " -ForegroundColor Yellow -NoNewline
+            Write-Host "Shared git-pull helper not found -- skipping git pull"
+        }
     }
 
     # Start logging
