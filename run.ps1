@@ -68,9 +68,7 @@ param(
 
     [switch]$CleanOnly,
 
-    [switch]$Help,
-
-    [switch]$List
+    [switch]$Help
 )
 
 $ErrorActionPreference = "Stop"
@@ -84,57 +82,59 @@ function Show-RootHelp {
     Write-Host ""
     Write-Host "  Usage:" -ForegroundColor Yellow
     Write-Host ""
-    Write-Host "    .\run.ps1 -Install <keywords>       " -NoNewline; Write-Host "Install by keyword (comma-separated)" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -I <number>               " -NoNewline; Write-Host "Run a specific script by ID" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -d                         " -NoNewline; Write-Host "Shortcut for -I 12 (interactive menu)" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -a                         " -NoNewline; Write-Host "Shortcut for -I 13 (audit mode)" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -v                         " -NoNewline; Write-Host "Shortcut for -I 1  (install VS Code)" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -w                         " -NoNewline; Write-Host "Shortcut for -I 14 (install Winget)" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -t                         " -NoNewline; Write-Host "Shortcut for -I 15 (Windows tweaks)" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -I <number> -Merge        " -NoNewline; Write-Host "Run with merge flag (script 02)" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -I <number> -Clean        " -NoNewline; Write-Host "Wipe cache, then run" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -CleanOnly                 " -NoNewline; Write-Host "Wipe all cached data" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -Help                      " -NoNewline; Write-Host "Show this help" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -List                      " -NoNewline; Write-Host "Show keyword table only" -ForegroundColor DarkGray
+    $col = 42
+    Write-Host "    $(".\run.ps1 -Install <keywords>".PadRight($col))" -NoNewline; Write-Host "Install by keyword (comma-separated)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I <number>".PadRight($col))" -NoNewline; Write-Host "Run a specific script by ID" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -d".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 12 (interactive menu)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -a".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 13 (audit mode)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -v".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 1  (install VS Code)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -w".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 14 (install Winget)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -t".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 15 (Windows tweaks)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I <number> -Merge".PadRight($col))" -NoNewline; Write-Host "Run with merge flag (script 02)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I <number> -Clean".PadRight($col))" -NoNewline; Write-Host "Wipe cache, then run" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -CleanOnly".PadRight($col))" -NoNewline; Write-Host "Wipe all cached data" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -Help".PadRight($col))" -NoNewline; Write-Host "Show this help" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -List".PadRight($col))" -NoNewline; Write-Host "Show keyword table only" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Install by Keyword:" -ForegroundColor Yellow
     Write-Host ""
-    Write-Host "    install vscode            " -NoNewline; Write-Host "Install Visual Studio Code" -ForegroundColor DarkGray
-    Write-Host "    install nodejs             " -NoNewline; Write-Host "Install Node.js + Yarn + Bun" -ForegroundColor DarkGray
-    Write-Host "    install pnpm               " -NoNewline; Write-Host "Install Node.js + pnpm (auto-chains)" -ForegroundColor DarkGray
-    Write-Host "    install python             " -NoNewline; Write-Host "Install Python + pip" -ForegroundColor DarkGray
-    Write-Host "    install go                 " -NoNewline; Write-Host "Install Go + configure GOPATH" -ForegroundColor DarkGray
-    Write-Host "    install git                " -NoNewline; Write-Host "Install Git + LFS + GitHub CLI" -ForegroundColor DarkGray
-    Write-Host "    install cpp                " -NoNewline; Write-Host "Install C++ MinGW-w64 compiler" -ForegroundColor DarkGray
-    Write-Host "    install php                " -NoNewline; Write-Host "Install PHP via Chocolatey" -ForegroundColor DarkGray
-    Write-Host "    install powershell         " -NoNewline; Write-Host "Install latest PowerShell" -ForegroundColor DarkGray
-    Write-Host "    install winget             " -NoNewline; Write-Host "Install Winget package manager" -ForegroundColor DarkGray
-    Write-Host "    install settingssync       " -NoNewline; Write-Host "Sync VSCode settings + extensions" -ForegroundColor DarkGray
-    Write-Host "    install contextmenu        " -NoNewline; Write-Host "Fix VSCode right-click context menu" -ForegroundColor DarkGray
-    Write-Host "    install alldev             " -NoNewline; Write-Host "Interactive dev tools menu (pick what to install)" -ForegroundColor DarkGray
+    $kc = 42
+    Write-Host "    $("install vscode".PadRight($kc))" -NoNewline; Write-Host "Install Visual Studio Code" -ForegroundColor DarkGray
+    Write-Host "    $("install nodejs".PadRight($kc))" -NoNewline; Write-Host "Install Node.js + Yarn + Bun" -ForegroundColor DarkGray
+    Write-Host "    $("install pnpm".PadRight($kc))" -NoNewline; Write-Host "Install Node.js + pnpm (auto-chains)" -ForegroundColor DarkGray
+    Write-Host "    $("install python".PadRight($kc))" -NoNewline; Write-Host "Install Python + pip" -ForegroundColor DarkGray
+    Write-Host "    $("install go".PadRight($kc))" -NoNewline; Write-Host "Install Go + configure GOPATH" -ForegroundColor DarkGray
+    Write-Host "    $("install git".PadRight($kc))" -NoNewline; Write-Host "Install Git + LFS + GitHub CLI" -ForegroundColor DarkGray
+    Write-Host "    $("install cpp".PadRight($kc))" -NoNewline; Write-Host "Install C++ MinGW-w64 compiler" -ForegroundColor DarkGray
+    Write-Host "    $("install php".PadRight($kc))" -NoNewline; Write-Host "Install PHP via Chocolatey" -ForegroundColor DarkGray
+    Write-Host "    $("install powershell".PadRight($kc))" -NoNewline; Write-Host "Install latest PowerShell" -ForegroundColor DarkGray
+    Write-Host "    $("install winget".PadRight($kc))" -NoNewline; Write-Host "Install Winget package manager" -ForegroundColor DarkGray
+    Write-Host "    $("install settingssync".PadRight($kc))" -NoNewline; Write-Host "Sync VSCode settings + extensions" -ForegroundColor DarkGray
+    Write-Host "    $("install contextmenu".PadRight($kc))" -NoNewline; Write-Host "Fix VSCode right-click context menu" -ForegroundColor DarkGray
+    Write-Host "    $("install alldev".PadRight($kc))" -NoNewline; Write-Host "Interactive dev tools menu (pick what to install)" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "    Combine keywords:" -ForegroundColor Magenta
-    Write-Host "    install nodejs,pnpm        " -NoNewline; Write-Host "Install Node.js + pnpm" -ForegroundColor DarkGray
-    Write-Host "    install go,git,cpp         " -NoNewline; Write-Host "Install Go, Git, and C++" -ForegroundColor DarkGray
-    Write-Host "    install python,php         " -NoNewline; Write-Host "Install Python + PHP" -ForegroundColor DarkGray
-    Write-Host "    install vscode,nodejs,git  " -NoNewline; Write-Host "Install VS Code, Node.js, and Git" -ForegroundColor DarkGray
+    Write-Host "    $("install nodejs,pnpm".PadRight($kc))" -NoNewline; Write-Host "Install Node.js + pnpm" -ForegroundColor DarkGray
+    Write-Host "    $("install go,git,cpp".PadRight($kc))" -NoNewline; Write-Host "Install Go, Git, and C++" -ForegroundColor DarkGray
+    Write-Host "    $("install python,php".PadRight($kc))" -NoNewline; Write-Host "Install Python + PHP" -ForegroundColor DarkGray
+    Write-Host "    $("install vscode,nodejs,git".PadRight($kc))" -NoNewline; Write-Host "Install VS Code, Node.js, and Git" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Available Keywords:" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "    Keyword              Maps to                         Script ID" -ForegroundColor DarkGray
     Write-Host "    -------------------  ------------------------------  ---------" -ForegroundColor DarkGray
-    Write-Host "    vscode               VS Code                         01"
+    Write-Host "    vscode, vs-code      VS Code                         01"
     Write-Host "    choco, chocolatey    Chocolatey                      02"
     Write-Host "    nodejs, node         Node.js + Yarn + Bun            03"
     Write-Host "    pnpm                 Node.js + pnpm                  03, 04"
     Write-Host "    python, pip          Python + pip                    05"
     Write-Host "    go, golang           Go                              06"
     Write-Host "    git, gh              Git + LFS + GitHub CLI          07"
-    Write-Host "    githubdesktop        GitHub Desktop                  08"
+    Write-Host "    github-desktop       GitHub Desktop                  08"
     Write-Host "    cpp, c++, gcc        C++ (MinGW-w64)                 09"
-    Write-Host "    contextmenu          VSCode context menu fix         10"
-    Write-Host "    settingssync         VSCode settings sync            11"
-    Write-Host "    alldev, all          Interactive dev tools menu      12"
+    Write-Host "    context-menu         VSCode context menu fix         10"
+    Write-Host "    settings-sync        VSCode settings sync            11"
+    Write-Host "    all-dev, all         Interactive dev tools menu      12"
     Write-Host "    audit                Audit mode                      13"
     Write-Host "    winget               Winget package manager          14"
     Write-Host "    tweaks               Windows tweaks                  15"
@@ -312,34 +312,6 @@ if ($hasNoParams) {
 # ── Help ─────────────────────────────────────────────────────────────
 if ($Help) {
     Show-RootHelp
-    exit 0
-}
-
-# ── List (keyword table only) ────────────────────────────────────────
-if ($List) {
-    Write-Host ""
-    Write-Host "  Available Keywords:" -ForegroundColor Yellow
-    Write-Host ""
-    Write-Host "    Keyword              Maps to                         Script ID" -ForegroundColor DarkGray
-    Write-Host "    -------------------  ------------------------------  ---------" -ForegroundColor DarkGray
-    Write-Host "    vscode               VS Code                         01"
-    Write-Host "    choco, chocolatey    Chocolatey                      02"
-    Write-Host "    nodejs, node         Node.js + Yarn + Bun            03"
-    Write-Host "    pnpm                 Node.js + pnpm                  03, 04"
-    Write-Host "    python, pip          Python + pip                    05"
-    Write-Host "    go, golang           Go                              06"
-    Write-Host "    git, gh              Git + LFS + GitHub CLI          07"
-    Write-Host "    githubdesktop        GitHub Desktop                  08"
-    Write-Host "    cpp, c++, gcc        C++ (MinGW-w64)                 09"
-    Write-Host "    contextmenu          VSCode context menu fix         10"
-    Write-Host "    settingssync         VSCode settings sync            11"
-    Write-Host "    alldev, all          Interactive dev tools menu      12"
-    Write-Host "    audit                Audit mode                      13"
-    Write-Host "    winget               Winget package manager          14"
-    Write-Host "    tweaks               Windows tweaks                  15"
-    Write-Host "    php                  PHP                             16"
-    Write-Host "    powershell, pwsh     PowerShell (latest)             17"
-    Write-Host ""
     exit 0
 }
 
