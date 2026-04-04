@@ -14,19 +14,25 @@ When run with no parameters, it performs a git pull and shows help
 ## Usage
 
 ```powershell
-.\run.ps1                          # Git pull + show help
-.\run.ps1 -d                       # Shortcut for -I 12 (interactive dev tools menu)
-.\run.ps1 -I <number>              # Run a script
-.\run.ps1 -I <number> -Merge       # Run with -Merge passed through
-.\run.ps1 -I <number> -Clean       # Wipe .resolved/ cache, then run
-.\run.ps1 -CleanOnly               # Wipe .resolved/ cache and exit
-.\run.ps1 -Help                    # Show help (same as no params)
+.\run.ps1                              # Git pull + show help
+.\run.ps1 -Install vscode             # Install VS Code by keyword
+.\run.ps1 -Install nodejs,pnpm        # Install Node.js + pnpm (combo)
+.\run.ps1 -Install python             # Install Python + pip
+.\run.ps1 -Install go,git,cpp         # Install Go, Git, and C++
+.\run.ps1 -Install all-dev            # Interactive dev tools menu
+.\run.ps1 -d                          # Shortcut for -I 12 (interactive menu)
+.\run.ps1 -I <number>                 # Run a script by ID
+.\run.ps1 -I <number> -Merge          # Run with -Merge passed through
+.\run.ps1 -I <number> -Clean          # Wipe .resolved/ cache, then run
+.\run.ps1 -CleanOnly                  # Wipe .resolved/ cache and exit
+.\run.ps1 -Help                       # Show help (same as no params)
 ```
 
 ## Parameters
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
+| `-Install` | string | No | Comma-separated keywords to install (e.g. `vscode`, `nodejs,pnpm`, `go,git`) |
 | `-d` | switch | No | Shortcut for `-I 12` -- launches the interactive dev tools menu |
 | `-a` | switch | No | Shortcut for `-I 13` -- runs the audit scanner |
 | `-v` | switch | No | Shortcut for `-I 1` -- installs VS Code |
@@ -38,13 +44,52 @@ When run with no parameters, it performs a git pull and shows help
 | `-CleanOnly` | switch | No | Wipes all `.resolved/` data and exits without running any script |
 | `-Help` | switch | No | Show help (also shown when no params given) |
 
+## Keyword Install System
+
+The `-Install` parameter accepts human-friendly keywords that map to script IDs via
+`scripts/shared/install-keywords.json`. Keywords are case-insensitive and comma-separated.
+
+### Keyword Mapping
+
+| Keyword | Maps to | Script ID(s) |
+|---------|---------|-------------|
+| `vscode`, `vs-code`, `code` | VS Code | 01 |
+| `choco`, `chocolatey` | Chocolatey | 02 |
+| `nodejs`, `node`, `node.js` | Node.js + Yarn + Bun | 03 |
+| `pnpm` | Node.js + pnpm | 03, 04 |
+| `python`, `pip` | Python + pip | 05 |
+| `go`, `golang` | Go | 06 |
+| `git`, `gh`, `github-cli` | Git + LFS + GitHub CLI | 07 |
+| `github-desktop` | GitHub Desktop | 08 |
+| `cpp`, `c++`, `gcc`, `mingw` | C++ (MinGW-w64) | 09 |
+| `context-menu` | VSCode context menu fix | 10 |
+| `settings-sync` | VSCode settings sync | 11 |
+| `all-dev`, `all` | Interactive dev tools menu | 12 |
+| `audit` | Audit mode | 13 |
+| `winget` | Winget | 14 |
+| `tweaks`, `windows-tweaks` | Windows tweaks | 15 |
+| `php` | PHP | 16 |
+| `powershell`, `pwsh` | PowerShell (latest) | 17 |
+
+### Combo Examples
+
+```powershell
+.\run.ps1 -Install nodejs,pnpm           # Installs scripts 03, 04 in order
+.\run.ps1 -Install go,git,cpp            # Installs scripts 06, 07, 09 in order
+.\run.ps1 -Install python,php            # Installs scripts 05, 16 in order
+.\run.ps1 -Install vscode,nodejs,git     # Installs scripts 01, 03, 07 in order
+```
+
+Duplicate IDs are automatically de-duplicated and sorted by ID for logical execution order.
+
 ## Examples
 
 ```powershell
 .\run.ps1                   # Pull, show help
+.\run.ps1 -Install vscode   # Pull, then install VS Code
 .\run.ps1 -d                # Pull, then run interactive dev tools menu (script 12)
 .\run.ps1 -I 1              # Pull, then run scripts/01-install-vscode/run.ps1
-.\run.ps1 -I 2 -Merge       # Pull, then run scripts/02-install-package-managers/run.ps1 with merge mode
+.\run.ps1 -I 2 -Merge       # Pull, then run scripts/02-install-package-managers/run.ps1 with merge
 .\run.ps1 -I 12             # Same as -d (interactive menu)
 .\run.ps1 -I 1 -Clean       # Wipe cache, pull, then run scripts/01-install-vscode/run.ps1
 .\run.ps1 -CleanOnly         # Wipe all cached resolved data
@@ -52,24 +97,31 @@ When run with no parameters, it performs a git pull and shows help
 
 ## Execution Flow
 
+### Standard mode (-I)
 1. If no parameters at all: clear stale `$env:SCRIPTS_ROOT_RUN`, git pull, show help, exit
 2. If `-Help`: show help and exit
 3. If `-CleanOnly`: wipe `.resolved/` contents and exit immediately
-4. If `-d`: set `$I = 12` (shortcut expansion)
-5. Validate `-I` is provided (show usage help if missing)
-5. If `-Clean`: wipe `.resolved/` contents, then continue
-6. Dot-source `scripts/shared/git-pull.ps1`
-7. Resolve script folder from `-I` via registry lookup (see below)
-8. Verify `run.ps1` exists in the resolved folder
-9. Clean and recreate the target script's `logs/` folder
-10. `Invoke-GitPull` from the repo root
-11. Set `$env:SCRIPTS_ROOT_RUN = "1"` so child scripts skip their own git pull
-12. Delegate to the child script, passing through any extra flags (`-Merge`)
-13. Clean up `$env:SCRIPTS_ROOT_RUN`
+4. If `-Clean`: wipe `.resolved/` contents, then continue
+5. Dot-source `scripts/shared/git-pull.ps1`
+6. Run `Invoke-GitPull` from repo root
+7. Set `$env:SCRIPTS_ROOT_RUN = "1"`
+8. Expand shortcuts (`-d` -> 12, `-v` -> 1, etc.)
+9. Resolve script via `Invoke-ScriptById` (registry lookup + logs cleanup)
+10. Delegate to the child script
+11. Clean up `$env:SCRIPTS_ROOT_RUN`
+
+### Keyword mode (-Install)
+1. Steps 1-7 same as above
+2. Parse comma-separated keywords via `Resolve-InstallKeywords`
+3. Look up each keyword in `scripts/shared/install-keywords.json`
+4. De-duplicate and sort script IDs
+5. Run each script in sequence via `Invoke-ScriptById`
+6. Show summary (success/fail counts)
+7. Clean up `$env:SCRIPTS_ROOT_RUN`
 
 ## Script Resolution
 
-The dispatcher resolves `-I <number>` to a script folder using a two-tier strategy:
+The dispatcher resolves script IDs to folders using `Invoke-ScriptById`:
 
 ### Primary: Registry lookup (`scripts/registry.json`)
 
@@ -79,21 +131,15 @@ A flat JSON file maps zero-padded IDs to exact folder names:
 {
   "scripts": {
     "01": "01-install-vscode",
-    "04": "04-install-pnpm",
-    "11": "11-install-all-dev-tools"
+    "04": "04-install-pnpm"
   }
 }
 ```
-
-The dispatcher reads the registry, looks up the formatted prefix (e.g. `04`),
-and joins `scripts/<folder>` to get the exact path. This avoids glob ambiguity
-when stale or renamed folders share the same prefix.
 
 ### Fallback: Glob matching
 
 If `registry.json` is missing, the dispatcher falls back to globbing
 `scripts/<NN>-*` and filtering to directories that contain a `run.ps1`.
-Only the first match is used.
 
 ### Resolution errors
 
@@ -103,13 +149,19 @@ Only the first match is used.
 | Registry missing + no glob match | `[ FAIL ]` with "No script folder found for ID NN" |
 | Folder found but no `run.ps1` inside | `[ FAIL ]` with "run.ps1 not found in <folder>" |
 
-## Help Output
+## Git Pull Output
 
-The help display shows:
-- Project title and usage syntax
-- All available scripts with ID, name, and description (grouped: Core Tools, Optional, Orchestrator)
-- Script 11 specific options (interactive menu, -All, -Skip, -Only)
-- How to get per-script help
+The `Format-GitPullOutput` function in `scripts/shared/git-pull.ps1` parses raw
+`git pull` output and formats it with clean, aligned, color-coded lines:
+
+| Line type | Badge | Color |
+|-----------|-------|-------|
+| From / branch tracking | `[  OK  ]` | Green |
+| Updating / Fast-forward | `[ INFO ]` / `[  OK  ]` | Cyan / Green |
+| File changes | `[  --  ]` | White filename, yellow count, green `+`, red `-` |
+| Create mode | `[  --  ]` | Green |
+| Delete mode | `[  --  ]` | Red |
+| Summary line | `[  OK  ]` | Green |
 
 ## Environment Variables
 
@@ -117,30 +169,24 @@ The help display shows:
 |----------|--------|---------|
 | `$env:SCRIPTS_ROOT_RUN` | Root dispatcher | Set to `"1"` before delegating; child scripts check this to skip redundant git pull |
 
-The flag is removed after the child script completes, preventing stale state
-in future standalone runs.
-
 ## .resolved/ Cache Management
-
-The `-Clean` and `-CleanOnly` flags provide direct control over the `.resolved/`
-runtime cache without needing to manually delete folders.
 
 | Flag | Requires -I | Effect |
 |------|-------------|--------|
 | `-Clean` | Yes | Wipe cache, then run script (forces fresh detection) |
 | `-CleanOnly` | No | Wipe cache and exit |
-| Neither | Yes | Run script using existing cache (cache-first detection) |
+| Neither | Yes | Run script using existing cache |
 
 ## Design Decisions
 
 | Decision | Rationale |
 |----------|-----------|
-| Registry-based resolution | Exact folder names avoid glob collisions with stale/renamed folders |
-| Glob fallback | Backwards-compatible for repos that haven't added `registry.json` yet |
+| Keyword install system | Human-friendly names avoid needing to memorize script IDs |
+| External keyword JSON | Easy to add new keywords without editing run.ps1 |
+| Auto-chaining (e.g. pnpm -> 03,04) | Dependencies are resolved automatically |
+| De-duplication + sorting | Prevents running the same script twice; ensures logical order |
+| Registry-based resolution | Exact folder names avoid glob collisions |
+| Glob fallback | Backwards-compatible for repos without `registry.json` |
 | No params = git pull + help | User discovers available scripts on first run |
-| Clear `$env:SCRIPTS_ROOT_RUN` on no-param run | Prevents stale env var from a previous session causing git pull to skip |
-| `-I` is optional (not `Mandatory`) | Allows `-CleanOnly` and default help to work without a script number |
-| Usage help on missing `-I` | Better UX than a raw PowerShell parameter error |
-| Clean before git pull | Ensures fresh detection even if git pull brings new config |
-| Inline wipe (not via cleanup.ps1) | Root dispatcher runs before shared helpers are loaded; avoids dependency on logging |
-| Flag passthrough via splatting | `$scriptArgs` hashtable makes it easy to add future flags |
+| Refactored into `Invoke-ScriptById` | Shared by both `-I` and `-Install` modes, reduces duplication |
+| Formatted git pull output | Clean, colored, line-by-line display instead of raw dump |
