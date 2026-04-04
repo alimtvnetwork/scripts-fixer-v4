@@ -96,25 +96,25 @@ function Show-RootHelp {
     Write-Host ""
     Write-Host "  Install by Keyword:" -ForegroundColor Yellow
     Write-Host ""
-    Write-Host "    .\run.ps1 -Install vscode            " -NoNewline; Write-Host "Install Visual Studio Code" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -Install nodejs             " -NoNewline; Write-Host "Install Node.js + Yarn + Bun" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -Install pnpm               " -NoNewline; Write-Host "Install Node.js + pnpm (auto-chains)" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -Install python             " -NoNewline; Write-Host "Install Python + pip" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -Install go                 " -NoNewline; Write-Host "Install Go + configure GOPATH" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -Install git                " -NoNewline; Write-Host "Install Git + LFS + GitHub CLI" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -Install cpp                " -NoNewline; Write-Host "Install C++ MinGW-w64 compiler" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -Install php                " -NoNewline; Write-Host "Install PHP via Chocolatey" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -Install powershell         " -NoNewline; Write-Host "Install latest PowerShell" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -Install winget             " -NoNewline; Write-Host "Install Winget package manager" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -Install settings-sync      " -NoNewline; Write-Host "Sync VSCode settings + extensions" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -Install context-menu       " -NoNewline; Write-Host "Fix VSCode right-click context menu" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -Install all-dev            " -NoNewline; Write-Host "Interactive dev tools menu (pick what to install)" -ForegroundColor DarkGray
+    Write-Host "    install vscode            " -NoNewline; Write-Host "Install Visual Studio Code" -ForegroundColor DarkGray
+    Write-Host "    install nodejs             " -NoNewline; Write-Host "Install Node.js + Yarn + Bun" -ForegroundColor DarkGray
+    Write-Host "    install pnpm               " -NoNewline; Write-Host "Install Node.js + pnpm (auto-chains)" -ForegroundColor DarkGray
+    Write-Host "    install python             " -NoNewline; Write-Host "Install Python + pip" -ForegroundColor DarkGray
+    Write-Host "    install go                 " -NoNewline; Write-Host "Install Go + configure GOPATH" -ForegroundColor DarkGray
+    Write-Host "    install git                " -NoNewline; Write-Host "Install Git + LFS + GitHub CLI" -ForegroundColor DarkGray
+    Write-Host "    install cpp                " -NoNewline; Write-Host "Install C++ MinGW-w64 compiler" -ForegroundColor DarkGray
+    Write-Host "    install php                " -NoNewline; Write-Host "Install PHP via Chocolatey" -ForegroundColor DarkGray
+    Write-Host "    install powershell         " -NoNewline; Write-Host "Install latest PowerShell" -ForegroundColor DarkGray
+    Write-Host "    install winget             " -NoNewline; Write-Host "Install Winget package manager" -ForegroundColor DarkGray
+    Write-Host "    install settingssync       " -NoNewline; Write-Host "Sync VSCode settings + extensions" -ForegroundColor DarkGray
+    Write-Host "    install contextmenu        " -NoNewline; Write-Host "Fix VSCode right-click context menu" -ForegroundColor DarkGray
+    Write-Host "    install alldev             " -NoNewline; Write-Host "Interactive dev tools menu (pick what to install)" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "    Combine keywords:" -ForegroundColor Magenta
-    Write-Host "    .\run.ps1 -Install nodejs,pnpm       " -NoNewline; Write-Host "Install Node.js + pnpm" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -Install go,git,cpp        " -NoNewline; Write-Host "Install Go, Git, and C++" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -Install python,php        " -NoNewline; Write-Host "Install Python + PHP" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -Install vscode,nodejs,git " -NoNewline; Write-Host "Install VS Code, Node.js, and Git" -ForegroundColor DarkGray
+    Write-Host "    install nodejs,pnpm        " -NoNewline; Write-Host "Install Node.js + pnpm" -ForegroundColor DarkGray
+    Write-Host "    install go,git,cpp         " -NoNewline; Write-Host "Install Go, Git, and C++" -ForegroundColor DarkGray
+    Write-Host "    install python,php         " -NoNewline; Write-Host "Install Python + PHP" -ForegroundColor DarkGray
+    Write-Host "    install vscode,nodejs,git  " -NoNewline; Write-Host "Install VS Code, Node.js, and Git" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Available Keywords:" -ForegroundColor Yellow
     Write-Host ""
