@@ -314,6 +314,34 @@ if ($Help) {
     exit 0
 }
 
+# ── List (keyword table only) ────────────────────────────────────────
+if ($List) {
+    Write-Host ""
+    Write-Host "  Available Keywords:" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "    Keyword              Maps to                         Script ID" -ForegroundColor DarkGray
+    Write-Host "    -------------------  ------------------------------  ---------" -ForegroundColor DarkGray
+    Write-Host "    vscode               VS Code                         01"
+    Write-Host "    choco, chocolatey    Chocolatey                      02"
+    Write-Host "    nodejs, node         Node.js + Yarn + Bun            03"
+    Write-Host "    pnpm                 Node.js + pnpm                  03, 04"
+    Write-Host "    python, pip          Python + pip                    05"
+    Write-Host "    go, golang           Go                              06"
+    Write-Host "    git, gh              Git + LFS + GitHub CLI          07"
+    Write-Host "    githubdesktop        GitHub Desktop                  08"
+    Write-Host "    cpp, c++, gcc        C++ (MinGW-w64)                 09"
+    Write-Host "    contextmenu          VSCode context menu fix         10"
+    Write-Host "    settingssync         VSCode settings sync            11"
+    Write-Host "    alldev, all          Interactive dev tools menu      12"
+    Write-Host "    audit                Audit mode                      13"
+    Write-Host "    winget               Winget package manager          14"
+    Write-Host "    tweaks               Windows tweaks                  15"
+    Write-Host "    php                  PHP                             16"
+    Write-Host "    powershell, pwsh     PowerShell (latest)             17"
+    Write-Host ""
+    exit 0
+}
+
 # ── Handle -CleanOnly (no -I required) ───────────────────────────────
 if ($CleanOnly) {
     $resolvedDir = Join-Path $RootDir ".resolved"
