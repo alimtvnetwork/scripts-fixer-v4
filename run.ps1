@@ -200,7 +200,12 @@ function Resolve-InstallKeywords {
     $hasError = $false
 
     foreach ($token in $tokens) {
+        # Try exact match first, then try without hyphens
         $ids = $keywordMap.$token
+        if ($null -eq $ids) {
+            $stripped = $token -replace '-', ''
+            $ids = $keywordMap.$stripped
+        }
         $isUnknown = $null -eq $ids
         if ($isUnknown) {
             Write-Host "  [ FAIL ] " -ForegroundColor Red -NoNewline
