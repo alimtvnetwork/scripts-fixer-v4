@@ -169,7 +169,9 @@ function Invoke-GitPull {
 
     try {
         Push-Location $RepoRoot
-        $gitOutput = git pull 2>&1 | Out-String
+        # Capture each line as a string (stderr ErrorRecords need .ToString())
+        $gitLines  = git pull 2>&1 | ForEach-Object { $_.ToString() }
+        $gitOutput = $gitLines -join "`n"
         Pop-Location
 
         Format-GitPullOutput -RawOutput $gitOutput
