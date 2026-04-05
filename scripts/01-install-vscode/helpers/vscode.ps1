@@ -58,9 +58,28 @@ function Invoke-VsCodeSetup {
                                    -LogMessages $LogMessages
         }
         "all" {
-            $shouldPrompt = $Config.promptEdition
+            # Check env var from orchestrator questionnaire first
+            $hasEditionsEnv = -not [string]::IsNullOrWhiteSpace($env:VSCODE_EDITIONS)
 
-            if ($shouldPrompt) {
+            if ($hasEditionsEnv) {
+                $editionsEnv = $env:VSCODE_EDITIONS
+                Write-Log "Using VS Code editions from questionnaire: $editionsEnv" -Level "info"
+
+                $isStable   = $editionsEnv -match "stable"
+                $isInsiders = $editionsEnv -match "insiders"
+
+                if ($isStable) {
+                    Install-VsCodeEdition -ChocoPackageName $editions.stable.chocoPackageName `
+                                           -Label $editions.stable.label `
+                                           -LogMessages $LogMessages
+                }
+                if ($isInsiders) {
+                    Install-VsCodeEdition -ChocoPackageName $editions.insiders.chocoPackageName `
+                                           -Label $editions.insiders.label `
+                                           -LogMessages $LogMessages
+                }
+            }
+            elseif ($shouldPrompt) {
                 Write-Host ""
                 Write-Host $LogMessages.messages.editionPrompt -ForegroundColor Cyan
                 Write-Host $LogMessages.messages.editionOptionStable
@@ -92,7 +111,6 @@ function Invoke-VsCodeSetup {
                                            -LogMessages $LogMessages
                 }
                 else {
-                    # Default to stable
                     Install-VsCodeEdition -ChocoPackageName $editions.stable.chocoPackageName `
                                            -Label $editions.stable.label `
                                            -LogMessages $LogMessages
