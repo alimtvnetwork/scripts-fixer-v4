@@ -40,7 +40,7 @@ plus `-All`, `-Skip`, and `-Only` flag-based modes.
 | ID | Name | Description |
 |----|------|-------------|
 | 01 | VS Code | Install Visual Studio Code (Stable/Insiders) |
-| 02 | Package Managers | Install Chocolatey and Winget |
+| 02 | Chocolatey | Install Chocolatey package manager |
 | 03 | Node.js + Yarn + Bun | Install Node.js LTS, Yarn, Bun, verify npx |
 | 04 | pnpm | Install pnpm, configure global store |
 | 05 | Python | Install Python, configure pip user site |
@@ -50,6 +50,20 @@ plus `-All`, `-Skip`, and `-Only` flag-based modes.
 | 09 | C++ (MinGW-w64) | Install MinGW-w64 C++ compiler |
 | 10 | VSCode Context Menu | Add/repair VSCode right-click entries |
 | 11 | VSCode Settings Sync | Sync settings, keybindings, extensions |
+| 16 | PHP | Install PHP via Chocolatey |
+| 17 | PowerShell (latest) | Install latest PowerShell via Winget/Chocolatey |
+| 18 | MySQL | Popular open-source relational database |
+| 19 | MariaDB | MySQL-compatible fork with extra features |
+| 20 | PostgreSQL | Advanced open-source relational database |
+| 21 | SQLite | File-based embedded SQL database |
+| 22 | MongoDB | Document-oriented NoSQL database |
+| 23 | CouchDB | Apache document database with REST API |
+| 24 | Redis | In-memory key-value store and cache |
+| 25 | Apache Cassandra | Wide-column distributed NoSQL database |
+| 26 | Neo4j | Graph database for connected data |
+| 27 | Elasticsearch | Full-text search and analytics engine |
+| 28 | DuckDB | Analytical file-based columnar database |
+| 29 | LiteDB | .NET embedded NoSQL file-based database |
 
 ## Interactive Menu
 
@@ -72,7 +86,7 @@ After installation completes and the summary is displayed, the menu
   ==========================================
 
   [ ] 1.  VS Code                      Install Visual Studio Code
-  [ ] 2.  Package Managers              Install Chocolatey and Winget
+  [ ] 2.  Chocolatey                   Install Chocolatey package manager
   [ ] 3.  Node.js + Yarn + Bun          Install Node.js LTS, Yarn, Bun
   [ ] 4.  pnpm                          Install pnpm, configure store
   [ ] 5.  Python                        Install Python, configure pip
@@ -82,13 +96,33 @@ After installation completes and the summary is displayed, the menu
   [ ] 9.  C++ (MinGW-w64)               Install MinGW-w64 C++ compiler
   [ ] 10. VSCode Context Menu           Add/repair right-click entries
   [ ] 11. VSCode Settings Sync          Sync settings, keybindings
+  [ ] 12. PHP                           Install PHP via Chocolatey
+  [ ] 13. PowerShell (latest)           Install latest PowerShell
+  [ ] 14. MySQL                         Open-source relational database
+  [ ] 15. MariaDB                       MySQL-compatible fork
+  [ ] 16. PostgreSQL                    Advanced relational database
+  [ ] 17. SQLite                        File-based embedded SQL database
+  [ ] 18. MongoDB                       Document-oriented NoSQL database
+  [ ] 19. CouchDB                       Apache document database
+  [ ] 20. Redis                         In-memory key-value store
+  [ ] 21. Apache Cassandra              Wide-column NoSQL database
+  [ ] 22. Neo4j                         Graph database
+  [ ] 23. Elasticsearch                 Search and analytics engine
+  [ ] 24. DuckDB                        Analytical columnar database
+  [ ] 25. LiteDB                        .NET embedded NoSQL database
 
   Quick groups:
-    a. All Core (01-09)          b. Dev Runtimes (03-08)
-    c. JS Stack (03-04)          d. Languages (05-06)
-    e. Git Tools (07-08)         f. Web Dev (03,04,06,08)
+    a. All Core (01-09)               b. Dev Runtimes (03-08)
+    c. JS Stack (03-04)               d. Languages (05-06,16)
+    e. Git Tools (07-08)              f. Web Dev (03,04,06,08,16)
+    g. All + Extras (01-11,16-17)     h. SQL DBs (18-21)
+    i. NoSQL DBs (22-26)              j. All Databases (18-29)
+    k. Backend Stack (03-04,06,18-20,24)
+    l. Full Stack (03,04,06,07,16,18,20,22,24)
+    m. Data Engineering (05,20,27,28)
+    n. Everything (01-29)
 
-  Enter numbers (1,2,5), group letter (a-f), A=all, N=none, Q=quit, Enter=run:
+  Enter numbers (1,2,5), group letter (a-n), A=all, N=none, Q=quit, Enter=run:
 ```
 
 ### Loop-Back Flow
