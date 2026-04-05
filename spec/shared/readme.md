@@ -11,8 +11,12 @@ by individual scripts. This avoids duplicating common logic across scripts.
 
 ```
 scripts/
+├── logs/                  # Centralised JSON logs (gitignored, never committed)
+│   ├── golang.json        # Structured event log for script 06
+│   ├── golang-error.json  # Error-only log (created when errors occur)
+│   └── ...
 └── shared/
-    ├── logging.ps1       # Write-Log, Write-Banner, Initialize-Logging, Import-JsonConfig
+    ├── logging.ps1       # Write-Log, Write-Banner, Initialize-Logging, Save-LogFile, Import-JsonConfig
     ├── log-messages.json  # Shared log message strings (choco, cleanup, path, etc.)
     ├── git-pull.ps1      # Invoke-GitPull
     ├── resolved.ps1      # Save-ResolvedData, Get-ResolvedDir
