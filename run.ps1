@@ -431,7 +431,7 @@ $env:SCRIPTS_ROOT_RUN = "1"
 
 # ── Handle install keyword mode (bare or named) ─────────────────────
 $hasInstallKeywords = $null -ne $Install -and $Install.Count -gt 0
-if ($hasInstallKeyword) {
+if ($hasInstallKeywords) {
     $scriptIds = Resolve-InstallKeywords -Keywords $Install
 
     $isResolveFailed = $null -eq $scriptIds
