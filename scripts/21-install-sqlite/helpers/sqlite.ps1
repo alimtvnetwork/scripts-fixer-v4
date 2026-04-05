@@ -13,6 +13,64 @@ if ((Test-Path $_chocoUtilsPath) -and -not (Get-Command Install-ChocoPackage -Er
     . $_chocoUtilsPath
 }
 
+function Get-SqliteVersion {
+    param(
+        [PSCustomObject]$DbConfig
+    )
+
+    $version = ""
+    try {
+        $version = & $DbConfig.verifyCommand $DbConfig.versionFlag 2>&1 | Select-Object -First 1
+    } catch {
+        $version = "(version check failed)"
+    }
+
+    return "$version".Trim()
+}
+
+function Save-SqliteResolvedState {
+    param(
+        [string]$Version
+    )
+
+    Save-ResolvedData -ScriptFolder "21-install-sqlite" -Data @{
+        version    = $Version
+        resolvedAt = (Get-Date -Format "o")
+        resolvedBy = $env:USERNAME
+    }
+}
+
+function Install-SqliteBrowser {
+    param(
+        [PSCustomObject]$BrowserConfig,
+        $LogMessages
+    )
+
+    $hasBrowserConfig = $null -ne $BrowserConfig
+    $isBrowserConfigMissing = -not $hasBrowserConfig
+    if ($isBrowserConfigMissing) {
+        return $true
+    }
+
+    $isBrowserDisabled = -not $BrowserConfig.enabled
+    if ($isBrowserDisabled) {
+        return $true
+    }
+
+    $browserName = $BrowserConfig.name
+    Write-Log ($LogMessages.messages.checkingBrowser -replace '\{name\}', $browserName) -Level "info"
+
+    $isBrowserReady = Install-ChocoPackage -PackageName $BrowserConfig.chocoPackage
+    $hasBrowserFailed = -not $isBrowserReady
+    if ($hasBrowserFailed) {
+        Write-Log ($LogMessages.messages.browserInstallFailed -replace '\{name\}', $browserName) -Level "error"
+        return $false
+    }
+
+    Write-Log ($LogMessages.messages.browserReady -replace '\{name\}', $browserName) -Level "success"
+    return $true
+}
+
 function Install-Sqlite {
     <#
     .SYNOPSIS
@@ -25,8 +83,6 @@ function Install-Sqlite {
         [string]$InstallPath = ""
     )
 
-    $name = $DbConfig.name
-
     $isDisabled = -not $DbConfig.enabled
     if ($isDisabled) {
         Write-Log $LogMessages.messages.disabled -Level "info"
@@ -36,65 +92,51 @@ function Install-Sqlite {
     Write-Log $LogMessages.messages.checking -Level "info"
 
     $cmd = Get-Command $DbConfig.verifyCommand -ErrorAction SilentlyContinue
-    if ($cmd) {
-        $version = ""
-        try {
-            $version = & $DbConfig.verifyCommand $DbConfig.versionFlag 2>&1 | Select-Object -First 1
-        } catch { $version = "(version check failed)" }
+    $isSqliteReady = $null -ne $cmd
 
+    if ($isSqliteReady) {
+        $version = Get-SqliteVersion -DbConfig $DbConfig
         Write-Log ($LogMessages.messages.found -replace '\{version\}', $version) -Level "success"
-
-        Save-ResolvedData -ScriptFolder "21-install-sqlite" -Data @{
-            version    = "$version".Trim()
-            resolvedAt = (Get-Date -Format "o")
-            resolvedBy = $env:USERNAME
-        }
-
-        return $true
-    }
-
-    Write-Log $LogMessages.messages.notFound -Level "warn"
-    Write-Log $LogMessages.messages.installing -Level "info"
-
-    # Build install args for custom path
-    $chocoArgs = @()
-    $hasCustomPath = -not [string]::IsNullOrWhiteSpace($InstallPath)
-    if ($hasCustomPath) {
-        $dbInstallDir = Join-Path $InstallPath "sqlite"
-        $chocoArgs += "--install-directory=`"$dbInstallDir`""
-    }
-
-    # Install
-    $isInstalled = $false
-    $isInstalled = Install-ChocoPackage -PackageName $DbConfig.chocoPackage -ExtraArgs $chocoArgs
-
-    $hasInstallFailed = -not $isInstalled
-    if ($hasInstallFailed) {
-        Write-Log ($LogMessages.messages.installFailed -replace '\{error\}', "Install returned failure") -Level "error"
-        return $false
-    }
-
-    # Refresh PATH
-    $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
-
-    $cmd = Get-Command $DbConfig.verifyCommand -ErrorAction SilentlyContinue
-    if ($cmd) {
-        $version = ""
-        try {
-            $version = & $DbConfig.verifyCommand $DbConfig.versionFlag 2>&1 | Select-Object -First 1
-        } catch { $version = "(version check failed)" }
-
-        Write-Log ($LogMessages.messages.installSuccess -replace '\{version\}', $version) -Level "success"
-
-        Save-ResolvedData -ScriptFolder "21-install-sqlite" -Data @{
-            version    = "$version".Trim()
-            resolvedAt = (Get-Date -Format "o")
-            resolvedBy = $env:USERNAME
-        }
-
-        return $true
+        Save-SqliteResolvedState -Version $version
     } else {
-        Write-Log $LogMessages.messages.notInPath -Level "warn"
+        Write-Log $LogMessages.messages.notFound -Level "warn"
+        Write-Log $LogMessages.messages.installing -Level "info"
+
+        # Build install args for custom path
+        $chocoArgs = @()
+        $hasCustomPath = -not [string]::IsNullOrWhiteSpace($InstallPath)
+        if ($hasCustomPath) {
+            $dbInstallDir = Join-Path $InstallPath "sqlite"
+            $chocoArgs += "--install-directory=`"$dbInstallDir`""
+        }
+
+        $isInstalled = Install-ChocoPackage -PackageName $DbConfig.chocoPackage -ExtraArgs $chocoArgs
+        $hasInstallFailed = -not $isInstalled
+        if ($hasInstallFailed) {
+            Write-Log ($LogMessages.messages.installFailed -replace '\{error\}', "Install returned failure") -Level "error"
+            return $false
+        }
+
+        # Refresh PATH
+        $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
+
+        $cmd = Get-Command $DbConfig.verifyCommand -ErrorAction SilentlyContinue
+        $isSqliteReady = $null -ne $cmd
+        if ($isSqliteReady) {
+            $version = Get-SqliteVersion -DbConfig $DbConfig
+            Write-Log ($LogMessages.messages.installSuccess -replace '\{version\}', $version) -Level "success"
+            Save-SqliteResolvedState -Version $version
+        } else {
+            Write-Log $LogMessages.messages.notInPath -Level "warn"
+            return $false
+        }
+    }
+
+    $isBrowserReady = Install-SqliteBrowser -BrowserConfig $DbConfig.browser -LogMessages $LogMessages
+    $hasBrowserFailed = -not $isBrowserReady
+    if ($hasBrowserFailed) {
         return $false
     }
+
+    return $true
 }

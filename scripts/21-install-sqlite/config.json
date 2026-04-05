@@ -13,8 +13,13 @@
     "verifyCommand": "sqlite3",
     "versionFlag": "--version",
     "name": "SQLite",
-    "desc": "File-based embedded SQL database",
+    "desc": "File-based embedded SQL database + DB Browser for SQLite",
     "type": "file-based",
-    "chocoPackage": "sqlite"
+    "chocoPackage": "sqlite",
+    "browser": {
+      "enabled": true,
+      "name": "DB Browser for SQLite",
+      "chocoPackage": "sqlitebrowser"
+    }
   }
 }

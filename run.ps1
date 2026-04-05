@@ -48,9 +48,13 @@
 #>
 
 param(
-    [int]$I,
+    [Parameter(Position = 0)]
+    [string]$Command,
 
-    [string]$Install,
+    [Parameter(Position = 1, ValueFromRemainingArguments = $true)]
+    [string[]]$Install,
+
+    [int]$I,
 
     [switch]$d,
 
@@ -83,7 +87,8 @@ function Show-RootHelp {
     Write-Host "  Usage:" -ForegroundColor Yellow
     Write-Host ""
     $col = 42
-    Write-Host "    $(".\run.ps1 -Install <keywords>".PadRight($col))" -NoNewline; Write-Host "Install by keyword (comma-separated)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 install <keywords>".PadRight($col))" -NoNewline; Write-Host "Install by keyword (bare command)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -Install <keywords>".PadRight($col))" -NoNewline; Write-Host "Install by keyword (named parameter)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -I <number>".PadRight($col))" -NoNewline; Write-Host "Run a specific script by ID" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -d".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 12 (interactive menu)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -a".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 13 (audit mode)" -ForegroundColor DarkGray
@@ -111,9 +116,12 @@ function Show-RootHelp {
     Write-Host "    $("install winget".PadRight($kc))" -NoNewline; Write-Host "Install Winget package manager" -ForegroundColor DarkGray
     Write-Host "    $("install settingssync".PadRight($kc))" -NoNewline; Write-Host "Sync VSCode settings + extensions" -ForegroundColor DarkGray
     Write-Host "    $("install contextmenu".PadRight($kc))" -NoNewline; Write-Host "Fix VSCode right-click context menu" -ForegroundColor DarkGray
-    Write-Host "    $("install databases".PadRight($kc))" -NoNewline; Write-Host "Interactive database installer menu" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "    Database installs:" -ForegroundColor Magenta
+    Write-Host "    $("install databases".PadRight($kc))" -NoNewline; Write-Host "Open the interactive database installer menu" -ForegroundColor DarkGray
     Write-Host "    $("install mysql".PadRight($kc))" -NoNewline; Write-Host "Install MySQL database" -ForegroundColor DarkGray
     Write-Host "    $("install postgresql".PadRight($kc))" -NoNewline; Write-Host "Install PostgreSQL database" -ForegroundColor DarkGray
+    Write-Host "    $("install sqlite".PadRight($kc))" -NoNewline; Write-Host "Install SQLite + DB Browser for SQLite" -ForegroundColor DarkGray
     Write-Host "    $("install mongodb,redis".PadRight($kc))" -NoNewline; Write-Host "Install MongoDB + Redis" -ForegroundColor DarkGray
     Write-Host "    $("install alldev".PadRight($kc))" -NoNewline; Write-Host "Interactive dev tools menu (pick what to install)" -ForegroundColor DarkGray
     Write-Host ""
@@ -122,6 +130,7 @@ function Show-RootHelp {
     Write-Host "    $("install go,git,cpp".PadRight($kc))" -NoNewline; Write-Host "Install Go, Git, and C++" -ForegroundColor DarkGray
     Write-Host "    $("install python,php".PadRight($kc))" -NoNewline; Write-Host "Install Python + PHP" -ForegroundColor DarkGray
     Write-Host "    $("install vscode,nodejs,git".PadRight($kc))" -NoNewline; Write-Host "Install VS Code, Node.js, and Git" -ForegroundColor DarkGray
+    Write-Host "    $("install alldev,mysql".PadRight($kc))" -NoNewline; Write-Host "Run the alldev menu, then install MySQL" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Available Keywords:" -ForegroundColor Yellow
     Write-Host ""
@@ -144,18 +153,19 @@ function Show-RootHelp {
     Write-Host "    tweaks               Windows tweaks                  15"
     Write-Host "    php                  PHP                             16"
     Write-Host "    powershell, pwsh     PowerShell (latest)             17"
-    Write-Host "    databases, db        Database installer menu         18"
     Write-Host "    mysql                MySQL                           18"
-    Write-Host "    mariadb              MariaDB                         18"
-    Write-Host "    postgresql, postgres PostgreSQL                      18"
-    Write-Host "    sqlite               SQLite                          18"
-    Write-Host "    mongodb, mongo       MongoDB                         18"
-    Write-Host "    redis                Redis                           18"
-    Write-Host "    cassandra            Apache Cassandra                18"
-    Write-Host "    neo4j                Neo4j                           18"
-    Write-Host "    elasticsearch        Elasticsearch                   18"
-    Write-Host "    duckdb               DuckDB                          18"
-    Write-Host "    litedb               LiteDB                          18"
+    Write-Host "    mariadb              MariaDB                         19"
+    Write-Host "    postgresql, postgres PostgreSQL                      20"
+    Write-Host "    sqlite               SQLite + DB Browser            21"
+    Write-Host "    mongodb, mongo       MongoDB                         22"
+    Write-Host "    couchdb              CouchDB                         23"
+    Write-Host "    redis                Redis                           24"
+    Write-Host "    cassandra            Apache Cassandra                25"
+    Write-Host "    neo4j                Neo4j                           26"
+    Write-Host "    elasticsearch        Elasticsearch                   27"
+    Write-Host "    duckdb               DuckDB                          28"
+    Write-Host "    litedb               LiteDB                          29"
+    Write-Host "    databases, db        Database installer menu         30"
     Write-Host ""
     Write-Host "  Available Scripts:" -ForegroundColor Yellow
     Write-Host ""
@@ -181,14 +191,12 @@ function Show-RootHelp {
     Write-Host ""
     Write-Host "    Orchestrator" -ForegroundColor Magenta
     Write-Host "    12  Install All Dev Tools         " -NoNewline; Write-Host "Interactive grouped menu: pick tools or install everything" -ForegroundColor DarkGray
+    Write-Host "    30  Install Databases             " -NoNewline; Write-Host "Interactive database installer (SQL, NoSQL, file-based)" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "    Utilities" -ForegroundColor Magenta
     Write-Host "    13  Audit Mode                    " -NoNewline; Write-Host "Scan configs, specs, suggestions for stale IDs" -ForegroundColor DarkGray
     Write-Host "    14  Install Winget                " -NoNewline; Write-Host "Install/verify Winget package manager (standalone)" -ForegroundColor DarkGray
     Write-Host "    15  Windows Tweaks                " -NoNewline; Write-Host "Chris Titus Windows Utility (tweaks and debloating)" -ForegroundColor DarkGray
-    Write-Host ""
-    Write-Host "    Databases" -ForegroundColor Magenta
-    Write-Host "    18  Install Databases             " -NoNewline; Write-Host "Interactive database installer (SQL, NoSQL, file-based)" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Script 12 (Install All Dev Tools):" -ForegroundColor Yellow
     Write-Host "    .\run.ps1 -I 12                         " -NoNewline; Write-Host "Interactive menu -- pick what to install" -ForegroundColor DarkGray
@@ -204,7 +212,7 @@ function Show-RootHelp {
 # ── Resolve keywords to script IDs ──────────────────────────────────
 function Resolve-InstallKeywords {
     param(
-        [string]$Keywords
+        [string[]]$Keywords
     )
 
     $keywordsFile = Join-Path $RootDir "scripts\shared\install-keywords.json"
@@ -217,7 +225,19 @@ function Resolve-InstallKeywords {
 
     $keywordMap = (Get-Content $keywordsFile -Raw | ConvertFrom-Json).keywords
 
-    $tokens = $Keywords -split "," | ForEach-Object { $_.Trim().ToLower() } | Where-Object { $_.Length -gt 0 }
+    $tokens = [System.Collections.Generic.List[string]]::new()
+    foreach ($keywordGroup in $Keywords) {
+        $isKeywordGroupMissing = [string]::IsNullOrWhiteSpace($keywordGroup)
+        if ($isKeywordGroupMissing) {
+            continue
+        }
+
+        $parts = $keywordGroup -split '[,\s]+' | ForEach-Object { $_.Trim().ToLower() } | Where-Object { $_.Length -gt 0 }
+        foreach ($part in $parts) {
+            $tokens.Add($part)
+        }
+    }
+
     $scriptIds = [System.Collections.Generic.List[int]]::new()
     $hasError = $false
 
@@ -314,8 +334,21 @@ function Invoke-ScriptById {
     return $true
 }
 
+# ── Normalize positional command mode ────────────────────────────────
+$normalizedCommand = ""
+$hasCommand = -not [string]::IsNullOrWhiteSpace($Command)
+if ($hasCommand) {
+    $normalizedCommand = $Command.Trim().ToLower()
+    $isBareInstallCommand = $normalizedCommand -eq "install"
+    $isBareScriptId = $normalizedCommand -match '^\d+$'
+
+    if ($isBareScriptId) {
+        $I = [int]$normalizedCommand
+    }
+}
+
 # ── No params = git pull + help ──────────────────────────────────────
-$hasNoParams = -not $I -and -not $Install -and -not $d -and -not $a -and -not $v -and -not $w -and -not $t -and -not $Help -and -not $CleanOnly -and -not $Clean
+$hasNoParams = -not $hasCommand -and -not $I -and -not $Install -and -not $d -and -not $a -and -not $v -and -not $w -and -not $t -and -not $Help -and -not $CleanOnly -and -not $Clean
 if ($hasNoParams) {
     Remove-Item Env:\SCRIPTS_ROOT_RUN -ErrorAction SilentlyContinue
     $sharedGitPull = Join-Path $RootDir "scripts\shared\git-pull.ps1"

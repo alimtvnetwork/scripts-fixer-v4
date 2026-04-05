@@ -44,13 +44,14 @@ function Assert-Choco {
         $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
 
         $chocoCmd = Get-Command choco.exe -ErrorAction SilentlyContinue
-        if ($chocoCmd) {
+        $isChocoAvailable = $null -ne $chocoCmd
+        if ($isChocoAvailable) {
             Write-Log $slm.messages.chocoInstalled -Level "success"
             return $true
-        } else {
-            Write-Log $slm.messages.chocoNotInPath -Level "error"
-            return $false
         }
+
+        Write-Log $slm.messages.chocoNotInPath -Level "error"
+        return $false
     } catch {
         Write-Log ($slm.messages.chocoInstallFailed -replace '\{error\}', $_) -Level "error"
         return $false
@@ -66,15 +67,24 @@ function Install-ChocoPackage {
         [Parameter(Mandatory)]
         [string]$PackageName,
 
-        [string]$Version
+        [string]$Version,
+
+        [string[]]$ExtraArgs = @()
     )
 
     $slm = $script:SharedLogMessages
 
+    $isChocoReady = Assert-Choco
+    $hasNoChoco = -not $isChocoReady
+    if ($hasNoChoco) {
+        return $false
+    }
+
     Write-Log ($slm.messages.chocoCheckingPackage -replace '\{package\}', $PackageName) -Level "info"
 
     $installed = choco list --local-only --exact $PackageName 2>&1
-    if ($LASTEXITCODE -eq 0 -and $installed -match $PackageName) {
+    $isAlreadyInstalled = $LASTEXITCODE -eq 0 -and $installed -match $PackageName
+    if ($isAlreadyInstalled) {
         Write-Log ($slm.messages.chocoPackageInstalled -replace '\{package\}', $PackageName) -Level "success"
         return $true
     }
@@ -82,10 +92,19 @@ function Install-ChocoPackage {
     Write-Log ($slm.messages.chocoInstallingPackage -replace '\{package\}', $PackageName) -Level "info"
     try {
         $args = @("install", $PackageName, "-y")
-        if ($Version) { $args += @("--version", $Version) }
+        $hasVersion = -not [string]::IsNullOrWhiteSpace($Version)
+        if ($hasVersion) {
+            $args += @("--version", $Version)
+        }
+
+        $hasExtraArgs = $null -ne $ExtraArgs -and $ExtraArgs.Count -gt 0
+        if ($hasExtraArgs) {
+            $args += $ExtraArgs
+        }
 
         $output = & choco.exe @args 2>&1
-        if ($LASTEXITCODE -ne 0) {
+        $hasInstallFailed = $LASTEXITCODE -ne 0
+        if ($hasInstallFailed) {
             Write-Log ($slm.messages.chocoPackageInstallFailed -replace '\{package\}', $PackageName -replace '\{output\}', $output) -Level "error"
             return $false
         }
@@ -110,10 +129,17 @@ function Upgrade-ChocoPackage {
 
     $slm = $script:SharedLogMessages
 
+    $isChocoReady = Assert-Choco
+    $hasNoChoco = -not $isChocoReady
+    if ($hasNoChoco) {
+        return $false
+    }
+
     Write-Log ($slm.messages.chocoUpgradingPackage -replace '\{package\}', $PackageName) -Level "info"
     try {
         $output = & choco.exe upgrade $PackageName -y 2>&1
-        if ($LASTEXITCODE -ne 0) {
+        $hasUpgradeFailed = $LASTEXITCODE -ne 0
+        if ($hasUpgradeFailed) {
             Write-Log ($slm.messages.chocoUpgradeFailed -replace '\{package\}', $PackageName -replace '\{output\}', $output) -Level "warn"
             return $false
         }

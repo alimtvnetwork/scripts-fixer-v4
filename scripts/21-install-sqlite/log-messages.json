@@ -1,7 +1,7 @@
 {
   "scriptName": "Install SQLite",
   "version": "1.0.0",
-  "description": "Install SQLite -- File-based embedded SQL database",
+  "description": "Install SQLite + DB Browser for SQLite -- File-based embedded SQL database",
   "messages": {
     "notAdmin": "This script must be run as Administrator.",
     "checking": "Checking for SQLite...",
@@ -12,7 +12,10 @@
     "installFailed": "Failed to install SQLite: {error}",
     "notInPath": "SQLite installed but not found in PATH -- restart your terminal.",
     "disabled": "SQLite is disabled in config -- skipping.",
-    "setupComplete": "SQLite setup complete.",
+    "checkingBrowser": "Checking {name}...",
+    "browserReady": "{name} is ready.",
+    "browserInstallFailed": "Failed to install {name}.",
+    "setupComplete": "SQLite + DB Browser setup complete.",
     "installPathTitle": "Installation Path Options",
     "installPathDevDir": "Install to dev directory: {path}\\sqlite",
     "installPathCustom": "Enter custom path:",
@@ -22,7 +25,7 @@
   },
   "help": {
     "commands": {
-      ".\\run.ps1": "Install SQLite",
+      ".\\run.ps1": "Install SQLite + DB Browser for SQLite",
       ".\\run.ps1 -Help": "Show this help"
     },
     "examples": [
