@@ -5,126 +5,29 @@
     "override": ""
   },
   "installMode": {
-    "_comment": "Where to install databases. Options: devDir (E:\\dev\\databases\\<db>), custom (user picks path), system (default system location, e.g. C:\\Program Files). Default: devDir.",
+    "_comment": "Where to install databases. Options: devDir (E:\\dev\\databases\\<db>), custom (user picks path), system (default system location). Default: devDir.",
     "default": "devDir"
   },
   "databases": {
-    "mysql": {
-      "enabled": true,
-      "chocoPackage": "mysql",
-      "verifyCommand": "mysql",
-      "versionFlag": "--version",
-      "name": "MySQL",
-      "desc": "Popular open-source relational database",
-      "type": "sql"
-    },
-    "mariadb": {
-      "enabled": true,
-      "chocoPackage": "mariadb",
-      "verifyCommand": "mysql",
-      "versionFlag": "--version",
-      "name": "MariaDB",
-      "desc": "MySQL-compatible fork with extra features",
-      "type": "sql"
-    },
-    "postgresql": {
-      "enabled": true,
-      "chocoPackage": "postgresql",
-      "verifyCommand": "psql",
-      "versionFlag": "--version",
-      "name": "PostgreSQL",
-      "desc": "Advanced open-source relational database",
-      "type": "sql"
-    },
-    "sqlite": {
-      "enabled": true,
-      "chocoPackage": "sqlite",
-      "verifyCommand": "sqlite3",
-      "versionFlag": "--version",
-      "name": "SQLite",
-      "desc": "File-based embedded SQL database",
-      "type": "file-based"
-    },
-    "mongodb": {
-      "enabled": true,
-      "chocoPackage": "mongodb",
-      "verifyCommand": "mongod",
-      "versionFlag": "--version",
-      "name": "MongoDB",
-      "desc": "Document-oriented NoSQL database",
-      "type": "nosql-document"
-    },
-    "couchdb": {
-      "enabled": true,
-      "chocoPackage": "couchdb",
-      "verifyCommand": "couchdb",
-      "versionFlag": "-V",
-      "name": "CouchDB",
-      "desc": "Apache document database with REST API",
-      "type": "nosql-document"
-    },
-    "redis": {
-      "enabled": true,
-      "chocoPackage": "redis-64",
-      "verifyCommand": "redis-server",
-      "versionFlag": "--version",
-      "name": "Redis",
-      "desc": "In-memory key-value store and cache",
-      "type": "nosql-keyvalue"
-    },
-    "cassandra": {
-      "enabled": true,
-      "chocoPackage": "cassandra",
-      "verifyCommand": "cassandra",
-      "versionFlag": "-v",
-      "name": "Apache Cassandra",
-      "desc": "Wide-column distributed NoSQL database",
-      "type": "nosql-column"
-    },
-    "neo4j": {
-      "enabled": true,
-      "chocoPackage": "neo4j-community",
-      "verifyCommand": "neo4j",
-      "versionFlag": "--version",
-      "name": "Neo4j",
-      "desc": "Graph database for connected data",
-      "type": "nosql-graph"
-    },
-    "elasticsearch": {
-      "enabled": true,
-      "chocoPackage": "elasticsearch",
-      "verifyCommand": "elasticsearch",
-      "versionFlag": "--version",
-      "name": "Elasticsearch",
-      "desc": "Full-text search and analytics engine",
-      "type": "search"
-    },
-    "duckdb": {
-      "enabled": true,
-      "chocoPackage": "duckdb",
-      "verifyCommand": "duckdb",
-      "versionFlag": "--version",
-      "name": "DuckDB",
-      "desc": "Analytical file-based columnar database",
-      "type": "file-based"
-    },
-    "litedb": {
-      "enabled": true,
-      "installMethod": "dotnet-tool",
-      "dotnetPackage": "LiteDB.Shell",
-      "verifyCommand": "liteshell",
-      "versionFlag": "--version",
-      "name": "LiteDB",
-      "desc": ".NET embedded NoSQL file-based database",
-      "type": "file-based"
-    }
+    "mysql":         { "enabled": true, "scriptId": "18", "folder": "18-install-mysql",         "name": "MySQL",            "desc": "Popular open-source relational database",      "type": "sql" },
+    "mariadb":       { "enabled": true, "scriptId": "19", "folder": "19-install-mariadb",       "name": "MariaDB",          "desc": "MySQL-compatible fork with extra features",    "type": "sql" },
+    "postgresql":    { "enabled": true, "scriptId": "20", "folder": "20-install-postgresql",    "name": "PostgreSQL",       "desc": "Advanced open-source relational database",     "type": "sql" },
+    "sqlite":        { "enabled": true, "scriptId": "21", "folder": "21-install-sqlite",        "name": "SQLite",           "desc": "File-based embedded SQL database",             "type": "file-based" },
+    "mongodb":       { "enabled": true, "scriptId": "22", "folder": "22-install-mongodb",       "name": "MongoDB",          "desc": "Document-oriented NoSQL database",             "type": "nosql-document" },
+    "couchdb":       { "enabled": true, "scriptId": "23", "folder": "23-install-couchdb",       "name": "CouchDB",          "desc": "Apache document database with REST API",      "type": "nosql-document" },
+    "redis":         { "enabled": true, "scriptId": "24", "folder": "24-install-redis",         "name": "Redis",            "desc": "In-memory key-value store and cache",          "type": "nosql-keyvalue" },
+    "cassandra":     { "enabled": true, "scriptId": "25", "folder": "25-install-cassandra",     "name": "Apache Cassandra", "desc": "Wide-column distributed NoSQL database",      "type": "nosql-column" },
+    "neo4j":         { "enabled": true, "scriptId": "26", "folder": "26-install-neo4j",         "name": "Neo4j",            "desc": "Graph database for connected data",           "type": "nosql-graph" },
+    "elasticsearch": { "enabled": true, "scriptId": "27", "folder": "27-install-elasticsearch", "name": "Elasticsearch",    "desc": "Full-text search and analytics engine",       "type": "search" },
+    "duckdb":        { "enabled": true, "scriptId": "28", "folder": "28-install-duckdb",        "name": "DuckDB",           "desc": "Analytical file-based columnar database",     "type": "file-based" },
+    "litedb":        { "enabled": true, "scriptId": "29", "folder": "29-install-litedb",        "name": "LiteDB",           "desc": ".NET embedded NoSQL file-based database",     "type": "file-based" }
   },
   "groups": [
-    { "letter": "a", "label": "All SQL (mysql, mariadb, postgresql, sqlite)", "ids": ["mysql", "mariadb", "postgresql", "sqlite"] },
-    { "letter": "b", "label": "All NoSQL (mongodb, couchdb, redis, cassandra, neo4j)", "ids": ["mongodb", "couchdb", "redis", "cassandra", "neo4j"] },
-    { "letter": "c", "label": "File-Based (sqlite, duckdb, litedb)", "ids": ["sqlite", "duckdb", "litedb"] },
-    { "letter": "d", "label": "Popular Stack (mysql, postgresql, mongodb, redis)", "ids": ["mysql", "postgresql", "mongodb", "redis"] },
-    { "letter": "e", "label": "Search + Analytics (elasticsearch, duckdb)", "ids": ["elasticsearch", "duckdb"] }
+    { "letter": "a", "label": "All SQL (mysql, mariadb, postgresql, sqlite)",               "ids": ["mysql", "mariadb", "postgresql", "sqlite"] },
+    { "letter": "b", "label": "All NoSQL (mongodb, couchdb, redis, cassandra, neo4j)",      "ids": ["mongodb", "couchdb", "redis", "cassandra", "neo4j"] },
+    { "letter": "c", "label": "File-Based (sqlite, duckdb, litedb)",                        "ids": ["sqlite", "duckdb", "litedb"] },
+    { "letter": "d", "label": "Popular Stack (mysql, postgresql, mongodb, redis)",           "ids": ["mysql", "postgresql", "mongodb", "redis"] },
+    { "letter": "e", "label": "Search + Analytics (elasticsearch, duckdb)",                  "ids": ["elasticsearch", "duckdb"] }
   ],
   "sequence": ["mysql", "mariadb", "postgresql", "sqlite", "mongodb", "couchdb", "redis", "cassandra", "neo4j", "elasticsearch", "duckdb", "litedb"]
 }
