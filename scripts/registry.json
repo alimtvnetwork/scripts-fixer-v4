@@ -18,6 +18,18 @@
     "15": "15-windows-tweaks",
     "16": "16-install-php",
     "17": "17-install-powershell",
-    "18": "databases"
+    "18": "18-install-mysql",
+    "19": "19-install-mariadb",
+    "20": "20-install-postgresql",
+    "21": "21-install-sqlite",
+    "22": "22-install-mongodb",
+    "23": "23-install-couchdb",
+    "24": "24-install-redis",
+    "25": "25-install-cassandra",
+    "26": "26-install-neo4j",
+    "27": "27-install-elasticsearch",
+    "28": "28-install-duckdb",
+    "29": "29-install-litedb",
+    "30": "databases"
   }
 }

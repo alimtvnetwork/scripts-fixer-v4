@@ -5,14 +5,17 @@
     "override": ""
   },
   "groups": [
-    { "letter": "a", "label": "All Core (01-09)",        "ids": ["01", "02", "03", "04", "05", "06", "07", "08", "09"] },
-    { "letter": "b", "label": "Dev Runtimes (03-08)",     "ids": ["03", "04", "05", "06", "07", "08"] },
-    { "letter": "c", "label": "JS Stack (03-04)",         "ids": ["03", "04"] },
-    { "letter": "d", "label": "Languages (05-06,16)",     "ids": ["05", "06", "16"] },
-    { "letter": "e", "label": "Git Tools (07-08)",        "ids": ["07", "08"] },
-    { "letter": "f", "label": "Web Dev (03,04,06,08,16)", "ids": ["03", "04", "06", "08", "16"] },
-    { "letter": "g", "label": "All + Extras (01-11,16-18)", "ids": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "16", "17", "18"] },
-    { "letter": "h", "label": "Databases (18)",             "ids": ["18"] }
+    { "letter": "a", "label": "All Core (01-09)",              "ids": ["01", "02", "03", "04", "05", "06", "07", "08", "09"] },
+    { "letter": "b", "label": "Dev Runtimes (03-08)",           "ids": ["03", "04", "05", "06", "07", "08"] },
+    { "letter": "c", "label": "JS Stack (03-04)",               "ids": ["03", "04"] },
+    { "letter": "d", "label": "Languages (05-06,16)",           "ids": ["05", "06", "16"] },
+    { "letter": "e", "label": "Git Tools (07-08)",              "ids": ["07", "08"] },
+    { "letter": "f", "label": "Web Dev (03,04,06,08,16)",       "ids": ["03", "04", "06", "08", "16"] },
+    { "letter": "g", "label": "All + Extras (01-11,16-17)",     "ids": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "16", "17"] },
+    { "letter": "h", "label": "SQL DBs (18-21)",                "ids": ["18", "19", "20", "21"] },
+    { "letter": "i", "label": "NoSQL DBs (22-26)",              "ids": ["22", "23", "24", "25", "26"] },
+    { "letter": "j", "label": "All Databases (18-29)",          "ids": ["18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29"] },
+    { "letter": "k", "label": "Everything (01-29)",             "ids": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29"] }
   ],
   "scripts": {
     "01": { "enabled": true, "folder": "01-install-vscode",           "name": "VS Code",              "desc": "Install Visual Studio Code (Stable/Insiders)" },
@@ -28,7 +31,18 @@
     "11": { "enabled": true, "folder": "11-vscode-settings-sync",     "name": "VSCode Settings Sync",  "desc": "Sync VSCode settings, keybindings, and extensions" },
     "16": { "enabled": true, "folder": "16-install-php",              "name": "PHP",                   "desc": "Install PHP via Chocolatey" },
     "17": { "enabled": true, "folder": "17-install-powershell",       "name": "PowerShell (latest)",   "desc": "Install latest PowerShell via Winget/Chocolatey" },
-    "18": { "enabled": true, "folder": "databases",                   "name": "Databases",             "desc": "Install databases (MySQL, PostgreSQL, MongoDB, Redis, etc.)" }
+    "18": { "enabled": true, "folder": "18-install-mysql",            "name": "MySQL",                 "desc": "Popular open-source relational database" },
+    "19": { "enabled": true, "folder": "19-install-mariadb",          "name": "MariaDB",               "desc": "MySQL-compatible fork with extra features" },
+    "20": { "enabled": true, "folder": "20-install-postgresql",       "name": "PostgreSQL",            "desc": "Advanced open-source relational database" },
+    "21": { "enabled": true, "folder": "21-install-sqlite",           "name": "SQLite",                "desc": "File-based embedded SQL database" },
+    "22": { "enabled": true, "folder": "22-install-mongodb",          "name": "MongoDB",               "desc": "Document-oriented NoSQL database" },
+    "23": { "enabled": true, "folder": "23-install-couchdb",          "name": "CouchDB",               "desc": "Apache document database with REST API" },
+    "24": { "enabled": true, "folder": "24-install-redis",            "name": "Redis",                 "desc": "In-memory key-value store and cache" },
+    "25": { "enabled": true, "folder": "25-install-cassandra",        "name": "Apache Cassandra",      "desc": "Wide-column distributed NoSQL database" },
+    "26": { "enabled": true, "folder": "26-install-neo4j",            "name": "Neo4j",                 "desc": "Graph database for connected data" },
+    "27": { "enabled": true, "folder": "27-install-elasticsearch",    "name": "Elasticsearch",         "desc": "Full-text search and analytics engine" },
+    "28": { "enabled": true, "folder": "28-install-duckdb",           "name": "DuckDB",                "desc": "Analytical file-based columnar database" },
+    "29": { "enabled": true, "folder": "29-install-litedb",           "name": "LiteDB",                "desc": ".NET embedded NoSQL file-based database" }
   },
-  "sequence": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "16", "17", "18"]
+  "sequence": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29"]
 }
