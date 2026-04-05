@@ -335,6 +335,9 @@ function Invoke-ScriptById {
 }
 
 # ── Normalize positional command mode ────────────────────────────────
+# Supports:  .\run.ps1 install alldev,mysql
+#             .\run.ps1 install alldev mysql
+#             .\run.ps1 -Install alldev,mysql
 $normalizedCommand = ""
 $hasCommand = -not [string]::IsNullOrWhiteSpace($Command)
 if ($hasCommand) {
@@ -342,13 +345,28 @@ if ($hasCommand) {
     $isBareInstallCommand = $normalizedCommand -eq "install"
     $isBareScriptId = $normalizedCommand -match '^\d+$'
 
-    if ($isBareScriptId) {
+    if ($isBareInstallCommand) {
+        # Merge positional remaining args into $Install
+        $hasRemainingArgs = $null -ne $Install -and $Install.Count -gt 0
+        $isNoRemainingArgs = -not $hasRemainingArgs
+        if ($isNoRemainingArgs) {
+            Write-Host "  [ FAIL ] " -ForegroundColor Red -NoNewline
+            Write-Host "No keywords provided after 'install'. Usage: .\run.ps1 install <keywords>"
+            Write-Host ""
+            Write-Host "  Run .\run.ps1 -Help to see all available keywords" -ForegroundColor Cyan
+            exit 1
+        }
+    } elseif ($isBareScriptId) {
         $I = [int]$normalizedCommand
+    } else {
+        # Treat unknown bare command as a keyword (e.g. .\run.ps1 vscode)
+        $Install = @($normalizedCommand) + @($Install | Where-Object { $_ })
     }
 }
 
 # ── No params = git pull + help ──────────────────────────────────────
-$hasNoParams = -not $hasCommand -and -not $I -and -not $Install -and -not $d -and -not $a -and -not $v -and -not $w -and -not $t -and -not $Help -and -not $CleanOnly -and -not $Clean
+$hasInstallKeywords = $null -ne $Install -and $Install.Count -gt 0
+$hasNoParams = -not $hasCommand -and -not $I -and -not $hasInstallKeywords -and -not $d -and -not $a -and -not $v -and -not $w -and -not $t -and -not $Help -and -not $CleanOnly -and -not $Clean
 if ($hasNoParams) {
     Remove-Item Env:\SCRIPTS_ROOT_RUN -ErrorAction SilentlyContinue
     $sharedGitPull = Join-Path $RootDir "scripts\shared\git-pull.ps1"
@@ -411,8 +429,8 @@ Invoke-GitPull -RepoRoot $RootDir
 # ── Set flag so child scripts skip git pull ──────────────────────────
 $env:SCRIPTS_ROOT_RUN = "1"
 
-# ── Handle -Install keyword mode ─────────────────────────────────────
-$hasInstallKeyword = $Install.Length -gt 0
+# ── Handle install keyword mode (bare or named) ─────────────────────
+$hasInstallKeywords = $null -ne $Install -and $Install.Count -gt 0
 if ($hasInstallKeyword) {
     $scriptIds = Resolve-InstallKeywords -Keywords $Install
 
