@@ -111,9 +111,10 @@ if (-not (Test-Path $dir)) { ... }
 
 | Function | Purpose |
 |----------|---------|
-| `Write-Log` | Prints a status-badged message (`[  OK  ]`, `[ FAIL ]`, etc.) |
+| `Write-Log` | Prints a status-badged message (`[  OK  ]`, `[ FAIL ]`, etc.) and records a structured event |
 | `Write-Banner` | Displays a titled banner block with border lines |
-| `Initialize-Logging` | Cleans and recreates `logs/`, starts `Start-Transcript` |
+| `Initialize-Logging` | Initialises the JSON log collector for a script (sets script name, creates `scripts/logs/` if needed) |
+| `Save-LogFile` | Flushes collected events to `scripts/logs/<name>.json` and `<name>-error.json` if errors exist |
 | `Import-JsonConfig` | Loads and returns a JSON file with verbose logging |
 
 ### Write-Log
