@@ -35,6 +35,9 @@ if ($Help) {
 # -- Banner --------------------------------------------------------------------
 Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
 
+# -- Initialize logging --------------------------------------------------------
+Initialize-Logging -ScriptName $logMessages.scriptName
+
 # -- Git pull ------------------------------------------------------------------
 Invoke-GitPull
 
@@ -58,3 +61,6 @@ $ok = Invoke-WindowsTweaks -Config $config.tweaks -LogMessages $logMessages
 
 # -- Summary -------------------------------------------------------------------
 Write-Log $logMessages.messages.setupComplete -Level "success"
+
+# -- Save log ------------------------------------------------------------------
+Save-LogFile -Status "ok"

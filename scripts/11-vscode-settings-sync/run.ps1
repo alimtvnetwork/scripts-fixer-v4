@@ -35,6 +35,9 @@ if ($Help) {
 # -- Banner --------------------------------------------------------------------
 Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
 
+# -- Initialize logging --------------------------------------------------------
+Initialize-Logging -ScriptName $logMessages.scriptName
+
 # -- Git pull ------------------------------------------------------------------
 Invoke-GitPull
 
@@ -103,3 +106,6 @@ Save-ResolvedData -ScriptFolder "11-vscode-settings-sync" -Data @{
     extensions = $sources.Extensions.Count
     timestamp  = (Get-Date -Format "o")
 }
+
+# -- Save log ------------------------------------------------------------------
+Save-LogFile -Status $(if ($isAllSuccessful) { "ok" } else { "fail" })

@@ -38,6 +38,9 @@ if ($Help -or $Command -eq "--help") {
 # -- Banner --------------------------------------------------------------------
 Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
 
+# -- Initialize logging --------------------------------------------------------
+Initialize-Logging -ScriptName $logMessages.scriptName
+
 # -- Git pull ------------------------------------------------------------------
 Invoke-GitPull
 
@@ -76,3 +79,6 @@ if ($isSuccess) {
 }
 
 Write-Log $logMessages.messages.mingwSetupComplete -Level "success"
+
+# -- Save log ------------------------------------------------------------------
+Save-LogFile -Status $(if ($isSuccess) { "ok" } else { "fail" })

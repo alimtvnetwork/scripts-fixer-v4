@@ -39,6 +39,9 @@ if ($Help -or $Command -eq "--help") {
 # -- Banner --------------------------------------------------------------------
 Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
 
+# -- Initialize logging --------------------------------------------------------
+Initialize-Logging -ScriptName $logMessages.scriptName
+
 # -- Git pull ------------------------------------------------------------------
 Invoke-GitPull
 
@@ -105,3 +108,6 @@ Save-ResolvedData -ScriptFolder "03-install-nodejs" -Data @{
 }
 
 Write-Log $logMessages.messages.nodeSetupComplete -Level "success"
+
+# -- Save log ------------------------------------------------------------------
+Save-LogFile -Status "ok"

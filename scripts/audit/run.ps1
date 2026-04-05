@@ -33,6 +33,9 @@ if ($Help) {
 # -- Banner -------------------------------------------------------------------
 Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
 
+# -- Initialize logging --------------------------------------------------------
+Initialize-Logging -ScriptName $logMessages.scriptName
+
 # -- Load registry ------------------------------------------------------------
 $registryPath = Join-Path $repoRoot "scripts\registry.json"
 $isRegistryMissing = -not (Test-Path $registryPath)
@@ -101,3 +104,6 @@ if ($hasFailures) {
     Write-Host ""
     Write-Log $logMessages.messages.allPassed -Level "success"
 }
+
+# -- Save log ------------------------------------------------------------------
+Save-LogFile -Status "ok"

@@ -40,6 +40,9 @@ if ($Help) {
 # -- Banner --------------------------------------------------------------------
 Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
 
+# -- Initialize logging --------------------------------------------------------
+Initialize-Logging -ScriptName $logMessages.scriptName
+
 # -- Git pull ------------------------------------------------------------------
 Invoke-GitPull
 
@@ -85,6 +88,9 @@ if ($hasFilter -or $All -or $DryRun) {
         results   = $results
         timestamp = (Get-Date -Format "o")
     }
+
+    # -- Save log --------------------------------------------------------------
+    Save-LogFile -Status "ok"
 } else {
     # Interactive menu mode with loop-back
     $fullList = Resolve-ScriptList -Config $config -Skip "" -Only ""
@@ -126,4 +132,7 @@ if ($hasFilter -or $All -or $DryRun) {
         Write-Host ""
         Write-Log $logMessages.messages.menuLoopBack -Level "info"
     }
+
+    # -- Save log --------------------------------------------------------------
+    Save-LogFile -Status "ok"
 }

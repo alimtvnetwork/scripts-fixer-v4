@@ -37,6 +37,9 @@ if ($Help -or $Command -eq "--help") {
 # -- Banner --------------------------------------------------------------------
 Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
 
+# -- Initialize logging --------------------------------------------------------
+Initialize-Logging -ScriptName $logMessages.scriptName
+
 # -- Git pull ------------------------------------------------------------------
 Invoke-GitPull
 
@@ -85,3 +88,6 @@ Save-ResolvedData -ScriptFolder "04-install-pnpm" -Data @{
 }
 
 Write-Log $logMessages.messages.pnpmSetupComplete -Level "success"
+
+# -- Save log ------------------------------------------------------------------
+Save-LogFile -Status "ok"

@@ -34,6 +34,9 @@ if ($Help) {
 # -- Banner --------------------------------------------------------------------
 Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
 
+# -- Initialize logging --------------------------------------------------------
+Initialize-Logging -ScriptName $logMessages.scriptName
+
 # -- Git pull ------------------------------------------------------------------
 Invoke-GitPull
 
@@ -67,3 +70,6 @@ Save-ResolvedData -ScriptFolder "08-install-github-desktop" -Data @{
 }
 
 Write-Log $logMessages.messages.ghDesktopSetupComplete -Level "success"
+
+# -- Save log ------------------------------------------------------------------
+Save-LogFile -Status "ok"

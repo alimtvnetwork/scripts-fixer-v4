@@ -37,6 +37,9 @@ if ($Help) {
 # -- Banner --------------------------------------------------------------------
 Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
 
+# -- Initialize logging --------------------------------------------------------
+Initialize-Logging -ScriptName $logMessages.scriptName
+
 # -- Git pull ------------------------------------------------------------------
 Invoke-GitPull
 
@@ -67,3 +70,6 @@ if ($ok) {
 }
 
 Write-Log $logMessages.messages.setupComplete -Level "success"
+
+# -- Save log ------------------------------------------------------------------
+Save-LogFile -Status $(if ($ok) { "ok" } else { "fail" })

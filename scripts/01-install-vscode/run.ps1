@@ -37,6 +37,9 @@ if ($Help -or $Command -eq "--help") {
 # -- Banner --------------------------------------------------------------------
 Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
 
+# -- Initialize logging --------------------------------------------------------
+Initialize-Logging -ScriptName $logMessages.scriptName
+
 # -- Git pull ------------------------------------------------------------------
 Invoke-GitPull
 
@@ -71,3 +74,6 @@ Save-ResolvedData -ScriptFolder "01-install-vscode" -Data @{
 }
 
 Write-Log $logMessages.messages.vscodeSetupComplete -Level "success"
+
+# -- Save log ------------------------------------------------------------------
+Save-LogFile -Status "ok"

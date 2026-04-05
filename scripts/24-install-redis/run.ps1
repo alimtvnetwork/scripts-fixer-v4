@@ -35,6 +35,9 @@ if ($Help) {
 # -- Banner --------------------------------------------------------------------
 Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
 
+# -- Initialize logging --------------------------------------------------------
+Initialize-Logging -ScriptName $logMessages.scriptName
+
 # -- Git pull ------------------------------------------------------------------
 Invoke-GitPull
 
@@ -96,3 +99,6 @@ if ($isSuccess) {
 } else {
     Write-Log ($logMessages.messages.installFailed -replace '\{error\}', "See errors above") -Level "error"
 }
+
+# -- Save log ------------------------------------------------------------------
+Save-LogFile -Status $(if ($isSuccess) { "ok" } else { "fail" })
