@@ -61,13 +61,8 @@ function Install-Database {
     Write-Log ($LogMessages.messages.notFound -replace '\{name\}', $name) -Level "warn"
     Write-Log ($LogMessages.messages.installing -replace '\{name\}', $name) -Level "info"
 
-    # Build install args for custom path
+    # Build install args (system default -- custom directory is Chocolatey Business only)
     $chocoArgs = @()
-    $hasCustomPath = -not [string]::IsNullOrWhiteSpace($InstallPath)
-    if ($hasCustomPath) {
-        $dbInstallDir = Join-Path $InstallPath $DbKey
-        $chocoArgs += "--install-directory=`"$dbInstallDir`""
-    }
 
     # Install via appropriate method
     $isInstalled = $false
