@@ -1,4 +1,4 @@
-# Spec: Script 18 -- Install Databases
+# Spec: Script 30 -- Install Databases
 
 ## Purpose
 
@@ -21,61 +21,77 @@ install location modes: dev directory, custom path, or system default.
 From root dispatcher:
 
 ```powershell
-.\run.ps1 -Install mysql           # Install MySQL
-.\run.ps1 -Install postgresql      # Install PostgreSQL
-.\run.ps1 -Install mongodb,redis   # Install MongoDB + Redis
-.\run.ps1 -Install databases       # Interactive database menu
+.\run.ps1 install databases        # Interactive database menu
+.\run.ps1 install mysql            # Install MySQL
+.\run.ps1 install postgresql       # Install PostgreSQL
+.\run.ps1 install sqlite           # Install SQLite + DB Browser for SQLite
+.\run.ps1 install mongodb,redis    # Install MongoDB + Redis
+.\run.ps1 -Install databases       # Same interactive database menu
 ```
 
 ## Supported Databases
 
 ### Relational (SQL)
 
-| Key        | Name       | Choco Package | Description                          |
-|------------|------------|---------------|--------------------------------------|
-| mysql      | MySQL      | mysql         | Popular open-source RDBMS            |
-| mariadb    | MariaDB    | mariadb       | MySQL-compatible fork                |
-| postgresql | PostgreSQL | postgresql    | Advanced open-source RDBMS           |
-| sqlite     | SQLite     | sqlite        | File-based embedded SQL database     |
+| Key        | Name       | Script ID | Description |
+|------------|------------|-----------|-------------|
+| mysql      | MySQL      | 18        | Popular open-source RDBMS |
+| mariadb    | MariaDB    | 19        | MySQL-compatible fork |
+| postgresql | PostgreSQL | 20        | Advanced open-source RDBMS |
+| sqlite     | SQLite     | 21        | File-based embedded SQL database + DB Browser for SQLite |
 
 ### NoSQL -- Document
 
-| Key     | Name    | Choco Package | Description                      |
-|---------|---------|---------------|----------------------------------|
-| mongodb | MongoDB | mongodb       | Document-oriented NoSQL database |
-| couchdb | CouchDB | couchdb      | Apache document DB with REST API |
+| Key     | Name    | Script ID | Description |
+|---------|---------|-----------|-------------|
+| mongodb | MongoDB | 22        | Document-oriented NoSQL database |
+| couchdb | CouchDB | 23        | Apache document DB with REST API |
 
 ### NoSQL -- Key-Value
 
-| Key   | Name  | Choco Package | Description                       |
-|-------|-------|---------------|-----------------------------------|
-| redis | Redis | redis-64      | In-memory key-value store / cache |
+| Key   | Name  | Script ID | Description |
+|-------|-------|-----------|-------------|
+| redis | Redis | 24        | In-memory key-value store / cache |
 
 ### NoSQL -- Column
 
-| Key       | Name             | Choco Package | Description                      |
-|-----------|------------------|---------------|----------------------------------|
-| cassandra | Apache Cassandra | cassandra     | Wide-column distributed database |
+| Key       | Name             | Script ID | Description |
+|-----------|------------------|-----------|-------------|
+| cassandra | Apache Cassandra | 25        | Wide-column distributed database |
 
 ### NoSQL -- Graph
 
-| Key   | Name  | Choco Package    | Description                  |
-|-------|-------|------------------|------------------------------|
-| neo4j | Neo4j | neo4j-community  | Graph database               |
+| Key   | Name  | Script ID | Description |
+|-------|-------|-----------|-------------|
+| neo4j | Neo4j | 26        | Graph database |
 
 ### Search Engine
 
-| Key           | Name          | Choco Package   | Description                      |
-|---------------|---------------|-----------------|----------------------------------|
-| elasticsearch | Elasticsearch | elasticsearch   | Full-text search and analytics   |
+| Key           | Name          | Script ID | Description |
+|---------------|---------------|-----------|-------------|
+| elasticsearch | Elasticsearch | 27        | Full-text search and analytics |
 
 ### File-Based / Embedded
 
-| Key    | Name   | Install Method | Description                         |
-|--------|--------|----------------|-------------------------------------|
-| sqlite | SQLite | Chocolatey     | File-based embedded SQL database    |
-| duckdb | DuckDB | Chocolatey     | Analytical columnar file database   |
-| litedb | LiteDB | dotnet tool    | .NET embedded NoSQL file database   |
+| Key    | Name   | Script ID | Description |
+|--------|--------|-----------|-------------|
+| sqlite | SQLite | 21        | SQLite CLI plus DB Browser for SQLite |
+| duckdb | DuckDB | 28        | Analytical columnar file database |
+| litedb | LiteDB | 29        | .NET embedded NoSQL file database |
+
+## Database Install Section
+
+The root dispatcher exposes database installs in two ways:
+
+1. **Interactive DB section** via script **30**
+   - `install databases`
+   - `install db`
+2. **Direct DB installs** via individual script keywords
+   - `install mysql`
+   - `install sqlite`
+   - `install mongodb,redis`
+
+This gives users both a guided DB menu and quick one-line installs.
 
 ## Install Path Options
 
@@ -84,6 +100,9 @@ When running interactively, the user is prompted to choose:
 1. **Dev directory** (default) -- installs to `E:\dev\databases\<db>`
 2. **Custom path** -- user enters any path, databases go into `<path>\databases\<db>`
 3. **System default** -- installs to the default system location (e.g. `C:\Program Files`)
+
+If the configured default drive is invalid or missing, the shared dev-dir helper
+falls back to a safe local path such as `C:\dev`.
 
 The dev directory path (`E:\dev`) is configurable in `config.json` under
 `devDir.default` and `devDir.override`.
@@ -97,8 +116,8 @@ The dev directory path (`E:\dev`) is configurable in `config.json` under
 | `devDir.override` | string | Hard override (skips prompt) |
 | `installMode.default` | string | Default install mode (devDir/custom/system) |
 | `databases.<key>.enabled` | bool | Toggle per database |
-| `databases.<key>.chocoPackage` | string | Chocolatey package name |
-| `databases.<key>.verifyCommand` | string | CLI command to verify install |
+| `databases.<key>.scriptId` | string | Individual script ID |
+| `databases.<key>.folder` | string | Individual script folder |
 | `databases.<key>.name` | string | Display name |
 | `databases.<key>.desc` | string | Short description |
 | `databases.<key>.type` | string | Category (sql, nosql-document, etc.) |
@@ -109,7 +128,7 @@ The dev directory path (`E:\dev`) is configurable in `config.json` under
 
 ## Interactive Menu
 
-```
+```text
   Install Databases -- Interactive Menu
   ===========================================
 
@@ -117,11 +136,11 @@ The dev directory path (`E:\dev`) is configurable in `config.json` under
     [ ] 1.  MySQL                   Popular open-source relational database
     [ ] 2.  MariaDB                 MySQL-compatible fork with extra features
     [ ] 3.  PostgreSQL              Advanced open-source relational database
-    [ ] 4.  SQLite                  File-based embedded SQL database
+    [ ] 4.  SQLite                  SQLite CLI + DB Browser for SQLite
 
     NoSQL -- Document
     [ ] 5.  MongoDB                 Document-oriented NoSQL database
-    [ ] 6.  CouchDB                Apache document database with REST API
+    [ ] 6.  CouchDB                 Apache document database with REST API
 
     NoSQL -- Key-Value
     [ ] 7.  Redis                   In-memory key-value store and cache

@@ -15,6 +15,8 @@ When run with no parameters, it performs a git pull and shows help
 
 ```powershell
 .\run.ps1                              # Git pull + show help
+.\run.ps1 install vscode              # Install VS Code by bare command
+.\run.ps1 install alldev,mysql        # Bare install command with comma-separated keywords
 .\run.ps1 -Install vscode             # Install VS Code by keyword
 .\run.ps1 -Install nodejs,pnpm        # Install Node.js + pnpm (combo)
 .\run.ps1 -Install python             # Install Python + pip
@@ -32,7 +34,8 @@ When run with no parameters, it performs a git pull and shows help
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `-Install` | string | No | Comma-separated keywords to install (e.g. `vscode`, `nodejs,pnpm`, `go,git`) |
+| `install` (positional command) | string | No | Bare command mode. When the first token is `install`, remaining positional values are treated as install keywords. |
+| `-Install` | string[] | No | Keyword install mode. Supports comma-separated and space-separated values (e.g. `vscode`, `nodejs,pnpm`, `alldev mysql`). |
 | `-d` | switch | No | Shortcut for `-I 12` -- launches the interactive dev tools menu |
 | `-a` | switch | No | Shortcut for `-I 13` -- runs the audit scanner |
 | `-v` | switch | No | Shortcut for `-I 1` -- installs VS Code |
@@ -46,8 +49,18 @@ When run with no parameters, it performs a git pull and shows help
 
 ## Keyword Install System
 
-The `-Install` parameter accepts human-friendly keywords that map to script IDs via
-`scripts/shared/install-keywords.json`. Keywords are case-insensitive and comma-separated.
+The install system accepts human-friendly keywords that map to script IDs via
+`scripts/shared/install-keywords.json`. Keywords are case-insensitive and can
+be passed as comma-separated values, space-separated values, or a mix of both.
+
+### Supported input styles
+
+```powershell
+.\run.ps1 install alldev,mysql
+.\run.ps1 install alldev mysql
+.\run.ps1 -Install alldev,mysql
+.\run.ps1 -Install alldev mysql
+```
 
 ### Keyword Mapping
 
@@ -70,6 +83,19 @@ The `-Install` parameter accepts human-friendly keywords that map to script IDs 
 | `tweaks`, `windows-tweaks` | Windows tweaks | 15 |
 | `php` | PHP | 16 |
 | `powershell`, `pwsh` | PowerShell (latest) | 17 |
+| `mysql` | MySQL | 18 |
+| `mariadb` | MariaDB | 19 |
+| `postgresql`, `postgres`, `psql` | PostgreSQL | 20 |
+| `sqlite` | SQLite + DB Browser for SQLite | 21 |
+| `mongodb`, `mongo` | MongoDB | 22 |
+| `couchdb` | CouchDB | 23 |
+| `redis` | Redis | 24 |
+| `cassandra` | Apache Cassandra | 25 |
+| `neo4j` | Neo4j | 26 |
+| `elasticsearch` | Elasticsearch | 27 |
+| `duckdb` | DuckDB | 28 |
+| `litedb` | LiteDB | 29 |
+| `databases`, `db` | Interactive database installer menu | 30 |
 
 ### Combo Examples
 
@@ -78,6 +104,7 @@ The `-Install` parameter accepts human-friendly keywords that map to script IDs 
 .\run.ps1 -Install go,git,cpp            # Installs scripts 06, 07, 09 in order
 .\run.ps1 -Install python,php            # Installs scripts 05, 16 in order
 .\run.ps1 -Install vscode,nodejs,git     # Installs scripts 01, 03, 07 in order
+.\run.ps1 install alldev,mysql           # Runs script 12, then 18
 ```
 
 Duplicate IDs are automatically de-duplicated and sorted by ID for logical execution order.
@@ -86,13 +113,14 @@ Duplicate IDs are automatically de-duplicated and sorted by ID for logical execu
 
 ```powershell
 .\run.ps1                   # Pull, show help
+.\run.ps1 install vscode    # Pull, then install VS Code
 .\run.ps1 -Install vscode   # Pull, then install VS Code
 .\run.ps1 -d                # Pull, then run interactive dev tools menu (script 12)
 .\run.ps1 -I 1              # Pull, then run scripts/01-install-vscode/run.ps1
 .\run.ps1 -I 2 -Merge       # Pull, then run scripts/02-install-package-managers/run.ps1 with merge
 .\run.ps1 -I 12             # Same as -d (interactive menu)
 .\run.ps1 -I 1 -Clean       # Wipe cache, pull, then run scripts/01-install-vscode/run.ps1
-.\run.ps1 -CleanOnly         # Wipe all cached resolved data
+.\run.ps1 -CleanOnly        # Wipe all cached resolved data
 ```
 
 ## Execution Flow
@@ -110,14 +138,15 @@ Duplicate IDs are automatically de-duplicated and sorted by ID for logical execu
 10. Delegate to the child script
 11. Clean up `$env:SCRIPTS_ROOT_RUN`
 
-### Keyword mode (-Install)
+### Keyword mode (`install` or `-Install`)
 1. Steps 1-7 same as above
-2. Parse comma-separated keywords via `Resolve-InstallKeywords`
-3. Look up each keyword in `scripts/shared/install-keywords.json`
-4. De-duplicate and sort script IDs
-5. Run each script in sequence via `Invoke-ScriptById`
-6. Show summary (success/fail counts)
-7. Clean up `$env:SCRIPTS_ROOT_RUN`
+2. Normalize input from either bare `install` or named `-Install`
+3. Parse comma-separated and/or space-separated keywords via `Resolve-InstallKeywords`
+4. Look up each keyword in `scripts/shared/install-keywords.json`
+5. De-duplicate and sort script IDs
+6. Run each script in sequence via `Invoke-ScriptById`
+7. Show summary (success/fail counts)
+8. Clean up `$env:SCRIPTS_ROOT_RUN`
 
 ## Script Resolution
 
@@ -149,20 +178,6 @@ If `registry.json` is missing, the dispatcher falls back to globbing
 | Registry missing + no glob match | `[ FAIL ]` with "No script folder found for ID NN" |
 | Folder found but no `run.ps1` inside | `[ FAIL ]` with "run.ps1 not found in <folder>" |
 
-## Git Pull Output
-
-The `Format-GitPullOutput` function in `scripts/shared/git-pull.ps1` parses raw
-`git pull` output and formats it with clean, aligned, color-coded lines:
-
-| Line type | Badge | Color |
-|-----------|-------|-------|
-| From / branch tracking | `[  OK  ]` | Green |
-| Updating / Fast-forward | `[ INFO ]` / `[  OK  ]` | Cyan / Green |
-| File changes | `[  --  ]` | White filename, yellow count, green `+`, red `-` |
-| Create mode | `[  --  ]` | Green |
-| Delete mode | `[  --  ]` | Red |
-| Summary line | `[  OK  ]` | Green |
-
 ## Environment Variables
 
 | Variable | Set by | Purpose |
@@ -182,11 +197,11 @@ The `Format-GitPullOutput` function in `scripts/shared/git-pull.ps1` parses raw
 | Decision | Rationale |
 |----------|-----------|
 | Keyword install system | Human-friendly names avoid needing to memorize script IDs |
+| Bare `install` support | Matches the user's natural CLI usage |
 | External keyword JSON | Easy to add new keywords without editing run.ps1 |
 | Auto-chaining (e.g. pnpm -> 03,04) | Dependencies are resolved automatically |
 | De-duplication + sorting | Prevents running the same script twice; ensures logical order |
 | Registry-based resolution | Exact folder names avoid glob collisions |
 | Glob fallback | Backwards-compatible for repos without `registry.json` |
 | No params = git pull + help | User discovers available scripts on first run |
-| Refactored into `Invoke-ScriptById` | Shared by both `-I` and `-Install` modes, reduces duplication |
-| Formatted git pull output | Clean, colored, line-by-line display instead of raw dump |
+| Refactored into `Invoke-ScriptById` | Shared by both `-I` and install modes, reduces duplication |
