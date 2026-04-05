@@ -17,6 +17,7 @@
     "14": "14-install-winget",
     "15": "15-windows-tweaks",
     "16": "16-install-php",
-    "17": "17-install-powershell"
+    "17": "17-install-powershell",
+    "18": "databases"
   }
 }

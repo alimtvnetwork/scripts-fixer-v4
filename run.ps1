@@ -111,6 +111,10 @@ function Show-RootHelp {
     Write-Host "    $("install winget".PadRight($kc))" -NoNewline; Write-Host "Install Winget package manager" -ForegroundColor DarkGray
     Write-Host "    $("install settingssync".PadRight($kc))" -NoNewline; Write-Host "Sync VSCode settings + extensions" -ForegroundColor DarkGray
     Write-Host "    $("install contextmenu".PadRight($kc))" -NoNewline; Write-Host "Fix VSCode right-click context menu" -ForegroundColor DarkGray
+    Write-Host "    $("install databases".PadRight($kc))" -NoNewline; Write-Host "Interactive database installer menu" -ForegroundColor DarkGray
+    Write-Host "    $("install mysql".PadRight($kc))" -NoNewline; Write-Host "Install MySQL database" -ForegroundColor DarkGray
+    Write-Host "    $("install postgresql".PadRight($kc))" -NoNewline; Write-Host "Install PostgreSQL database" -ForegroundColor DarkGray
+    Write-Host "    $("install mongodb,redis".PadRight($kc))" -NoNewline; Write-Host "Install MongoDB + Redis" -ForegroundColor DarkGray
     Write-Host "    $("install alldev".PadRight($kc))" -NoNewline; Write-Host "Interactive dev tools menu (pick what to install)" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "    Combine keywords:" -ForegroundColor Magenta
@@ -140,6 +144,18 @@ function Show-RootHelp {
     Write-Host "    tweaks               Windows tweaks                  15"
     Write-Host "    php                  PHP                             16"
     Write-Host "    powershell, pwsh     PowerShell (latest)             17"
+    Write-Host "    databases, db        Database installer menu         18"
+    Write-Host "    mysql                MySQL                           18"
+    Write-Host "    mariadb              MariaDB                         18"
+    Write-Host "    postgresql, postgres PostgreSQL                      18"
+    Write-Host "    sqlite               SQLite                          18"
+    Write-Host "    mongodb, mongo       MongoDB                         18"
+    Write-Host "    redis                Redis                           18"
+    Write-Host "    cassandra            Apache Cassandra                18"
+    Write-Host "    neo4j                Neo4j                           18"
+    Write-Host "    elasticsearch        Elasticsearch                   18"
+    Write-Host "    duckdb               DuckDB                          18"
+    Write-Host "    litedb               LiteDB                          18"
     Write-Host ""
     Write-Host "  Available Scripts:" -ForegroundColor Yellow
     Write-Host ""
@@ -170,6 +186,9 @@ function Show-RootHelp {
     Write-Host "    13  Audit Mode                    " -NoNewline; Write-Host "Scan configs, specs, suggestions for stale IDs" -ForegroundColor DarkGray
     Write-Host "    14  Install Winget                " -NoNewline; Write-Host "Install/verify Winget package manager (standalone)" -ForegroundColor DarkGray
     Write-Host "    15  Windows Tweaks                " -NoNewline; Write-Host "Chris Titus Windows Utility (tweaks and debloating)" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "    Databases" -ForegroundColor Magenta
+    Write-Host "    18  Install Databases             " -NoNewline; Write-Host "Interactive database installer (SQL, NoSQL, file-based)" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Script 12 (Install All Dev Tools):" -ForegroundColor Yellow
     Write-Host "    .\run.ps1 -I 12                         " -NoNewline; Write-Host "Interactive menu -- pick what to install" -ForegroundColor DarkGray
