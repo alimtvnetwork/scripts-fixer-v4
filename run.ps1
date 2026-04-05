@@ -44,7 +44,7 @@
 
 .NOTES
     Author : Lovable AI
-    Version: 6.0.0
+    Version: 7.0.0
 #>
 
 param(
