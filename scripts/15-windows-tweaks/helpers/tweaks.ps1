@@ -20,7 +20,8 @@ function Invoke-WindowsTweaks {
 
     # Optional confirmation prompt
     $shouldConfirm = $Config.confirmBeforeRun
-    if ($shouldConfirm) {
+    $hasOrchestratorEnv = -not [string]::IsNullOrWhiteSpace($env:SCRIPTS_ROOT_RUN)
+    if ($shouldConfirm -and -not $hasOrchestratorEnv) {
         Write-Host ""
         Write-Host "  $($LogMessages.messages.confirm)" -ForegroundColor Yellow
         $answer = Read-Host "  "

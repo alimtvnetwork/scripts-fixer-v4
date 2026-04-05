@@ -169,7 +169,8 @@ function Configure-GitGlobal {
     else {
         $email = $emailConfig.value
         $hasNoEmail = -not $email
-        if ($hasNoEmail -and $emailConfig.promptOnFirstRun) {
+        $hasOrchestratorEnv = -not [string]::IsNullOrWhiteSpace($env:SCRIPTS_ROOT_RUN)
+        if ($hasNoEmail -and $emailConfig.promptOnFirstRun -and -not $hasOrchestratorEnv) {
             $email = Read-Host $LogMessages.messages.promptUserEmail
         }
         if ($email) {

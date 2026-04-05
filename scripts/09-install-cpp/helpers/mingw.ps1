@@ -54,15 +54,18 @@ function Resolve-MingwInstallDir {
         return $default
     }
 
-    # Prompt mode
-    $userInput = Read-Host -Prompt "Enter MinGW install directory (default: $default)"
-    $hasUserInput = -not [string]::IsNullOrWhiteSpace($userInput)
-    if ($hasUserInput) {
-        Write-Log ($LogMessages.messages.installDirUserProvided -replace '\{path\}', $userInput) -Level "info"
-        return $userInput
-    }
+    # Skip prompt if orchestrator set DEV_DIR (use default)
+    $hasOrchestratorEnv = -not [string]::IsNullOrWhiteSpace($env:SCRIPTS_ROOT_RUN)
+    $isPromptMode = $InstallDirConfig.mode -ne "json-only" -and -not $hasOrchestratorEnv
 
-    Write-Log ($LogMessages.messages.installDirDefault -replace '\{path\}', $default) -Level "info"
+    if ($isPromptMode) {
+        $userInput = Read-Host -Prompt "Enter MinGW install directory (default: $default)"
+        $hasUserInput = -not [string]::IsNullOrWhiteSpace($userInput)
+        if ($hasUserInput) {
+            Write-Log ($LogMessages.messages.installDirUserProvided -replace '\{path\}', $userInput) -Level "info"
+            return $userInput
+        }
+    }
     return $default
 }
 
