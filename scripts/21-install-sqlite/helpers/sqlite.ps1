@@ -104,11 +104,6 @@ function Install-Sqlite {
 
         # Build install args for custom path
         $chocoArgs = @()
-        $hasCustomPath = -not [string]::IsNullOrWhiteSpace($InstallPath)
-        if ($hasCustomPath) {
-            $dbInstallDir = Join-Path $InstallPath "sqlite"
-            $chocoArgs += "--install-directory=`"$dbInstallDir`""
-        }
 
         $isInstalled = Install-ChocoPackage -PackageName $DbConfig.chocoPackage -ExtraArgs $chocoArgs
         $hasInstallFailed = -not $isInstalled
