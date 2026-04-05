@@ -1,0 +1,15 @@
+{
+  "results": [
+    true,
+    true,
+    [
+      {
+        "Id": "01",
+        "Status": "success",
+        "Name": "VS Code"
+      }
+    ]
+  ],
+  "timestamp": "2026-04-04T04:51:50.2190656+08:00",
+  "devDir": "E:\\dev"
+}
