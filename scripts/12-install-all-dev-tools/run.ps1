@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------
 #  Script 12 -- Install All Dev Tools
-#  Orchestrator: resolves dev directory, then runs scripts 01-11.
-#  Supports interactive grouped menu, -All, -Skip, and -Only filters.
+#  Orchestrator: front-loads all questions, then runs scripts unattended.
+#  Supports: quick menu (All Dev / All Dev+DB / Custom), -All, -Skip, -Only.
 # --------------------------------------------------------------------------
 param(
     [string]$Skip,
@@ -13,8 +13,8 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
-$scriptDir  = Split-Path -Parent $MyInvocation.MyCommand.Definition
-$sharedDir  = Join-Path (Split-Path -Parent $scriptDir) "shared"
+$scriptDir   = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$sharedDir   = Join-Path (Split-Path -Parent $scriptDir) "shared"
 $scriptsRoot = Split-Path -Parent $scriptDir
 
 # -- Dot-source shared helpers ------------------------------------------------
@@ -28,8 +28,8 @@ $scriptsRoot = Split-Path -Parent $scriptDir
 . (Join-Path $scriptDir "helpers\orchestrator.ps1")
 
 # -- Load config & log messages -----------------------------------------------
-$config       = Import-JsonConfig (Join-Path $scriptDir "config.json")
-$logMessages  = Import-JsonConfig (Join-Path $scriptDir "log-messages.json")
+$config      = Import-JsonConfig (Join-Path $scriptDir "config.json")
+$logMessages = Import-JsonConfig (Join-Path $scriptDir "log-messages.json")
 
 # -- Help ---------------------------------------------------------------------
 if ($Help) {
@@ -54,56 +54,66 @@ if ($isNotAdmin) {
     return
 }
 
-# -- Resolve dev directory -----------------------------------------------------
-Write-Log $logMessages.messages.resolvingDevDir -Level "info"
-$devDir = Resolve-DevDir -Config $config.devDir
-Initialize-DevDir -Path $devDir
-
-# Set env var for child scripts
-$env:DEV_DIR = $devDir
-Write-Log ($logMessages.messages.devDirResolved -replace '\{path\}', $devDir) -Level "success"
-
-# -- Build script list ---------------------------------------------------------
+# ==============================================================================
+#  MODE A: Flag-based (non-interactive)
+# ==============================================================================
 $hasFilter = $Skip -or $Only
 if ($hasFilter -or $All -or $DryRun) {
-    # Flag-based mode: skip interactive menu
+    # Resolve dev directory
+    Write-Log $logMessages.messages.resolvingDevDir -Level "info"
+    $devDir = Resolve-DevDir -Config $config.devDir
+    Initialize-DevDir -Path $devDir
+    $env:DEV_DIR = $devDir
+    Write-Log ($logMessages.messages.devDirResolved -replace '\{path\}', $devDir) -Level "success"
+
     $scriptList = Resolve-ScriptList -Config $config -Skip $Skip -Only $Only
 
-    # -- Dry run ---------------------------------------------------------------
+    # Dry run
     if ($DryRun) {
         Show-DryRun -ScriptList $scriptList -LogMessages $logMessages
+        Save-LogFile -Status "ok"
         return
     }
 
-    # -- Run scripts in sequence -----------------------------------------------
+    # Run
     $results = Invoke-ScriptSequence -ScriptList $scriptList -ScriptsRoot $scriptsRoot -LogMessages $logMessages -Skip $Skip
-
-    # -- Summary ---------------------------------------------------------------
     Show-Summary -Results $results -LogMessages $logMessages
     Write-Log $logMessages.messages.allComplete -Level "success"
 
-    # -- Save resolved state ---------------------------------------------------
     Save-ResolvedData -ScriptFolder "12-install-all-dev-tools" -Data @{
         devDir    = $devDir
         results   = $results
         timestamp = (Get-Date -Format "o")
     }
-
-    # -- Save log --------------------------------------------------------------
     Save-LogFile -Status "ok"
-} else {
-    # Interactive menu mode with loop-back
-    $fullList = Resolve-ScriptList -Config $config -Skip "" -Only ""
-    $groups = if ($config.groups) { $config.groups } else { $null }
+    return
+}
 
-    while ($true) {
+# ==============================================================================
+#  MODE B: Interactive (front-loaded questions, then unattended execution)
+# ==============================================================================
+while ($true) {
+    # ── Step 1: Quick menu ────────────────────────────────────────────────────
+    $mode = Show-QuickMenu -LogMessages $logMessages
+
+    $isQuit = $mode -eq "quit"
+    if ($isQuit) {
+        Write-Log $logMessages.messages.menuNoneSelected -Level "warn"
+        break
+    }
+
+    $isCustom = $mode -eq "custom"
+    if ($isCustom) {
+        # Custom: show the full interactive checkbox menu
+        $fullList = Resolve-ScriptList -Config $config -Skip "" -Only ""
+        $groups   = if ($config.groups) { $config.groups } else { $null }
+
         $scriptList = Show-InteractiveMenu -ScriptList $fullList -LogMessages $logMessages -Groups $groups
 
-        # null = user pressed Q
         $isUserQuit = $null -eq $scriptList
         if ($isUserQuit) {
             Write-Log $logMessages.messages.menuNoneSelected -Level "warn"
-            break
+            continue
         }
 
         $hasNoSelection = $scriptList.Count -eq 0
@@ -111,28 +121,37 @@ if ($hasFilter -or $All -or $DryRun) {
             Write-Log $logMessages.messages.menuNoneSelected -Level "warn"
             continue
         }
-
-        Write-Log ($logMessages.messages.menuRunning -replace '\{count\}', $scriptList.Count) -Level "info"
-
-        # Run selected scripts
-        $results = Invoke-ScriptSequence -ScriptList $scriptList -ScriptsRoot $scriptsRoot -LogMessages $logMessages -Skip $Skip
-
-        # Summary
-        Show-Summary -Results $results -LogMessages $logMessages
-        Write-Log $logMessages.messages.allComplete -Level "success"
-
-        # Save resolved state
-        Save-ResolvedData -ScriptFolder "12-install-all-dev-tools" -Data @{
-            devDir    = $devDir
-            results   = $results
-            timestamp = (Get-Date -Format "o")
-        }
-
-        # Loop back
-        Write-Host ""
-        Write-Log $logMessages.messages.menuLoopBack -Level "info"
+    } else {
+        # alldev or alldev+db: build list from mode
+        $scriptList = Get-ScriptListForMode -Mode $mode -Config $config
     }
 
-    # -- Save log --------------------------------------------------------------
-    Save-LogFile -Status "ok"
+    # ── Step 2: Front-load all questions ──────────────────────────────────────
+    Invoke-Questionnaire -Mode $mode -Config $config -LogMessages $logMessages
+
+    # Dev dir is now set in $env:DEV_DIR by the questionnaire
+    $devDir = $env:DEV_DIR
+    Initialize-DevDir -Path $devDir
+
+    # ── Step 3: Run scripts unattended ────────────────────────────────────────
+    Write-Log ($logMessages.messages.menuRunning -replace '\{count\}', $scriptList.Count) -Level "info"
+
+    $results = Invoke-ScriptSequence -ScriptList $scriptList -ScriptsRoot $scriptsRoot -LogMessages $logMessages -Skip $Skip
+
+    # ── Step 4: Summary ──────────────────────────────────────────────────────
+    Show-Summary -Results $results -LogMessages $logMessages
+    Write-Log $logMessages.messages.allComplete -Level "success"
+
+    Save-ResolvedData -ScriptFolder "12-install-all-dev-tools" -Data @{
+        mode      = $mode
+        devDir    = $devDir
+        results   = $results
+        timestamp = (Get-Date -Format "o")
+    }
+
+    # Loop back
+    Write-Host ""
+    Write-Log $logMessages.messages.menuLoopBack -Level "info"
 }
+
+Save-LogFile -Status "ok"
