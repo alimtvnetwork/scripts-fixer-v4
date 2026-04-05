@@ -98,6 +98,14 @@ function Resolve-Gopath {
         return $default
     }
 
+    # Check env var from orchestrator (skip prompt)
+    $hasDevDirEnv = -not [string]::IsNullOrWhiteSpace($env:DEV_DIR)
+    if ($hasDevDirEnv -and $GopathConfig.mode -eq "json-or-prompt") {
+        $envGopath = Join-Path $env:DEV_DIR "go"
+        Write-Log ($LogMessages.messages.gopathDefault -replace '\{path\}', $envGopath) -Level "info"
+        return $envGopath
+    }
+
     # Prompt mode
     $userInput = Read-Host -Prompt "Enter GOPATH (default: $default)"
     $hasUserInput = -not [string]::IsNullOrWhiteSpace($userInput)
