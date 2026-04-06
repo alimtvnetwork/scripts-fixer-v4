@@ -84,7 +84,86 @@ On error:
 
 ---
 
-## Functions
+## Error Tracking
+
+When an install or upgrade fails, `Save-InstalledError` records the failure
+so the next run can detect it and retry. The error fields work alongside the
+normal success fields in the same JSON file.
+
+### Error Fields
+
+| Field | Type | On Success | On Error |
+|-------|------|------------|----------|
+| `lastError` | string | `""` (empty) | Exception message from the catch block |
+| `errorAt` | string | `""` (empty) | ISO 8601 timestamp of when the error occurred |
+
+### How Errors Are Recorded
+
+Every install helper wraps its core logic in a `try/catch` block:
+
+```powershell
+try {
+    Install-ChocoPackage -PackageName $packageName
+    $newVersion = & node --version 2>$null
+    Save-InstalledRecord -Name "nodejs" -Version $newVersion
+} catch {
+    Write-Log "Node.js install failed: $_" -Level "error"
+    Save-InstalledError -Name "nodejs" -ErrorMessage "$_" -Method "chocolatey"
+}
+```
+
+### Example: Successful Install
+
+```json
+{
+  "name": "golang",
+  "version": "go1.23.6",
+  "method": "chocolatey",
+  "installedAt": "2026-04-06T16:00:00.0000000+08:00",
+  "installedBy": "alim",
+  "lastError": "",
+  "errorAt": ""
+}
+```
+
+### Example: Failed Install
+
+```json
+{
+  "name": "golang",
+  "version": "unknown",
+  "method": "chocolatey",
+  "installedAt": "2026-04-06T16:00:00.0000000+08:00",
+  "installedBy": "alim",
+  "lastError": "Chocolatey install failed: package 'golang' not found in configured sources",
+  "errorAt": "2026-04-06T16:00:05.0000000+08:00"
+}
+```
+
+### Example: Recovery After Error
+
+When a previously failed tool installs successfully on the next run,
+`Save-InstalledRecord` clears both error fields:
+
+```json
+{
+  "name": "golang",
+  "version": "go1.23.6",
+  "method": "chocolatey",
+  "installedAt": "2026-04-06T17:00:00.0000000+08:00",
+  "installedBy": "alim",
+  "lastError": "",
+  "errorAt": ""
+}
+```
+
+### Retry Behaviour
+
+`Test-AlreadyInstalled` checks the `lastError` field. If it is non-empty,
+the function logs a friendly retry message and returns `$false` -- forcing
+the script to attempt installation again even if the version matches.
+
+---
 
 All functions live in `scripts/shared/installed.ps1`, auto-loaded by `logging.ps1`.
 
