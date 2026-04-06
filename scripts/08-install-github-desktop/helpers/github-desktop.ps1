@@ -41,9 +41,14 @@ function Install-GitHubDesktop {
         Write-Log $LogMessages.messages.ghDesktopAlreadyInstalled -Level "info"
 
         if ($Config.alwaysUpgradeToLatest) {
-            Write-Log $LogMessages.messages.ghDesktopUpgrading -Level "info"
-            Upgrade-ChocoPackage -PackageName $packageName
-            Write-Log $LogMessages.messages.ghDesktopUpgradeSuccess -Level "success"
+            try {
+                Write-Log $LogMessages.messages.ghDesktopUpgrading -Level "info"
+                Upgrade-ChocoPackage -PackageName $packageName
+                Write-Log $LogMessages.messages.ghDesktopUpgradeSuccess -Level "success"
+            } catch {
+                Write-Log "GitHub Desktop upgrade failed: $_" -Level "error"
+                Save-InstalledError -Name "github-desktop" -ErrorMessage "$_"
+            }
         }
 
         $newVersion = (choco list --local-only --exact $packageName 2>&1 | Select-String $packageName) -replace ".*$packageName\s*", "" | ForEach-Object { $_.Trim() }
@@ -51,10 +56,15 @@ function Install-GitHubDesktop {
     }
     else {
         Write-Log $LogMessages.messages.ghDesktopNotFound -Level "warn"
-        Install-ChocoPackage -PackageName $packageName
-        Write-Log $LogMessages.messages.ghDesktopInstallSuccess -Level "success"
+        try {
+            Install-ChocoPackage -PackageName $packageName
+            Write-Log $LogMessages.messages.ghDesktopInstallSuccess -Level "success"
 
-        $newVersion = (choco list --local-only --exact $packageName 2>&1 | Select-String $packageName) -replace ".*$packageName\s*", "" | ForEach-Object { $_.Trim() }
-        if ($newVersion) { Save-InstalledRecord -Name "github-desktop" -Version $newVersion }
+            $newVersion = (choco list --local-only --exact $packageName 2>&1 | Select-String $packageName) -replace ".*$packageName\s*", "" | ForEach-Object { $_.Trim() }
+            if ($newVersion) { Save-InstalledRecord -Name "github-desktop" -Version $newVersion }
+        } catch {
+            Write-Log "GitHub Desktop install failed: $_" -Level "error"
+            Save-InstalledError -Name "github-desktop" -ErrorMessage "$_"
+        }
     }
 }

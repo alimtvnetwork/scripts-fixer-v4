@@ -56,10 +56,17 @@ function Install-Php {
     Write-Log $LogMessages.messages.phpNotFound -Level "warn"
     Write-Log $LogMessages.messages.phpInstalling -Level "info"
 
-    $isInstalled = Install-ChocoPackage -PackageName $Config.chocoPackage
-    $hasInstallFailed = -not $isInstalled
-    if ($hasInstallFailed) {
-        Write-Log ($LogMessages.messages.phpInstallFailed -replace '\{error\}', "Chocolatey install returned failure") -Level "error"
+    try {
+        $isInstalled = Install-ChocoPackage -PackageName $Config.chocoPackage
+        $hasInstallFailed = -not $isInstalled
+        if ($hasInstallFailed) {
+            Write-Log ($LogMessages.messages.phpInstallFailed -replace '\{error\}', "Chocolatey install returned failure") -Level "error"
+            Save-InstalledError -Name "php" -ErrorMessage "Chocolatey install returned failure"
+            return $false
+        }
+    } catch {
+        Write-Log ($LogMessages.messages.phpInstallFailed -replace '\{error\}', $_) -Level "error"
+        Save-InstalledError -Name "php" -ErrorMessage "$_"
         return $false
     }
 

@@ -39,23 +39,33 @@ function Install-Pnpm {
 
         # Upgrade to latest
         Write-Log $LogMessages.messages.pnpmUpgrading -Level "info"
-        & npm install -g pnpm@latest 2>$null
-        $newVersion = & pnpm --version 2>$null
-        Write-Log ($LogMessages.messages.pnpmUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
-        Save-InstalledRecord -Name "pnpm" -Version $newVersion -Method "npm"
+        try {
+            & npm install -g pnpm@latest 2>$null
+            $newVersion = & pnpm --version 2>$null
+            Write-Log ($LogMessages.messages.pnpmUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
+            Save-InstalledRecord -Name "pnpm" -Version $newVersion -Method "npm"
+        } catch {
+            Write-Log "pnpm upgrade failed: $_" -Level "error"
+            Save-InstalledError -Name "pnpm" -ErrorMessage "$_" -Method "npm"
+        }
     }
     else {
         Write-Log $LogMessages.messages.pnpmNotFound -Level "warn"
-        # Refresh PATH so the updated npm prefix from script 03 is visible
-        $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
-        & npm install -g pnpm 2>$null
+        try {
+            # Refresh PATH so the updated npm prefix from script 03 is visible
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+            & npm install -g pnpm 2>$null
 
-        # Refresh PATH
-        $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+            # Refresh PATH
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 
-        $installedVersion = & pnpm --version 2>$null
-        Write-Log ($LogMessages.messages.pnpmInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
-        Save-InstalledRecord -Name "pnpm" -Version $installedVersion -Method "npm"
+            $installedVersion = & pnpm --version 2>$null
+            Write-Log ($LogMessages.messages.pnpmInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
+            Save-InstalledRecord -Name "pnpm" -Version $installedVersion -Method "npm"
+        } catch {
+            Write-Log "pnpm install failed: $_" -Level "error"
+            Save-InstalledError -Name "pnpm" -ErrorMessage "$_" -Method "npm"
+        }
     }
 }
 

@@ -32,22 +32,32 @@ function Install-Python {
         Write-Log ($LogMessages.messages.pythonAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
 
         if ($Config.alwaysUpgradeToLatest) {
-            Upgrade-ChocoPackage -PackageName $packageName
-            $newVersion = & python --version 2>$null
-            Write-Log ($LogMessages.messages.pythonUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
-            Save-InstalledRecord -Name "python" -Version $newVersion
+            try {
+                Upgrade-ChocoPackage -PackageName $packageName
+                $newVersion = & python --version 2>$null
+                Write-Log ($LogMessages.messages.pythonUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
+                Save-InstalledRecord -Name "python" -Version $newVersion
+            } catch {
+                Write-Log "Python upgrade failed: $_" -Level "error"
+                Save-InstalledError -Name "python" -ErrorMessage "$_"
+            }
         }
     }
     else {
         Write-Log $LogMessages.messages.pythonNotFound -Level "warn"
-        Install-ChocoPackage -PackageName $packageName
+        try {
+            Install-ChocoPackage -PackageName $packageName
 
-        # Refresh PATH
-        $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+            # Refresh PATH
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 
-        $installedVersion = & python --version 2>$null
-        Write-Log ($LogMessages.messages.pythonInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
-        Save-InstalledRecord -Name "python" -Version $installedVersion
+            $installedVersion = & python --version 2>$null
+            Write-Log ($LogMessages.messages.pythonInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
+            Save-InstalledRecord -Name "python" -Version $installedVersion
+        } catch {
+            Write-Log "Python install failed: $_" -Level "error"
+            Save-InstalledError -Name "python" -ErrorMessage "$_"
+        }
     }
 }
 

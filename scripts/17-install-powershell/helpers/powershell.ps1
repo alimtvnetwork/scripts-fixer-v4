@@ -69,6 +69,7 @@ function Install-PowerShellLatest {
             }
         } catch {
             Write-Log ($LogMessages.messages.pwshInstallFailed -replace '\{error\}', $_) -Level "warn"
+            Save-InstalledError -Name "powershell" -ErrorMessage "$_" -Method "winget"
         }
     }
 
@@ -83,6 +84,7 @@ function Install-PowerShellLatest {
         $hasChocoFailed = -not $isInstalled
         if ($hasChocoFailed) {
             Write-Log ($LogMessages.messages.pwshInstallFailed -replace '\{error\}', "Chocolatey install returned failure") -Level "error"
+            Save-InstalledError -Name "powershell" -ErrorMessage "Chocolatey install returned failure"
             return $false
         }
 

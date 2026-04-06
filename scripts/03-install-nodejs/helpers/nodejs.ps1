@@ -33,22 +33,32 @@ function Install-NodeJs {
         Write-Log ($LogMessages.messages.nodeAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
 
         if ($Config.alwaysUpgradeToLatest) {
-            Upgrade-ChocoPackage -PackageName $packageName
-            $newVersion = & node --version 2>$null
-            Write-Log ($LogMessages.messages.nodeUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
-            Save-InstalledRecord -Name "nodejs" -Version $newVersion
+            try {
+                Upgrade-ChocoPackage -PackageName $packageName
+                $newVersion = & node --version 2>$null
+                Write-Log ($LogMessages.messages.nodeUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
+                Save-InstalledRecord -Name "nodejs" -Version $newVersion
+            } catch {
+                Write-Log "Node.js upgrade failed: $_" -Level "error"
+                Save-InstalledError -Name "nodejs" -ErrorMessage "$_"
+            }
         }
     }
     else {
         Write-Log $LogMessages.messages.nodeNotFound -Level "warn"
-        Install-ChocoPackage -PackageName $packageName
-        
-        # Refresh PATH so node is discoverable
-        $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
-        
-        $installedVersion = & node --version 2>$null
-        Write-Log ($LogMessages.messages.nodeInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
-        Save-InstalledRecord -Name "nodejs" -Version $installedVersion
+        try {
+            Install-ChocoPackage -PackageName $packageName
+            
+            # Refresh PATH so node is discoverable
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+            
+            $installedVersion = & node --version 2>$null
+            Write-Log ($LogMessages.messages.nodeInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
+            Save-InstalledRecord -Name "nodejs" -Version $installedVersion
+        } catch {
+            Write-Log "Node.js install failed: $_" -Level "error"
+            Save-InstalledError -Name "nodejs" -ErrorMessage "$_"
+        }
     }
 }
 
@@ -162,6 +172,7 @@ function Install-NodeExtras {
             }
             catch {
                 Write-Log ($LogMessages.messages.yarnInstallFailed -replace '\{error\}', $_) -Level "error"
+                Save-InstalledError -Name "yarn" -ErrorMessage "$_" -Method "npm"
             }
         }
     }

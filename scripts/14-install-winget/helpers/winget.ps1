@@ -94,6 +94,7 @@ function Install-Winget {
     } catch {
         Write-Log ($LogMessages.messages.wingetInstallFailed -replace '\{error\}', $_) -Level "error"
         Write-Log $LogMessages.messages.wingetManualHint -Level "info"
+        Save-InstalledError -Name "winget" -ErrorMessage "$_" -Method "msix"
         return $false
     } finally {
         if (Test-Path $installerPath -ErrorAction SilentlyContinue) {

@@ -37,22 +37,33 @@ function Install-VsCodeEdition {
         }
 
         Write-Log ($LogMessages.messages.editionAlreadyInstalled -replace '\{label\}', $Label) -Level "info"
-        Upgrade-ChocoPackage -PackageName $ChocoPackageName
-        Write-Log ($LogMessages.messages.editionUpgradeSuccess -replace '\{label\}', $Label) -Level "success"
+        try {
+            Upgrade-ChocoPackage -PackageName $ChocoPackageName
+            Write-Log ($LogMessages.messages.editionUpgradeSuccess -replace '\{label\}', $Label) -Level "success"
 
-        $newVersion = (choco list --local-only --exact $ChocoPackageName 2>&1 | Select-String $ChocoPackageName) -replace ".*$ChocoPackageName\s*", "" | ForEach-Object { $_.Trim() }
-        Save-InstalledRecord -Name $trackingName -Version $newVersion
+            $newVersion = (choco list --local-only --exact $ChocoPackageName 2>&1 | Select-String $ChocoPackageName) -replace ".*$ChocoPackageName\s*", "" | ForEach-Object { $_.Trim() }
+            Save-InstalledRecord -Name $trackingName -Version $newVersion
+        } catch {
+            Write-Log "VS Code ($Label) upgrade failed: $_" -Level "error"
+            Save-InstalledError -Name $trackingName -ErrorMessage "$_"
+        }
         return $true
     }
 
     Write-Log ($LogMessages.messages.editionNotFound -replace '\{label\}', $Label) -Level "warn"
-    $installResult = Install-ChocoPackage -PackageName $ChocoPackageName
-    if ($installResult) {
-        Write-Log ($LogMessages.messages.editionInstallSuccess -replace '\{label\}', $Label) -Level "success"
-        $newVersion = (choco list --local-only --exact $ChocoPackageName 2>&1 | Select-String $ChocoPackageName) -replace ".*$ChocoPackageName\s*", "" | ForEach-Object { $_.Trim() }
-        Save-InstalledRecord -Name $trackingName -Version $newVersion
+    try {
+        $installResult = Install-ChocoPackage -PackageName $ChocoPackageName
+        if ($installResult) {
+            Write-Log ($LogMessages.messages.editionInstallSuccess -replace '\{label\}', $Label) -Level "success"
+            $newVersion = (choco list --local-only --exact $ChocoPackageName 2>&1 | Select-String $ChocoPackageName) -replace ".*$ChocoPackageName\s*", "" | ForEach-Object { $_.Trim() }
+            Save-InstalledRecord -Name $trackingName -Version $newVersion
+        }
+        return $installResult
+    } catch {
+        Write-Log "VS Code ($Label) install failed: $_" -Level "error"
+        Save-InstalledError -Name $trackingName -ErrorMessage "$_"
+        return $false
     }
-    return $installResult
 }
 
 function Invoke-VsCodeSetup {

@@ -32,22 +32,32 @@ function Install-Git {
         Write-Log ($LogMessages.messages.gitAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
 
         if ($Config.alwaysUpgradeToLatest) {
-            Upgrade-ChocoPackage -PackageName $packageName
-            $newVersion = & git --version 2>$null
-            Write-Log ($LogMessages.messages.gitUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
-            Save-InstalledRecord -Name "git" -Version $newVersion
+            try {
+                Upgrade-ChocoPackage -PackageName $packageName
+                $newVersion = & git --version 2>$null
+                Write-Log ($LogMessages.messages.gitUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
+                Save-InstalledRecord -Name "git" -Version $newVersion
+            } catch {
+                Write-Log "Git upgrade failed: $_" -Level "error"
+                Save-InstalledError -Name "git" -ErrorMessage "$_"
+            }
         }
     }
     else {
         Write-Log $LogMessages.messages.gitNotFound -Level "warn"
-        Install-ChocoPackage -PackageName $packageName
+        try {
+            Install-ChocoPackage -PackageName $packageName
 
-        # Refresh PATH
-        $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+            # Refresh PATH
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 
-        $installedVersion = & git --version 2>$null
-        Write-Log ($LogMessages.messages.gitInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
-        Save-InstalledRecord -Name "git" -Version $installedVersion
+            $installedVersion = & git --version 2>$null
+            Write-Log ($LogMessages.messages.gitInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
+            Save-InstalledRecord -Name "git" -Version $installedVersion
+        } catch {
+            Write-Log "Git install failed: $_" -Level "error"
+            Save-InstalledError -Name "git" -ErrorMessage "$_"
+        }
     }
 }
 
@@ -77,22 +87,32 @@ function Install-GitLfs {
         Write-Log ($LogMessages.messages.lfsAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
 
         if ($lfsConfig.alwaysUpgradeToLatest) {
-            Upgrade-ChocoPackage -PackageName $packageName
-            $newVersion = & git lfs version 2>$null
-            Write-Log ($LogMessages.messages.lfsUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
-            Save-InstalledRecord -Name "git-lfs" -Version $newVersion
+            try {
+                Upgrade-ChocoPackage -PackageName $packageName
+                $newVersion = & git lfs version 2>$null
+                Write-Log ($LogMessages.messages.lfsUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
+                Save-InstalledRecord -Name "git-lfs" -Version $newVersion
+            } catch {
+                Write-Log "Git LFS upgrade failed: $_" -Level "error"
+                Save-InstalledError -Name "git-lfs" -ErrorMessage "$_"
+            }
         }
     }
     else {
         Write-Log $LogMessages.messages.lfsNotFound -Level "warn"
-        Install-ChocoPackage -PackageName $packageName
+        try {
+            Install-ChocoPackage -PackageName $packageName
 
-        # Refresh PATH
-        $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+            # Refresh PATH
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 
-        $installedVersion = & git lfs version 2>$null
-        Write-Log ($LogMessages.messages.lfsInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
-        Save-InstalledRecord -Name "git-lfs" -Version $installedVersion
+            $installedVersion = & git lfs version 2>$null
+            Write-Log ($LogMessages.messages.lfsInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
+            Save-InstalledRecord -Name "git-lfs" -Version $installedVersion
+        } catch {
+            Write-Log "Git LFS install failed: $_" -Level "error"
+            Save-InstalledError -Name "git-lfs" -ErrorMessage "$_"
+        }
     }
 
     # Initialize LFS in the global git config
@@ -126,23 +146,33 @@ function Install-GitHubCli {
         Write-Log ($LogMessages.messages.ghAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
 
         if ($ghConfig.alwaysUpgradeToLatest) {
-            Write-Log $LogMessages.messages.ghUpgrading -Level "info"
-            Upgrade-ChocoPackage -PackageName $packageName
-            $newVersion = & gh --version 2>$null | Select-Object -First 1
-            Write-Log ($LogMessages.messages.ghUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
-            Save-InstalledRecord -Name "github-cli" -Version $newVersion
+            try {
+                Write-Log $LogMessages.messages.ghUpgrading -Level "info"
+                Upgrade-ChocoPackage -PackageName $packageName
+                $newVersion = & gh --version 2>$null | Select-Object -First 1
+                Write-Log ($LogMessages.messages.ghUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
+                Save-InstalledRecord -Name "github-cli" -Version $newVersion
+            } catch {
+                Write-Log "GitHub CLI upgrade failed: $_" -Level "error"
+                Save-InstalledError -Name "github-cli" -ErrorMessage "$_"
+            }
         }
     }
     else {
         Write-Log $LogMessages.messages.ghNotFound -Level "warn"
-        Install-ChocoPackage -PackageName $packageName
+        try {
+            Install-ChocoPackage -PackageName $packageName
 
-        # Refresh PATH
-        $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+            # Refresh PATH
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 
-        $installedVersion = & gh --version 2>$null | Select-Object -First 1
-        Write-Log ($LogMessages.messages.ghInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
-        Save-InstalledRecord -Name "github-cli" -Version $installedVersion
+            $installedVersion = & gh --version 2>$null | Select-Object -First 1
+            Write-Log ($LogMessages.messages.ghInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
+            Save-InstalledRecord -Name "github-cli" -Version $installedVersion
+        } catch {
+            Write-Log "GitHub CLI install failed: $_" -Level "error"
+            Save-InstalledError -Name "github-cli" -ErrorMessage "$_"
+        }
     }
 
     # Prompt for login if configured
