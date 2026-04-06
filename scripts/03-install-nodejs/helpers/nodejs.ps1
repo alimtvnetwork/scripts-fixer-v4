@@ -120,6 +120,9 @@ function Install-NodeExtras {
         $LogMessages
     )
 
+    # Refresh PATH so the new npm prefix is visible in this session
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+
     $extras = $Config.extras
 
     # -- Yarn (via npm) --------------------------------------------------------
