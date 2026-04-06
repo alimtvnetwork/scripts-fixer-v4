@@ -1,6 +1,5 @@
 {
   "scriptName": "Install Node.js",
-  "version": "2.0.0",
   "description": "Installs Node.js (LTS) via Chocolatey, configures npm, and installs Yarn, Bun, and npx.",
   "messages": {
     "nodeAlreadyInstalled": "Node.js is already installed: {version}",

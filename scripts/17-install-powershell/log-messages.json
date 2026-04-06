@@ -1,6 +1,5 @@
 {
   "scriptName": "Install PowerShell",
-  "version": "1.0.0",
   "description": "Installs the latest PowerShell (pwsh) via Winget or Chocolatey.",
   "messages": {
     "notAdmin": "This script must be run as Administrator.",

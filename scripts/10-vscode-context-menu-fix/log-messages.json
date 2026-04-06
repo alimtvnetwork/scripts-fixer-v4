@@ -1,6 +1,5 @@
 {
   "scriptName": "VS Code Context Menu Fix",
-  "version": "3.2.0",
   "description": "Restores 'Open with Code' to the Windows right-click context menu.",
   "messages": {
     "detectInstall": "Detecting VS Code installation type...",

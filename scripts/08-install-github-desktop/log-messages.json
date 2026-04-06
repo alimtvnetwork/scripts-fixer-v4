@@ -1,6 +1,5 @@
 {
   "scriptName": "Install GitHub Desktop",
-  "version": "1.1.0",
   "description": "Installs GitHub Desktop via Chocolatey.",
   "messages": {
     "ghDesktopAlreadyInstalled": "GitHub Desktop is already installed.",

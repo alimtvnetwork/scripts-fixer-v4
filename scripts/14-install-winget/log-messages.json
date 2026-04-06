@@ -1,6 +1,5 @@
 {
   "scriptName": "Install Winget",
-  "version": "1.0.0",
   "description": "Installs and verifies the Winget package manager.",
   "messages": {
     "done": "Winget is installed and ready.",

@@ -1,6 +1,5 @@
 {
   "scriptName": "Install VS Code",
-  "version": "1.0.0",
   "description": "Installs Visual Studio Code via Chocolatey. Supports Stable and Insiders editions.",
   "messages": {
     "scriptDisabled": "VS Code installation is disabled in config.",

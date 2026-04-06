@@ -1,6 +1,5 @@
 {
   "scriptName": "Install All Dev Tools",
-  "version": "2.0.0",
   "description": "Orchestrator: interactive menu to pick tools, or install everything at once.",
   "messages": {
     "resolvingDevDir": "Resolving dev directory...",

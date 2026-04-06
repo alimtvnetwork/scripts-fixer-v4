@@ -1,6 +1,5 @@
 {
   "scriptName": "Install Chocolatey",
-  "version": "1.2.0",
   "description": "Installs and updates the Chocolatey package manager.",
   "messages": {
     "done": "Chocolatey is installed and ready.",

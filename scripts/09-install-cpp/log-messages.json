@@ -1,6 +1,5 @@
 {
   "scriptName": "Install C++ (MinGW-w64)",
-  "version": "1.0.0",
   "description": "Installs MinGW-w64 C++ compiler via Chocolatey and configures PATH.",
   "messages": {
     "done": "C++ toolchain installation and configuration completed.",

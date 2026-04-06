@@ -1,6 +1,5 @@
 {
   "scriptName": "Install MariaDB",
-  "version": "1.0.0",
   "description": "Install MariaDB -- MySQL-compatible fork with extra features",
   "messages": {
     "notAdmin": "This script must be run as Administrator.",

@@ -1,6 +1,5 @@
 {
   "scriptName": "Install Elasticsearch",
-  "version": "1.0.0",
   "description": "Install Elasticsearch -- Full-text search and analytics engine",
   "messages": {
     "notAdmin": "This script must be run as Administrator.",

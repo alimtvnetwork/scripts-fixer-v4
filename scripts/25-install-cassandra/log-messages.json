@@ -1,6 +1,5 @@
 {
   "scriptName": "Install Apache Cassandra",
-  "version": "1.0.0",
   "description": "Install Apache Cassandra -- Wide-column distributed NoSQL database",
   "messages": {
     "notAdmin": "This script must be run as Administrator.",

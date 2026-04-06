@@ -1,6 +1,5 @@
 {
   "scriptName": "Install PostgreSQL",
-  "version": "1.0.0",
   "description": "Install PostgreSQL -- Advanced open-source relational database",
   "messages": {
     "notAdmin": "This script must be run as Administrator.",

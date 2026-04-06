@@ -1,6 +1,5 @@
 {
   "scriptName": "Install SQLite",
-  "version": "1.0.0",
   "description": "Install SQLite + DB Browser for SQLite -- File-based embedded SQL database",
   "messages": {
     "notAdmin": "This script must be run as Administrator.",

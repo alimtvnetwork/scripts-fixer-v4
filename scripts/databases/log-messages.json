@@ -1,6 +1,5 @@
 {
   "scriptName": "Install Databases",
-  "version": "1.0.0",
   "description": "Interactive database installer with support for SQL, NoSQL, file-based, graph, and search databases.",
   "messages": {
     "notAdmin": "This script must be run as Administrator.",

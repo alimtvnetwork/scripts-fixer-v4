@@ -1,6 +1,5 @@
 {
   "scriptName": "Install MongoDB",
-  "version": "1.0.0",
   "description": "Install MongoDB -- Document-oriented NoSQL database",
   "messages": {
     "notAdmin": "This script must be run as Administrator.",

@@ -1,6 +1,5 @@
 {
   "scriptName": "Install DuckDB",
-  "version": "1.0.0",
   "description": "Install DuckDB -- Analytical file-based columnar database",
   "messages": {
     "notAdmin": "This script must be run as Administrator.",
