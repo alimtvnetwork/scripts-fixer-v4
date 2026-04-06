@@ -49,17 +49,27 @@ All functions live in `scripts/shared/logging.ps1`.
 Every `run.ps1` follows this pattern:
 
 ```powershell
-# After banner
+# Every run.ps1 uses this crash-safe pattern (v0.4.1+)
 Write-Banner -Title $logMessages.scriptName
-
-# Start collecting events
 Initialize-Logging -ScriptName $logMessages.scriptName
 
-# ... script logic with Write-Log calls ...
-
-# Flush to disk at the end
-Save-LogFile -Status "ok"
+try {
+    # ... script logic with Write-Log calls ...
+}
+catch {
+    Write-Log "Script failed: $_" -Level "error"
+    Write-Log $_.ScriptStackTrace -Level "error"
+}
+finally {
+    $hasAnyErrors = $script:_LogErrors.Count -gt 0
+    Save-LogFile -Status $(if ($hasAnyErrors) { "fail" } else { "ok" })
+}
 ```
+
+The `try/catch/finally` wrapper guarantees that `Save-LogFile` runs even
+when an unhandled exception crashes the script. The `catch` block captures
+the exception message and full stack trace as error-level events. The
+`finally` block determines status dynamically from the error list.
 
 ### Dynamic Status
 
