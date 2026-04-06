@@ -1,6 +1,5 @@
 {
   "scriptName": "Install LiteDB",
-  "version": "1.0.0",
   "description": "Install LiteDB -- .NET embedded NoSQL file-based database",
   "messages": {
     "notAdmin": "This script must be run as Administrator.",

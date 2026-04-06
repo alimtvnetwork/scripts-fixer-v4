@@ -1,6 +1,5 @@
 {
   "scriptName": "Windows Tweaks",
-  "version": "1.0.0",
   "description": "Launches the Chris Titus Windows Utility for system tweaks and debloating.",
   "messages": {
     "notAdmin": "This script must be run as Administrator.",

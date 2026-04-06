@@ -1,6 +1,5 @@
 {
   "scriptName": "Install Neo4j",
-  "version": "1.0.0",
   "description": "Install Neo4j -- Graph database for connected data",
   "messages": {
     "notAdmin": "This script must be run as Administrator.",

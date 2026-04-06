@@ -1,6 +1,5 @@
 {
   "scriptName": "Install CouchDB",
-  "version": "1.0.0",
   "description": "Install CouchDB -- Apache document database with REST API",
   "messages": {
     "notAdmin": "This script must be run as Administrator.",

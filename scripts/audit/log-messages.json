@@ -1,6 +1,5 @@
 {
   "scriptName": "Audit Mode",
-  "version": "1.0.0",
   "description": "Scans all script configs, specs, and suggestions for stale IDs or renumbering inconsistencies.",
   "messages": {
     "notAdmin": "This script does not require admin privileges -- running anyway.",

@@ -1,6 +1,5 @@
 {
   "scriptName": "VS Code Settings Sync",
-  "version": "5.1.0",
   "description": "Imports settings, keybindings, and extensions for VS Code Stable and Insiders.",
   "messages": {
     "done": "All settings and extensions applied successfully!",

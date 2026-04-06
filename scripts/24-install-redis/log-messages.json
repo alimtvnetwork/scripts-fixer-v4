@@ -1,6 +1,5 @@
 {
   "scriptName": "Install Redis",
-  "version": "1.0.0",
   "description": "Install Redis -- In-memory key-value store and cache",
   "messages": {
     "notAdmin": "This script must be run as Administrator.",

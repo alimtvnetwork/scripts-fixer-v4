@@ -1,6 +1,5 @@
 {
   "scriptName": "Install MySQL",
-  "version": "1.0.0",
   "description": "Install MySQL -- Popular open-source relational database",
   "messages": {
     "notAdmin": "This script must be run as Administrator.",

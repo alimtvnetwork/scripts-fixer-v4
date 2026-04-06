@@ -1,6 +1,5 @@
 {
   "scriptName": "Install PHP",
-  "version": "1.0.0",
   "description": "Installs PHP via Chocolatey and verifies the installation.",
   "messages": {
     "notAdmin": "This script must be run as Administrator.",

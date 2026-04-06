@@ -1,6 +1,5 @@
 {
   "scriptName": "PowerShell Context Menu",
-  "version": "1.0.0",
   "description": "Adds 'Open PowerShell Here' (normal + admin) to the Windows right-click context menu.",
   "messages": {
     "scriptDisabled": "PowerShell context menu script is disabled in config.",
