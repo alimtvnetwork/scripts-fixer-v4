@@ -6,23 +6,29 @@ All notable changes to this project are documented in this file.
 
 ## [v0.5.0] -- 2026-04-06
 
-**Database symlink support -- install to E:\dev\databases via directory junctions**
+**Smart drive detection, database symlinks, and dynamic dev directory resolution**
 
 ### Added
 
+- Smart drive detection in `dev-dir.ps1`: priority E: > D: > best non-system drive > user prompt
+- `Test-DriveQualified` function -- checks drive exists and has at least 10 GB free space
+- `Find-BestDevDrive` function -- scans fixed drives and picks the best candidate
+- `Resolve-SmartDevDir` function -- orchestrates detection with user prompt fallback
 - `scripts/shared/symlink-utils.ps1` with `Resolve-DbInstallDir` and `New-DbSymlink` functions
-- Directory junction creation from `E:\dev\databases\<name>` to actual Chocolatey install paths
-- 7 new symlink log messages in `shared/log-messages.json`
+- Directory junction creation from `<devDir>\databases\<name>` to actual Chocolatey install paths
+- 15 new log messages (8 drive detection + 7 symlink) in `shared/log-messages.json`
 - All 12 database `run.ps1` files now call `New-DbSymlink` after successful install
-- `databases/run.ps1` orchestrator dot-sources `symlink-utils.ps1`
 
 ### Changed
 
+- All `config.json` files updated from `"mode": "json-or-prompt"` / `"default": "E:\\dev"` to `"mode": "smart"` / `"default": "auto"`
+- `Resolve-DevDir` now uses smart drive detection instead of hardcoded defaults
 - `installMode: "devDir"` config option now actually creates junctions to the dev directory
 
 ### Fixed
 
-- Databases previously installed to system default locations ignoring `devDir` config -- now symlinked to `E:\dev\databases\<name>`
+- Databases previously installed to system default locations ignoring `devDir` config -- now symlinked to `<devDir>\databases\<name>`
+- Dev directory no longer hardcoded to E: drive -- dynamically selects the best available drive
 
 ---
 
