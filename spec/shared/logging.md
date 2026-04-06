@@ -2,26 +2,31 @@
 
 ## Overview
 
-All scripts produce structured JSON log files in a single `scripts/logs/`
-directory. Every `Write-Log` call during execution is captured as a timestamped
-event. At script completion, events are flushed to disk as JSON.
+All scripts produce structured JSON log files in a single `.logs/`
+directory at the project root. Every `Write-Log` call during execution is
+captured as a timestamped event. At script completion, events are flushed
+to disk as JSON.
 
 ---
 
 ## Directory Layout
 
 ```
-scripts/
-└── logs/                          # Gitignored -- never committed
-    ├── install-vscode.json        # Normal log for script 01
-    ├── install-golang.json        # Normal log for script 06
-    ├── install-golang-error.json  # Error log (only when errors occur)
-    ├── install-all-dev-tools.json # Orchestrator log for script 12
-    └── ...
+project-root/
+├── .logs/                          # Gitignored -- never committed
+│   ├── install-vscode.json         # Normal log for script 01
+│   ├── install-golang.json         # Normal log for script 06
+│   ├── install-golang-error.json   # Error log (only when errors occur)
+│   ├── install-all-dev-tools.json  # Orchestrator log for script 12
+│   └── ...
+├── scripts/
+│   └── shared/
+│       └── logging.ps1
+└── ...
 ```
 
-The `logs/` folder is auto-created by `Initialize-Logging` if it does not
-exist. It is covered by the root `.gitignore` (`logs` pattern).
+The `.logs/` folder is auto-created by `Initialize-Logging` if it does not
+exist. It should be covered by `.gitignore`.
 
 ---
 
@@ -45,7 +50,7 @@ Every `run.ps1` follows this pattern:
 
 ```powershell
 # After banner
-Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
+Write-Banner -Title $logMessages.scriptName
 
 # Start collecting events
 Initialize-Logging -ScriptName $logMessages.scriptName
@@ -101,11 +106,6 @@ The `-ScriptName` parameter is sanitised to produce the filename:
       "timestamp": "2026-04-05T15:30:00.1234567+08:00",
       "level": "info",
       "message": "Checking for Chocolatey..."
-    },
-    {
-      "timestamp": "2026-04-05T15:30:01.2345678+08:00",
-      "level": "ok",
-      "message": "Chocolatey found: v2.7.1"
     }
   ]
 }
@@ -147,6 +147,14 @@ If neither condition is met, no error file is created.
 
 ---
 
+## Version Highlighting
+
+`Write-Log` automatically detects version numbers in messages (e.g. `v2.7.1`,
+`2.53.0.windows.2`) and renders them in **Yellow** in the terminal for
+visibility.
+
+---
+
 ## Event Levels
 
 | Level | Badge | Colour | Description |
@@ -164,16 +172,13 @@ to `fail`.
 
 ## Module-Scoped State
 
-`logging.ps1` uses `$script:` scoped variables to track state across calls
-within a single script execution:
-
 | Variable | Type | Purpose |
 |----------|------|---------|
 | `$script:_LogEvents` | `ArrayList` | All recorded events |
 | `$script:_LogErrors` | `ArrayList` | Error-level events only |
 | `$script:_LogName` | `string` | Sanitised script name (used as filename) |
 | `$script:_LogStart` | `DateTime` | Timestamp when `Initialize-Logging` was called |
-| `$script:_LogsDir` | `string` | Resolved path to `scripts/logs/` |
+| `$script:_LogsDir` | `string` | Resolved path to `.logs/` at project root |
 
 These are reset on each `Initialize-Logging` call.
 
@@ -183,22 +188,10 @@ These are reset on each `Initialize-Logging` call.
 
 | Decision | Rationale |
 |----------|-----------|
-| Centralised `scripts/logs/` directory | Single location for all logs; easy to find, browse, and clean |
+| Root-level `.logs/` directory | Single location outside `scripts/`; easy to find, browse, and clean |
 | JSON format (not transcript) | Structured, parseable, can be consumed by other tools |
 | Separate error files | Quick scan for failures without parsing full event logs |
 | Dual error-file trigger | Catches both individual error events and overall script failure |
-| No logging for early exits | Help, disabled-check, and admin-check exits happen before `Initialize-Logging` -- these are trivial and don't need logs |
-| Overwrite on re-run | Each run overwrites the previous log for that script; logs are ephemeral diagnostics, not audit trails |
+| No logging for early exits | Help, disabled-check, and admin-check exits happen before `Initialize-Logging` |
+| Overwrite on re-run | Each run overwrites the previous log; logs are ephemeral diagnostics |
 | `$script:` scope | Avoids global pollution; each dot-sourced script gets its own event buffer |
-
----
-
-## Replaced System
-
-The previous logging used `Start-Transcript` to capture raw console output
-into per-script `logs/` subdirectories. This was replaced because:
-
-1. Transcript files are plain text, not structured
-2. Each script had its own `logs/` folder, making discovery harder
-3. No separation of errors from normal output
-4. No machine-readable format for downstream processing
