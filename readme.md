@@ -6,7 +6,7 @@
 
 [![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-blue?logo=powershell&logoColor=white)](https://docs.microsoft.com/powershell/)
 [![Windows](https://img.shields.io/badge/Windows-10%2F11-0078D6?logo=windows&logoColor=white)](https://www.microsoft.com/windows)
-[![Scripts](https://img.shields.io/badge/Scripts-15-green)](scripts/)
+[![Scripts](https://img.shields.io/badge/Scripts-31-green)](scripts/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 *One command to set up your entire dev environment. No manual installs. No guesswork.*
@@ -27,7 +27,11 @@ cd scripts-fixture
 # Interactive menu -- pick what to install
 .\run.ps1 -d
 
-# Install a specific tool
+# Install by keyword
+.\run.ps1 install nodejs,pnpm
+.\run.ps1 install python,git
+
+# Install a specific tool by ID
 .\run.ps1 -I 3          # Node.js + Yarn + Bun
 .\run.ps1 -I 7          # Git + LFS + gh
 
@@ -45,9 +49,9 @@ cd scripts-fixture
 
 ## What It Does
 
-A modular collection of **15 PowerShell scripts** that automate everything from installing VS Code and Git to configuring Go, Python, Node.js, and C++ -- all from a single root dispatcher with an interactive menu.
+A modular collection of **31 PowerShell scripts** that automate everything from installing VS Code, Git, and databases to configuring Go, Python, Node.js, and C++ -- all from a single root dispatcher with an interactive menu and keyword install system.
 
-### Core Tools (01-09)
+### Core Tools (01-09, 16-17)
 
 | ID | Script | What It Does | Admin |
 |----|--------|--------------|-------|
@@ -63,18 +67,36 @@ A modular collection of **15 PowerShell scripts** that automate everything from 
 | 16 | **PHP** | Install PHP via Chocolatey | Yes |
 | 17 | **PowerShell (latest)** | Install latest PowerShell via Winget/Chocolatey | Yes |
 
-### Optional (10-11)
+### VS Code Extras (10-11)
 
 | ID | Script | What It Does | Admin |
 |----|--------|--------------|-------|
 | 10 | **VSCode Context Menu Fix** | Add/repair VS Code right-click context menu entries | Yes |
 | 11 | **VSCode Settings Sync** | Sync VS Code settings, keybindings, and extensions | No |
 
-### Orchestrator
+### Databases (18-29)
+
+| ID | Script | What It Does | Admin |
+|----|--------|--------------|-------|
+| 18 | **MySQL** | Install MySQL -- popular open-source relational database | Yes |
+| 19 | **MariaDB** | Install MariaDB -- MySQL-compatible fork | Yes |
+| 20 | **PostgreSQL** | Install PostgreSQL -- advanced relational database | Yes |
+| 21 | **SQLite** | Install SQLite + DB Browser for SQLite | Yes |
+| 22 | **MongoDB** | Install MongoDB -- document-oriented NoSQL database | Yes |
+| 23 | **CouchDB** | Install CouchDB -- Apache document database with REST API | Yes |
+| 24 | **Redis** | Install Redis -- in-memory key-value store and cache | Yes |
+| 25 | **Apache Cassandra** | Install Cassandra -- wide-column distributed NoSQL | Yes |
+| 26 | **Neo4j** | Install Neo4j -- graph database for connected data | Yes |
+| 27 | **Elasticsearch** | Install Elasticsearch -- full-text search and analytics | Yes |
+| 28 | **DuckDB** | Install DuckDB -- analytical columnar database | Yes |
+| 29 | **LiteDB** | Install LiteDB -- .NET embedded NoSQL file-based database | Yes |
+
+### Orchestrators
 
 | ID | Script | What It Does | Admin |
 |----|--------|--------------|-------|
 | 12 | **Install All Dev Tools** | Interactive grouped menu with CSV input, group shortcuts, and loop-back | Yes |
+| 30 | **Install Databases** | Interactive database installer menu (SQL, NoSQL, graph, search) | Yes |
 
 ### Utilities
 
@@ -83,6 +105,7 @@ A modular collection of **15 PowerShell scripts** that automate everything from 
 | 13 | **Audit Mode** | Scan configs, specs, and suggestions for stale IDs or references | No |
 | 14 | **Install Winget** | Install/verify Winget package manager (standalone) | Yes |
 | 15 | **Windows Tweaks** | Launch Chris Titus Windows Utility for system tweaks and debloating | Yes |
+| 31 | **PowerShell Context Menu** | Add "Open PowerShell Here" (normal + admin) to right-click menu | Yes |
 
 ---
 
@@ -106,6 +129,21 @@ The root `run.ps1` is the **single entry point** for all scripts. It handles git
 | `-v` | `-I 1` | Install VS Code |
 | `-w` | `-I 14` | Install Winget |
 | `-t` | `-I 15` | Windows tweaks |
+
+### Keyword Install
+
+Install tools by human-friendly name instead of script ID:
+
+```powershell
+.\run.ps1 install vscode             # Install VS Code
+.\run.ps1 install nodejs,pnpm        # Install Node.js + pnpm
+.\run.ps1 install go,git,cpp         # Install Go, Git, C++
+.\run.ps1 -Install python,php        # Named parameter style
+.\run.ps1 install databases          # Interactive database menu
+.\run.ps1 install mysql,redis        # Install specific databases
+```
+
+Keywords are case-insensitive, support comma/space separation, auto-deduplicate, and run in sorted order. See `scripts/shared/install-keywords.json` for the full keyword map.
 
 ---
 
@@ -149,31 +187,63 @@ The orchestrator (script 12) resolves this path once and passes it to all child 
 
 ---
 
+## Versioning
+
+All scripts read their version from `scripts/version.json` (single source of truth). Use the bump script:
+
+```powershell
+.\bump-version.ps1 -Patch            # 0.3.0 -> 0.3.1
+.\bump-version.ps1 -Minor            # 0.3.0 -> 0.4.0
+.\bump-version.ps1 -Major            # 0.3.0 -> 1.0.0
+.\bump-version.ps1 -Set "2.0.0"     # Explicit version
+```
+
+---
+
 ## Project Structure
 
 ```
-run.ps1                    # Root dispatcher (single entry point)
+run.ps1                        # Root dispatcher (single entry point)
+bump-version.ps1               # Version bump utility
 scripts/
-  registry.json            # Maps IDs to folder names
-  shared/                  # Reusable helpers (logging, JSON, PATH, etc.)
-  01-install-vscode/       # VS Code
-  02-install-package-managers/  # Chocolatey
-  03-install-nodejs/       # Node.js + Yarn + Bun
-  04-install-pnpm/         # pnpm
-  05-install-python/       # Python
-  06-install-golang/       # Go
-  07-install-git/          # Git + LFS + gh
-  08-install-github-desktop/  # GitHub Desktop
-  09-install-cpp/          # C++ (MinGW-w64)
+  version.json                 # Centralized version (single source of truth)
+  registry.json                # Maps IDs to folder names
+  shared/                      # Reusable helpers (logging, JSON, PATH, etc.)
+    install-keywords.json      # Keyword-to-script-ID mapping
+  01-install-vscode/           # VS Code
+  02-install-package-managers/ # Chocolatey
+  03-install-nodejs/           # Node.js + Yarn + Bun
+  04-install-pnpm/             # pnpm
+  05-install-python/           # Python
+  06-install-golang/           # Go
+  07-install-git/              # Git + LFS + gh
+  08-install-github-desktop/   # GitHub Desktop
+  09-install-cpp/              # C++ (MinGW-w64)
   10-vscode-context-menu-fix/  # VSCode context menu
-  11-vscode-settings-sync/    # VSCode settings sync
-  12-install-all-dev-tools/   # Orchestrator (interactive menu)
-  audit/                   # Audit scanner
-  14-install-winget/       # Winget (standalone)
-  15-windows-tweaks/       # Chris Titus Windows Utility
-spec/                      # Specifications per script
-suggestions/               # Improvement ideas
-.resolved/                 # Runtime state (git-ignored)
+  11-vscode-settings-sync/     # VSCode settings sync
+  12-install-all-dev-tools/    # Orchestrator (interactive menu)
+  14-install-winget/           # Winget (standalone)
+  15-windows-tweaks/           # Chris Titus Windows Utility
+  16-install-php/              # PHP
+  17-install-powershell/       # PowerShell (latest)
+  18-install-mysql/            # MySQL
+  19-install-mariadb/          # MariaDB
+  20-install-postgresql/       # PostgreSQL
+  21-install-sqlite/           # SQLite + DB Browser
+  22-install-mongodb/          # MongoDB
+  23-install-couchdb/          # CouchDB
+  24-install-redis/            # Redis
+  25-install-cassandra/        # Apache Cassandra
+  26-install-neo4j/            # Neo4j
+  27-install-elasticsearch/    # Elasticsearch
+  28-install-duckdb/           # DuckDB
+  29-install-litedb/           # LiteDB
+  databases/                   # Database orchestrator menu
+  31-pwsh-context-menu/        # PowerShell context menu
+  audit/                       # Audit scanner
+spec/                          # Specifications per script
+suggestions/                   # Improvement ideas
+.resolved/                     # Runtime state (git-ignored)
 ```
 
 ### Each Script Contains
@@ -195,7 +265,7 @@ Reusable utilities in `scripts/shared/`:
 
 | File | Purpose |
 |------|---------|
-| `logging.ps1` | Console output with colorful status badges, transcript logging |
+| `logging.ps1` | Console output with colorful status badges, auto-version from `version.json` |
 | `json-utils.ps1` | File backups, hashtable conversion, deep JSON merge |
 | `resolved.ps1` | Persist runtime state to `.resolved/` |
 | `cleanup.ps1` | Wipe `.resolved/` contents |
@@ -204,6 +274,8 @@ Reusable utilities in `scripts/shared/`:
 | `path-utils.ps1` | Safe PATH manipulation with dedup |
 | `choco-utils.ps1` | Chocolatey install/upgrade wrappers |
 | `dev-dir.ps1` | Dev directory resolution and creation |
+| `install-keywords.json` | Keyword-to-script-ID mapping for `install` command |
+| `log-viewer.ps1` | Log file viewer utility |
 
 ---
 
@@ -215,7 +287,8 @@ Reusable utilities in `scripts/shared/`:
 4. Save state via `Save-ResolvedData`
 5. Add spec in `spec/NN-name/readme.md`
 6. Register in `scripts/registry.json`
-7. Add to script 12's `config.json` if it should be orchestrated
+7. Add keywords in `scripts/shared/install-keywords.json`
+8. Add to script 12's `config.json` if it should be orchestrated
 
 ---
 
