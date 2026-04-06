@@ -37,6 +37,8 @@ function Install-Pnpm {
     }
     else {
         Write-Log $LogMessages.messages.pnpmNotFound -Level "warn"
+        # Refresh PATH so the updated npm prefix from script 03 is visible
+        $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
         & npm install -g pnpm 2>$null
 
         # Refresh PATH
