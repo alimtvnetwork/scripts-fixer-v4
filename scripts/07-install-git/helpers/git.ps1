@@ -87,22 +87,32 @@ function Install-GitLfs {
         Write-Log ($LogMessages.messages.lfsAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
 
         if ($lfsConfig.alwaysUpgradeToLatest) {
-            Upgrade-ChocoPackage -PackageName $packageName
-            $newVersion = & git lfs version 2>$null
-            Write-Log ($LogMessages.messages.lfsUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
-            Save-InstalledRecord -Name "git-lfs" -Version $newVersion
+            try {
+                Upgrade-ChocoPackage -PackageName $packageName
+                $newVersion = & git lfs version 2>$null
+                Write-Log ($LogMessages.messages.lfsUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
+                Save-InstalledRecord -Name "git-lfs" -Version $newVersion
+            } catch {
+                Write-Log "Git LFS upgrade failed: $_" -Level "error"
+                Save-InstalledError -Name "git-lfs" -ErrorMessage "$_"
+            }
         }
     }
     else {
         Write-Log $LogMessages.messages.lfsNotFound -Level "warn"
-        Install-ChocoPackage -PackageName $packageName
+        try {
+            Install-ChocoPackage -PackageName $packageName
 
-        # Refresh PATH
-        $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+            # Refresh PATH
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 
-        $installedVersion = & git lfs version 2>$null
-        Write-Log ($LogMessages.messages.lfsInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
-        Save-InstalledRecord -Name "git-lfs" -Version $installedVersion
+            $installedVersion = & git lfs version 2>$null
+            Write-Log ($LogMessages.messages.lfsInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
+            Save-InstalledRecord -Name "git-lfs" -Version $installedVersion
+        } catch {
+            Write-Log "Git LFS install failed: $_" -Level "error"
+            Save-InstalledError -Name "git-lfs" -ErrorMessage "$_"
+        }
     }
 
     # Initialize LFS in the global git config
