@@ -27,6 +27,9 @@ cd scripts-fixture
 # Interactive menu -- pick what to install
 .\run.ps1 -d
 
+# Install everything with default answers (no prompts)
+.\run.ps1 -d -D
+
 # Install by keyword
 .\run.ps1 install nodejs,pnpm
 .\run.ps1 install python,git
@@ -116,6 +119,7 @@ The root `run.ps1` is the **single entry point** for all scripts. It handles git
 ```powershell
 .\run.ps1                           # Show help (after git pull)
 .\run.ps1 -I <number>               # Run a specific script
+.\run.ps1 -I <number> -D            # Run with all default answers (skip prompts)
 .\run.ps1 -I <number> -Clean        # Wipe cache, then run
 .\run.ps1 -CleanOnly                # Wipe all cached data
 ```
@@ -125,6 +129,7 @@ The root `run.ps1` is the **single entry point** for all scripts. It handles git
 | Flag | Equivalent | Description |
 |------|-----------|-------------|
 | `-d` | `-I 12` | Interactive dev tools menu |
+| `-D` | N/A | Use all default answers (skip prompts) |
 | `-a` | `-I 13` | Audit mode |
 | `-v` | `-I 1` | Install VS Code |
 | `-w` | `-I 14` | Install Winget |
