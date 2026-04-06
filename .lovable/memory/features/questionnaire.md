@@ -1,6 +1,6 @@
 ---
 name: Front-loaded questionnaire pattern
-description: Script 12 asks all config questions upfront (dev dir, VS Code editions, sync mode), stores in env vars, child scripts run unattended
+description: Script 12 asks all config questions upfront (dev dir, VS Code editions, sync mode), stores in env vars, child scripts run unattended. -D flag skips all prompts with defaults.
 type: feature
 ---
 ## Front-loaded questionnaire
@@ -10,8 +10,14 @@ Script 12 uses a 3-option quick menu:
 2. All Dev + All DBs -- adds 18-29
 3. Custom -- full interactive checkbox menu
 
-All config questions (dev dir, VS Code editions, sync mode) are asked BEFORE any scripts run.
-Answers are stored in env vars: `$env:DEV_DIR`, `$env:VSCODE_EDITIONS`, `$env:VSCODE_SYNC_MODE`.
+All config questions (dev dir, VS Code editions, sync mode, Git name/email) are asked BEFORE any scripts run.
+Answers are stored in env vars: `$env:DEV_DIR`, `$env:VSCODE_EDITIONS`, `$env:VSCODE_SYNC_MODE`, `$env:GIT_USER_NAME`, `$env:GIT_USER_EMAIL`.
+
+## -D / -Defaults flag
+- `.\run.ps1 -D` runs alldev mode with all default answers, zero prompts
+- Can combine with `-Only` or `-Skip` to filter scripts while still using defaults
+- Defaults: dev dir from config.json, VS Code = stable, sync = overwrite, Git name/email = existing or skip
+- Individual scripts still prompt when run standalone (no env vars set)
 
 ## DB install approach
 - Chocolatey free edition does NOT support `--install-directory`

@@ -59,11 +59,13 @@ function Invoke-Questionnaire {
     .SYNOPSIS
         Asks all configuration questions upfront based on what's going to be installed.
         Stores answers in environment variables so child scripts skip their own prompts.
+        When -UseDefaults is set, all questions are answered with defaults automatically.
     #>
     param(
         [string]$Mode,
         $Config,
-        $LogMessages
+        $LogMessages,
+        [switch]$UseDefaults
     )
 
     Write-Host ""
@@ -76,30 +78,38 @@ function Invoke-Questionnaire {
     $hasOverride = -not [string]::IsNullOrWhiteSpace($Config.devDir.override)
     if ($hasOverride) { $defaultDevDir = $Config.devDir.override }
 
-    Write-Host "  Dev directory (tools, configs, data will be stored here)" -ForegroundColor Yellow
-    $devDirInput = Read-Host "  Path (default: $defaultDevDir)"
-    $isDefaultDevDir = [string]::IsNullOrWhiteSpace($devDirInput)
-    if ($isDefaultDevDir) { $devDirInput = $defaultDevDir }
+    if ($UseDefaults) {
+        $devDirInput = $defaultDevDir
+    } else {
+        Write-Host "  Dev directory (tools, configs, data will be stored here)" -ForegroundColor Yellow
+        $devDirInput = Read-Host "  Path (default: $defaultDevDir)"
+        $isDefaultDevDir = [string]::IsNullOrWhiteSpace($devDirInput)
+        if ($isDefaultDevDir) { $devDirInput = $defaultDevDir }
+    }
     $env:DEV_DIR = $devDirInput
     Write-Log "Dev directory: $devDirInput" -Level "success"
 
     # ── Q2: VS Code editions (only if installing dev tools) ──────────────────
     $isInstallingDev = $Mode -eq "alldev" -or $Mode -eq "alldev+db"
     if ($isInstallingDev) {
-        Write-Host ""
-        Write-Host "  VS Code editions to install:" -ForegroundColor Yellow
-        Write-Host "    [1] " -NoNewline -ForegroundColor Cyan
-        Write-Host "Stable only (default)"
-        Write-Host "    [2] " -NoNewline -ForegroundColor Cyan
-        Write-Host "Insiders only"
-        Write-Host "    [3] " -NoNewline -ForegroundColor Cyan
-        Write-Host "Both Stable + Insiders"
+        if ($UseDefaults) {
+            $vscEditions = "stable"
+        } else {
+            Write-Host ""
+            Write-Host "  VS Code editions to install:" -ForegroundColor Yellow
+            Write-Host "    [1] " -NoNewline -ForegroundColor Cyan
+            Write-Host "Stable only (default)"
+            Write-Host "    [2] " -NoNewline -ForegroundColor Cyan
+            Write-Host "Insiders only"
+            Write-Host "    [3] " -NoNewline -ForegroundColor Cyan
+            Write-Host "Both Stable + Insiders"
 
-        $vscChoice = Read-Host "  Choose [1/2/3] (default: 1)"
-        $vscEditions = switch ($vscChoice) {
-            "2" { "insiders" }
-            "3" { "stable,insiders" }
-            default { "stable" }
+            $vscChoice = Read-Host "  Choose [1/2/3] (default: 1)"
+            $vscEditions = switch ($vscChoice) {
+                "2" { "insiders" }
+                "3" { "stable,insiders" }
+                default { "stable" }
+            }
         }
         $env:VSCODE_EDITIONS = $vscEditions
         Write-Log "VS Code editions: $vscEditions" -Level "success"
@@ -107,20 +117,24 @@ function Invoke-Questionnaire {
 
     # ── Q3: VS Code settings sync ───────────────────────────────────────────
     if ($isInstallingDev) {
-        Write-Host ""
-        Write-Host "  Sync VS Code settings (keybindings, extensions, preferences)?" -ForegroundColor Yellow
-        Write-Host "    [1] " -NoNewline -ForegroundColor Cyan
-        Write-Host "Yes, overwrite existing settings (default)"
-        Write-Host "    [2] " -NoNewline -ForegroundColor Cyan
-        Write-Host "Yes, merge with existing settings"
-        Write-Host "    [3] " -NoNewline -ForegroundColor Cyan
-        Write-Host "No, skip settings sync"
+        if ($UseDefaults) {
+            $env:VSCODE_SYNC_MODE = "overwrite"
+        } else {
+            Write-Host ""
+            Write-Host "  Sync VS Code settings (keybindings, extensions, preferences)?" -ForegroundColor Yellow
+            Write-Host "    [1] " -NoNewline -ForegroundColor Cyan
+            Write-Host "Yes, overwrite existing settings (default)"
+            Write-Host "    [2] " -NoNewline -ForegroundColor Cyan
+            Write-Host "Yes, merge with existing settings"
+            Write-Host "    [3] " -NoNewline -ForegroundColor Cyan
+            Write-Host "No, skip settings sync"
 
-        $syncChoice = Read-Host "  Choose [1/2/3] (default: 1)"
-        $env:VSCODE_SYNC_MODE = switch ($syncChoice) {
-            "2" { "merge" }
-            "3" { "skip" }
-            default { "overwrite" }
+            $syncChoice = Read-Host "  Choose [1/2/3] (default: 1)"
+            $env:VSCODE_SYNC_MODE = switch ($syncChoice) {
+                "2" { "merge" }
+                "3" { "skip" }
+                default { "overwrite" }
+            }
         }
         Write-Log "VS Code sync: $($env:VSCODE_SYNC_MODE)" -Level "success"
     }
@@ -132,10 +146,12 @@ function Invoke-Questionnaire {
         $hasGitName = -not [string]::IsNullOrWhiteSpace($currentGitName)
 
         if ($hasGitName) {
-            Write-Host ""
-            Write-Host "  Git user.name already set: $currentGitName" -ForegroundColor DarkGray
+            if (-not $UseDefaults) {
+                Write-Host ""
+                Write-Host "  Git user.name already set: $currentGitName" -ForegroundColor DarkGray
+            }
             $env:GIT_USER_NAME = $currentGitName
-        } else {
+        } elseif (-not $UseDefaults) {
             Write-Host ""
             $gitName = Read-Host "  Git user.name (your full name, or press Enter to skip)"
             $hasInput = -not [string]::IsNullOrWhiteSpace($gitName)
@@ -153,9 +169,11 @@ function Invoke-Questionnaire {
         $hasGitEmail = -not [string]::IsNullOrWhiteSpace($currentGitEmail)
 
         if ($hasGitEmail) {
-            Write-Host "  Git user.email already set: $currentGitEmail" -ForegroundColor DarkGray
+            if (-not $UseDefaults) {
+                Write-Host "  Git user.email already set: $currentGitEmail" -ForegroundColor DarkGray
+            }
             $env:GIT_USER_EMAIL = $currentGitEmail
-        } else {
+        } elseif (-not $UseDefaults) {
             $gitEmail = Read-Host "  Git user.email (or press Enter to skip)"
             $hasInput = -not [string]::IsNullOrWhiteSpace($gitEmail)
             if ($hasInput) {

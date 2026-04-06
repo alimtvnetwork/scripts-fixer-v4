@@ -8,6 +8,7 @@ param(
     [string]$Only,
     [switch]$All,
     [switch]$DryRun,
+    [Alias("D")][switch]$Defaults,
     [switch]$Help
 )
 
@@ -55,18 +56,28 @@ if ($isNotAdmin) {
 }
 
 # ==============================================================================
-#  MODE A: Flag-based (non-interactive)
+#  MODE A: Flag-based (non-interactive) or -Defaults
 # ==============================================================================
 $hasFilter = $Skip -or $Only
-if ($hasFilter -or $All -or $DryRun) {
-    # Resolve dev directory
-    Write-Log $logMessages.messages.resolvingDevDir -Level "info"
-    $devDir = Resolve-DevDir -Config $config.devDir
+if ($hasFilter -or $All -or $DryRun -or $Defaults) {
+    # With -Defaults, use all defaults for dev dir and env vars
+    if ($Defaults) {
+        Invoke-Questionnaire -Mode "alldev" -Config $config -LogMessages $logMessages -UseDefaults
+        $devDir = $env:DEV_DIR
+    } else {
+        Write-Log $logMessages.messages.resolvingDevDir -Level "info"
+        $devDir = Resolve-DevDir -Config $config.devDir
+        $env:DEV_DIR = $devDir
+        Write-Log ($logMessages.messages.devDirResolved -replace '\{path\}', $devDir) -Level "success"
+    }
     Initialize-DevDir -Path $devDir
-    $env:DEV_DIR = $devDir
-    Write-Log ($logMessages.messages.devDirResolved -replace '\{path\}', $devDir) -Level "success"
 
-    $scriptList = Resolve-ScriptList -Config $config -Skip $Skip -Only $Only
+    # If -Defaults without -Only/-Skip, default to alldev
+    $scriptList = if ($Defaults -and -not $hasFilter) {
+        Get-ScriptListForMode -Mode "alldev" -Config $config
+    } else {
+        Resolve-ScriptList -Config $config -Skip $Skip -Only $Only
+    }
 
     # Dry run
     if ($DryRun) {
@@ -83,6 +94,7 @@ if ($hasFilter -or $All -or $DryRun) {
     Save-ResolvedData -ScriptFolder "12-install-all-dev-tools" -Data @{
         devDir    = $devDir
         results   = $results
+        defaults  = [bool]$Defaults
         timestamp = (Get-Date -Format "o")
     }
     Save-LogFile -Status "ok"
@@ -127,7 +139,7 @@ while ($true) {
     }
 
     # ── Step 2: Front-load all questions ──────────────────────────────────────
-    Invoke-Questionnaire -Mode $mode -Config $config -LogMessages $logMessages
+    Invoke-Questionnaire -Mode $mode -Config $config -LogMessages $logMessages -UseDefaults:$Defaults
 
     # Dev dir is now set in $env:DEV_DIR by the questionnaire
     $devDir = $env:DEV_DIR

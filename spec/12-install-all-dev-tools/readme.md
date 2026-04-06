@@ -10,6 +10,9 @@ flag-based CLI modes.
 
 ```powershell
 .\run.ps1                    # Interactive: quick menu + questionnaire
+.\run.ps1 -D                 # All Dev with all default answers (zero prompts)
+.\run.ps1 -Defaults          # Same as -D (full name)
+.\run.ps1 -D -Only "03,05"  # Defaults mode for specific scripts only
 .\run.ps1 -All               # Run all enabled scripts without prompting
 .\run.ps1 -Skip "06,08"     # Skip specific scripts
 .\run.ps1 -Only "03,05"     # Run only specific scripts
