@@ -62,5 +62,8 @@ function Invoke-ScriptSequence {
         }
     }
 
+    # Clean up so the flag doesn't leak into the caller's session
+    Remove-Item Env:\SCRIPTS_ROOT_RUN -ErrorAction SilentlyContinue
+
     return ,@($results)
 }
