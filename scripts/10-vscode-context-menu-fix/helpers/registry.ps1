@@ -159,7 +159,8 @@ function Register-ContextMenu {
         # Create command subkey with (Default) = command
         $cmdRegPath = "$regPath\command"
         Write-Log ("  " + ($LogMsgs.messages.settingCommand -replace '\{command\}', $CommandArg)) -Level "info"
-        $out = reg.exe add $cmdRegPath /ve /d $CommandArg /f 2>&1
+        $cmdLine = "reg.exe add `"$cmdRegPath`" /ve /d `"$CommandArg`" /f"
+        $out = cmd.exe /c $cmdLine 2>&1
         $hasRegFailed = $LASTEXITCODE -ne 0
         if ($hasRegFailed) { throw "reg add command failed: $out" }
         Write-Log ("  " + $LogMsgs.messages.commandSet) -Level "success"

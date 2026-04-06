@@ -66,3 +66,31 @@ A shared helper `scripts/shared/resolved.ps1` provides `Save-ResolvedData` and `
 - Never mutate source config files with runtime-discovered state. Keep config declarative and gitignored runtime state separate.
 - Use a dedicated `.resolved/` (or `.cache/`, `.state/`) folder for any data the script discovers at runtime.
 - Shared helpers reduce duplication -- `Save-ResolvedData` is used by both script 01 and 02.
+
+---
+
+## Issue 3: `reg.exe add` command subkey fails with "Invalid syntax"
+
+**Error:**
+```
+[ FAIL ]   FAILED: ERROR: Invalid syntax.
+```
+
+**Root cause:**
+The command value `"C:\...\Code.exe" "%1"` contains embedded double quotes and `%` characters. When PowerShell passes this to `reg.exe` directly, it splits the value into multiple arguments, causing `reg.exe` to report "Invalid syntax."
+
+**Fix:**
+Wrapped the `reg.exe` call in `cmd.exe /c` with the entire command as a single string, which preserves the embedded quotes and `%` placeholders:
+
+```powershell
+# Before (broken -- PowerShell splits the /d value)
+$out = reg.exe add $cmdRegPath /ve /d $CommandArg /f 2>&1
+
+# After (works -- cmd.exe preserves the quoted string)
+$cmdLine = "reg.exe add `"$cmdRegPath`" /ve /d `"$CommandArg`" /f"
+$out = cmd.exe /c $cmdLine 2>&1
+```
+
+**How to write better code:**
+- When passing values with embedded quotes to native executables, use `cmd.exe /c` to avoid PowerShell's argument splitting.
+- Always test registry writes with paths containing spaces and `%` variables.
