@@ -121,11 +121,24 @@ The `-ScriptName` parameter is sanitised to produce the filename:
   "endTime": "2026-04-05T15:31:12.0000000+08:00",
   "duration": 72.34,
   "errorCount": 1,
+  "warnCount": 2,
   "errors": [
     {
       "timestamp": "2026-04-05T15:30:45.6789012+08:00",
       "level": "fail",
       "message": "Failed to install 'golang': exit code 1"
+    }
+  ],
+  "warnings": [
+    {
+      "timestamp": "2026-04-05T15:30:30.1234567+08:00",
+      "level": "warn",
+      "message": "Chocolatey shim not found: C:\\ProgramData\\chocolatey\\bin\\go.exe"
+    },
+    {
+      "timestamp": "2026-04-05T15:30:31.2345678+08:00",
+      "level": "warn",
+      "message": "Get-Command could not find 'go' in PATH"
     }
   ]
 }
@@ -141,9 +154,10 @@ is true:
 | Condition | Description |
 |-----------|-------------|
 | Any `fail`-level event | At least one `Write-Log -Level "error"` call was made during execution |
+| Any `warn`-level event | At least one `Write-Log -Level "warn"` call was made during execution |
 | Overall status is `"fail"` | `Save-LogFile -Status "fail"` was called (script-level failure) |
 
-If neither condition is met, no error file is created.
+If none of these conditions are met, no error file is created.
 
 ---
 
@@ -160,9 +174,9 @@ visibility.
 | Level | Badge | Colour | Description |
 |-------|-------|--------|-------------|
 | `ok` | `[  OK  ]` | Green | Success |
-| `fail` | `[ FAIL ]` | Red | Error (also recorded in error log) |
+| `fail` | `[ FAIL ]` | Red | Error (recorded in error log) |
 | `info` | `[ INFO ]` | Cyan | Informational |
-| `warn` | `[ WARN ]` | Yellow | Warning |
+| `warn` | `[ WARN ]` | Yellow | Warning (recorded in error log) |
 | `skip` | `[ SKIP ]` | DarkGray | Skipped step |
 
 The `-Level` parameter accepts aliases: `success` maps to `ok`, `error` maps
@@ -175,7 +189,7 @@ to `fail`.
 | Variable | Type | Purpose |
 |----------|------|---------|
 | `$script:_LogEvents` | `ArrayList` | All recorded events |
-| `$script:_LogErrors` | `ArrayList` | Error-level events only |
+| `$script:_LogErrors` | `ArrayList` | Error and warning-level events (written to error log) |
 | `$script:_LogName` | `string` | Sanitised script name (used as filename) |
 | `$script:_LogStart` | `DateTime` | Timestamp when `Initialize-Logging` was called |
 | `$script:_LogsDir` | `string` | Resolved path to `.logs/` at project root |

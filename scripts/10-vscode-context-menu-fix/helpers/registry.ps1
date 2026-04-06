@@ -68,7 +68,7 @@ function Resolve-VsCodePath {
     Write-Log ($logMsgs.messages.expandedPath -replace '\{path\}', $exePath) -Level "info"
 
     $isPreferredFound = Test-Path $exePath
-    Write-Log (($logMsgs.messages.fileExistsAtPath -replace '\{result\}', $isPreferredFound)) -Level $(if ($isPreferredFound) { "success" } else { "warn" })
+    Write-Log ((($logMsgs.messages.fileExistsAtPath -replace '\{path\}', $exePath) -replace '\{result\}', $isPreferredFound)) -Level $(if ($isPreferredFound) { "success" } else { "error" })
 
     if ($isPreferredFound) { return $exePath }
 
@@ -82,7 +82,7 @@ function Resolve-VsCodePath {
     Write-Log ($logMsgs.messages.expandedPath -replace '\{path\}', $fallbackExe) -Level "info"
 
     $isFallbackFound = Test-Path $fallbackExe
-    Write-Log (($logMsgs.messages.fileExistsAtPath -replace '\{result\}', $isFallbackFound)) -Level $(if ($isFallbackFound) { "success" } else { "warn" })
+    Write-Log ((($logMsgs.messages.fileExistsAtPath -replace '\{path\}', $fallbackExe) -replace '\{result\}', $isFallbackFound)) -Level $(if ($isFallbackFound) { "success" } else { "error" })
 
     if ($isFallbackFound) { return $fallbackExe }
 
@@ -96,6 +96,7 @@ function Resolve-VsCodePath {
         Write-Log "Found Chocolatey shim: $chocoShimExe" -Level "success"
         return $chocoShimExe
     }
+    Write-Log "Chocolatey shim not found: $chocoShimExe" -Level "warn"
 
     # Fallback: search common Chocolatey install directories
     $chocoLibBase = Join-Path $env:ProgramData "chocolatey\lib"
@@ -108,6 +109,9 @@ function Resolve-VsCodePath {
             Write-Log "Found in Chocolatey lib: $($foundExe.FullName)" -Level "success"
             return $foundExe.FullName
         }
+        Write-Log "Chocolatey lib dir exists but no $chocoExeName found in: $chocoLibDir" -Level "warn"
+    } else {
+        Write-Log "Chocolatey lib dir not found: $chocoLibDir" -Level "warn"
     }
 
     # Fallback: Get-Command (PATH-based discovery)
@@ -120,18 +124,21 @@ function Resolve-VsCodePath {
         Write-Log "Found via Get-Command: $discoveredPath" -Level "success"
         return $discoveredPath
     }
+    Write-Log "Get-Command could not find '$cmdName' in PATH" -Level "warn"
 
     # Fallback: where.exe (broader search than Get-Command)
-    Write-Log "Get-Command failed -- trying where.exe..." -Level "info"
-    $whereExeName = if ($EditionName -eq "insiders") { "Code - Insiders.exe" } else { "Code.exe" }
+    Write-Log "Trying where.exe for $chocoExeName..." -Level "info"
     try {
-        $wherePath = (where.exe $whereExeName 2>$null | Select-Object -First 1)
+        $wherePath = (where.exe $chocoExeName 2>$null | Select-Object -First 1)
         $isWhereFound = $wherePath -and (Test-Path $wherePath)
         if ($isWhereFound) {
             Write-Log "Found via where.exe: $wherePath" -Level "success"
             return $wherePath
         }
-    } catch { }
+        Write-Log "where.exe could not find $chocoExeName" -Level "warn"
+    } catch {
+        Write-Log "where.exe failed: $_" -Level "warn"
+    }
 
     Write-Log $logMsgs.messages.noExeFound -Level "error"
     return $null
