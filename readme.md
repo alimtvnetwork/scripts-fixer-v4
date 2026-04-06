@@ -129,6 +129,7 @@ The root `run.ps1` is the **single entry point** for all scripts. It handles git
 | Flag | Equivalent | Description |
 |------|-----------|-------------|
 | `-d` | `-I 12` | Interactive dev tools menu |
+| `-D` | N/A | Use all default answers (skip prompts) |
 | `-a` | `-I 13` | Audit mode |
 | `-v` | `-I 1` | Install VS Code |
 | `-w` | `-I 14` | Install Winget |
