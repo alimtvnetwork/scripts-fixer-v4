@@ -33,7 +33,7 @@ function Resolve-PwshPath {
         return $exePath
     }
 
-    Write-Log $LogMessages.messages.pwshNotFound -Level "warn"
+    Write-Log ($LogMessages.messages.pwshNotFound -replace '\{command\}', $VerifyCommand) -Level "warn"
 
     # 2. Scan Program Files for highest major version
     $pfBase = "C:\Program Files\PowerShell"
@@ -48,8 +48,10 @@ function Resolve-PwshPath {
                 Write-Log ($LogMessages.messages.foundAtPath -replace '\{path\}', $candidate) -Level "success"
                 return $candidate
             }
-            Write-Log ($LogMessages.messages.pathNotFound -replace '\{path\}', $candidate) -Level "info"
+            Write-Log ($LogMessages.messages.pathNotFound -replace '\{path\}', $candidate) -Level "warn"
         }
+    } else {
+        Write-Log "Program Files PowerShell directory not found: $pfBase" -Level "warn"
     }
 
     # 3. Check winget WindowsApps path
@@ -60,9 +62,19 @@ function Resolve-PwshPath {
         Write-Log ($LogMessages.messages.foundAtPath -replace '\{path\}', $wingetPath) -Level "success"
         return $wingetPath
     }
-    Write-Log ($LogMessages.messages.pathNotFound -replace '\{path\}', $wingetPath) -Level "info"
+    Write-Log ($LogMessages.messages.pathNotFound -replace '\{path\}', $wingetPath) -Level "warn"
 
-    # 4. Fallback to legacy powershell.exe
+    # 4. Fallback: Chocolatey shim
+    $chocoShimPath = Join-Path $env:ProgramData "chocolatey\bin\pwsh.exe"
+    Write-Log ($LogMessages.messages.searchingPath -replace '\{path\}', $chocoShimPath) -Level "info"
+    $isChocoFound = Test-Path $chocoShimPath
+    if ($isChocoFound) {
+        Write-Log ($LogMessages.messages.foundAtPath -replace '\{path\}', $chocoShimPath) -Level "success"
+        return $chocoShimPath
+    }
+    Write-Log ($LogMessages.messages.pathNotFound -replace '\{path\}', $chocoShimPath) -Level "warn"
+
+    # 5. Fallback to legacy powershell.exe
     if ($FallbackToLegacy) {
         $legacyPath = [System.Environment]::ExpandEnvironmentVariables($PwshPaths.legacy)
         Write-Log ($LogMessages.messages.searchingPath -replace '\{path\}', $legacyPath) -Level "info"
@@ -71,6 +83,7 @@ function Resolve-PwshPath {
             Write-Log ($LogMessages.messages.usingLegacy -replace '\{path\}', $legacyPath) -Level "warn"
             return $legacyPath
         }
+        Write-Log ($LogMessages.messages.pathNotFound -replace '\{path\}', $legacyPath) -Level "error"
     }
 
     Write-Log $LogMessages.messages.noExeFound -Level "error"
