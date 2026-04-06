@@ -15,11 +15,13 @@
   },
   "help": {
     "commands": {
-      "audit": "Run all consistency checks (default)"
+      "audit": "Run all consistency checks (default)",
+      "audit -Fix": "Run checks and auto-fix broken/missing symlinks"
     },
     "examples": [
       ".\\run.ps1 -I 13",
-      ".\\run.ps1 -I 13 -- -Help"
+      ".\\run.ps1 -I 13 -- -Help",
+      ".\\run.ps1 -I 13 -- -Fix"
     ]
   }
 }
