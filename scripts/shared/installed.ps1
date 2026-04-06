@@ -28,7 +28,9 @@ function Get-InstalledRecord {
 function Test-AlreadyInstalled {
     <#
     .SYNOPSIS
-        Returns $true if the tool was previously installed at exactly this version.
+        Returns $true if the tool was previously installed at exactly this version
+        and had no errors. If the previous attempt had an error, logs a friendly
+        message about the prior failure and returns $false so it retries.
     #>
     param(
         [Parameter(Mandatory)]
@@ -41,6 +43,14 @@ function Test-AlreadyInstalled {
     $record = Get-InstalledRecord -Name $Name
     $hasNoRecord = -not $record
     if ($hasNoRecord) { return $false }
+
+    # If previous run had an error, show friendly message and retry
+    $hasPreviousError = $record.lastError -and ($record.lastError -ne "")
+    if ($hasPreviousError) {
+        Write-Log "Previous install of '$Name' had an error: $($record.lastError)" -Level "warn"
+        Write-Log "Let's try again..." -Level "info"
+        return $false
+    }
 
     $isVersionMatch = $record.version -eq $CurrentVersion
     return $isVersionMatch
@@ -72,10 +82,54 @@ function Save-InstalledRecord {
         method      = $Method
         installedAt = (Get-Date -Format "o")
         installedBy = $env:USERNAME
+        lastError   = ""
     }
 
     $filePath = Join-Path $script:_InstalledDir "$Name.json"
     $data | ConvertTo-Json -Depth 3 | Set-Content -Path $filePath -Encoding UTF8
 
     Write-Log "Saved install record: .installed/$Name.json ($Version)" -Level "info"
+}
+
+function Save-InstalledError {
+    <#
+    .SYNOPSIS
+        Records an error in .installed/<name>.json so the next run knows
+        what went wrong and can retry with a friendly message.
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$Name,
+
+        [Parameter(Mandatory)]
+        [string]$ErrorMessage,
+
+        [string]$Version = "unknown",
+
+        [string]$Method = "chocolatey"
+    )
+
+    $isDirMissing = -not (Test-Path $script:_InstalledDir)
+    if ($isDirMissing) {
+        New-Item -Path $script:_InstalledDir -ItemType Directory -Force | Out-Null
+    }
+
+    # Merge with existing record if present
+    $existing = Get-InstalledRecord -Name $Name
+    $hasExisting = $null -ne $existing
+
+    $data = @{
+        name        = $Name
+        version     = if ($hasExisting -and $existing.version) { $existing.version } else { $Version }
+        method      = if ($hasExisting -and $existing.method)  { $existing.method }  else { $Method }
+        installedAt = if ($hasExisting -and $existing.installedAt) { $existing.installedAt } else { (Get-Date -Format "o") }
+        installedBy = if ($hasExisting -and $existing.installedBy) { $existing.installedBy } else { $env:USERNAME }
+        lastError   = $ErrorMessage
+        errorAt     = (Get-Date -Format "o")
+    }
+
+    $filePath = Join-Path $script:_InstalledDir "$Name.json"
+    $data | ConvertTo-Json -Depth 3 | Set-Content -Path $filePath -Encoding UTF8
+
+    Write-Log "Recorded error for '$Name': $ErrorMessage" -Level "warn"
 }

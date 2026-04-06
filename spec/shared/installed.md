@@ -52,7 +52,23 @@ Each `.installed/<name>.json` file:
   "version": "v22.14.0",
   "method": "chocolatey",
   "installedAt": "2026-04-06T15:30:00.0000000+08:00",
-  "installedBy": "alim"
+  "installedBy": "alim",
+  "lastError": "",
+  "errorAt": ""
+}
+```
+
+On error:
+
+```json
+{
+  "name": "nodejs",
+  "version": "unknown",
+  "method": "chocolatey",
+  "installedAt": "2026-04-06T15:30:00.0000000+08:00",
+  "installedBy": "alim",
+  "lastError": "choco install failed: exit code 1",
+  "errorAt": "2026-04-06T15:32:00.0000000+08:00"
 }
 ```
 
@@ -63,6 +79,8 @@ Each `.installed/<name>.json` file:
 | `method` | string | Install method: `chocolatey`, `npm`, `winget`, `dotnet-tool`, `msix`, `self`, `system` |
 | `installedAt` | string | ISO 8601 timestamp of last install/upgrade |
 | `installedBy` | string | Windows username that ran the script |
+| `lastError` | string | Empty on success; error message on failure |
+| `errorAt` | string | ISO 8601 timestamp of last error (empty if none) |
 
 ---
 
@@ -73,8 +91,9 @@ All functions live in `scripts/shared/installed.ps1`, auto-loaded by `logging.ps
 | Function | Purpose |
 |----------|---------|
 | `Get-InstalledRecord` | Reads `.installed/<name>.json`, returns parsed object or `$null` |
-| `Test-AlreadyInstalled` | Compares name + version against tracking file, returns `$true`/`$false` |
-| `Save-InstalledRecord` | Writes/overwrites `.installed/<name>.json` after successful install |
+| `Test-AlreadyInstalled` | Compares name + version; if previous run had error, shows friendly retry message and returns `$false` |
+| `Save-InstalledRecord` | Writes/overwrites `.installed/<name>.json` after successful install (clears `lastError`) |
+| `Save-InstalledError` | Records an error in `.installed/<name>.json` so the next run knows what went wrong |
 
 ---
 
