@@ -162,6 +162,7 @@ function Install-NodeExtras {
             }
             catch {
                 Write-Log ($LogMessages.messages.yarnInstallFailed -replace '\{error\}', $_) -Level "error"
+                Save-InstalledError -Name "yarn" -ErrorMessage "$_" -Method "npm"
             }
         }
     }

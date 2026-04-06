@@ -46,6 +46,7 @@ function Install-Chocolatey {
             }
         } catch {
             Write-Log ($LogMessages.messages.chocoUpgradeFailed -replace '\{error\}', $_) -Level "warn"
+            Save-InstalledError -Name "chocolatey" -ErrorMessage "$_" -Method "self"
         }
 
         $version = & choco.exe --version 2>&1

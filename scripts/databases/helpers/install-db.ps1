@@ -92,6 +92,7 @@ function Install-Database {
             }
         } catch {
             Write-Log ($LogMessages.messages.installFailed -replace '\{name\}', $name -replace '\{error\}', $_.Exception.Message) -Level "error"
+            Save-InstalledError -Name $DbKey -ErrorMessage $_.Exception.Message -Method "dotnet-tool"
             return $false
         }
     } else {

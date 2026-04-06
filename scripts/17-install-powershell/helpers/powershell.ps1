@@ -69,6 +69,7 @@ function Install-PowerShellLatest {
             }
         } catch {
             Write-Log ($LogMessages.messages.pwshInstallFailed -replace '\{error\}', $_) -Level "warn"
+            Save-InstalledError -Name "powershell" -ErrorMessage "$_" -Method "winget"
         }
     }
 
