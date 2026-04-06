@@ -8,6 +8,7 @@
     "configLogMessages": true,
     "staleRefsSpecs": true,
     "staleRefsSuggestions": true,
-    "staleRefsPowerShell": true
+    "staleRefsPowerShell": true,
+    "verifySymlinks": true
   }
 }
