@@ -41,6 +41,9 @@ Write-Banner -Title $logMessages.scriptName
 # -- Initialize logging --------------------------------------------------------
 Initialize-Logging -ScriptName $logMessages.scriptName
 
+try {
+
+
 # -- Git pull ------------------------------------------------------------------
 Invoke-GitPull
 
@@ -81,4 +84,12 @@ if ($isSuccess) {
 Write-Log $logMessages.messages.mingwSetupComplete -Level "success"
 
 # -- Save log ------------------------------------------------------------------
-Save-LogFile -Status $(if ($isSuccess) { "ok" } else { "fail" })
+
+} catch {
+    Write-Log "Unhandled error: $_" -Level "error"
+    Write-Log "Stack: $($_.ScriptStackTrace)" -Level "error"
+} finally {
+    # -- Save log (always runs, even on crash) --
+    $hasAnyErrors = $script:_LogErrors.Count -gt 0
+    Save-LogFile -Status $(if ($hasAnyErrors) { "fail" } else { "ok" })
+}
