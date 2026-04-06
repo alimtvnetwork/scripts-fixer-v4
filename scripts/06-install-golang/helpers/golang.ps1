@@ -45,31 +45,40 @@ function Install-Go {
             Write-Log $LogMessages.messages.goNotInPath -Level "warn"
             return $false
         }
+
+        $version = & go.exe version 2>&1
+        Write-Log ($LogMessages.messages.goVersion -replace '\{version\}', $version) -Level "success"
+        Save-InstalledRecord -Name "golang" -Version "$version".Trim()
+        return $true
     } else {
+        $version = & go.exe version 2>&1
+
+        # Check .installed/ tracking -- skip if version matches
+        $isAlreadyTracked = Test-AlreadyInstalled -Name "golang" -CurrentVersion "$version".Trim()
+        if ($isAlreadyTracked) {
+            Write-Log ($LogMessages.messages.goAlreadyInstalled -replace '\{version\}', $version) -Level "info"
+            return $true
+        }
+
         Write-Log $LogMessages.messages.goAlreadyInstalled -Level "success"
         if ($Config.alwaysUpgradeToLatest) {
             Upgrade-ChocoPackage -PackageName $packageName | Out-Null
         }
-    }
 
-    $version = & go.exe version 2>&1
-    Write-Log ($LogMessages.messages.goVersion -replace '\{version\}', $version) -Level "success"
-    return $true
+        $version = & go.exe version 2>&1
+        Write-Log ($LogMessages.messages.goVersion -replace '\{version\}', $version) -Level "success"
+        Save-InstalledRecord -Name "golang" -Version "$version".Trim()
+        return $true
+    }
 }
 
 function Resolve-Gopath {
-    <#
-    .SYNOPSIS
-        Resolves GOPATH from config (override, prompt, or default).
-        If $env:DEV_DIR is set (by orchestrator), uses that as base.
-    #>
     param(
         [PSCustomObject]$GopathConfig,
         [string]$DevDirSubfolder,
         $LogMessages
     )
 
-    # If orchestrator set DEV_DIR, derive GOPATH from it
     $hasDevDir = -not [string]::IsNullOrWhiteSpace($env:DEV_DIR)
     if ($hasDevDir -and $DevDirSubfolder) {
         $derived = Join-Path $env:DEV_DIR $DevDirSubfolder
@@ -98,7 +107,6 @@ function Resolve-Gopath {
         return $default
     }
 
-    # Check env var from orchestrator (skip prompt)
     $hasDevDirEnv = -not [string]::IsNullOrWhiteSpace($env:DEV_DIR)
     if ($hasDevDirEnv -and $GopathConfig.mode -eq "json-or-prompt") {
         $envGopath = Join-Path $env:DEV_DIR "go"
@@ -106,7 +114,6 @@ function Resolve-Gopath {
         return $envGopath
     }
 
-    # Prompt mode
     $userInput = Read-Host -Prompt "Enter GOPATH (default: $default)"
     $hasUserInput = -not [string]::IsNullOrWhiteSpace($userInput)
     if ($hasUserInput) {
@@ -119,10 +126,6 @@ function Resolve-Gopath {
 }
 
 function Initialize-Gopath {
-    <#
-    .SYNOPSIS
-        Creates GOPATH directory and sets the environment variable.
-    #>
     param(
         [Parameter(Mandatory)]
         [string]$GopathValue,
@@ -139,7 +142,6 @@ function Initialize-Gopath {
         Write-Log $LogMessages.messages.gopathCreated -Level "success"
     }
 
-    # Set user environment variable
     try {
         Write-Log ($LogMessages.messages.gopathSettingEnv -replace '\{path\}', $gopathFull) -Level "info"
         [Environment]::SetEnvironmentVariable("GOPATH", $gopathFull, "User")
@@ -154,10 +156,6 @@ function Initialize-Gopath {
 }
 
 function Update-GoPath {
-    <#
-    .SYNOPSIS
-        Adds GOPATH\bin to user PATH if configured.
-    #>
     param(
         [PSCustomObject]$PathConfig,
         [string]$GopathFull,
@@ -186,17 +184,11 @@ function Update-GoPath {
 }
 
 function Set-GoEnvSetting {
-    <#
-    .SYNOPSIS
-        Runs 'go env -w KEY=VALUE' with logging.
-    #>
     param(
         [Parameter(Mandatory)]
         [string]$Key,
-
         [Parameter(Mandatory)]
         [string]$Value,
-
         $LogMessages
     )
 
@@ -218,10 +210,6 @@ function Set-GoEnvSetting {
 }
 
 function Configure-GoEnv {
-    <#
-    .SYNOPSIS
-        Applies all go env settings from config (GOMODCACHE, GOCACHE, GOPROXY, etc.)
-    #>
     param(
         [PSCustomObject]$GoEnvConfig,
         [string]$GopathFull,
@@ -249,7 +237,6 @@ function Configure-GoEnv {
 
         $finalValue = $null
 
-        # Resolve value: relative path or direct value
         $hasRelativePath = $relativeToGopath -and ($entry.PSObject.Properties.Name -contains "relativePath")
         if ($hasRelativePath) {
             $rel = $entry.relativePath
@@ -270,7 +257,6 @@ function Configure-GoEnv {
             $finalValue = $entry.value
         }
 
-        # Prompt if configured (skip if orchestrator set DEV_DIR -- use defaults)
         $hasOrchestratorEnv = -not [string]::IsNullOrWhiteSpace($env:SCRIPTS_ROOT_RUN)
         $shouldPrompt = $GoEnvConfig.applyMode -eq "json-or-prompt" -and $entry.promptOnFirstRun -and -not $hasOrchestratorEnv
         if ($shouldPrompt) {
@@ -296,10 +282,6 @@ function Configure-GoEnv {
 }
 
 function Invoke-GoSetup {
-    <#
-    .SYNOPSIS
-        Full Go setup: install, GOPATH, PATH, go env.
-    #>
     param(
         [PSCustomObject]$Config,
         [string]$ScriptDir,
@@ -309,7 +291,6 @@ function Invoke-GoSetup {
 
     $isAllOk = $true
 
-    # Install/upgrade
     $isNotConfigureOnly = $Command -ne "configure"
     if ($isNotConfigureOnly) {
         $ok = Install-Go -Config $Config -LogMessages $LogMessages
@@ -320,10 +301,8 @@ function Invoke-GoSetup {
         }
     }
 
-    # Configure (skip if command is "install" only)
     $isNotInstallOnly = $Command -ne "install"
     if ($isNotInstallOnly) {
-        # Resolve GOPATH
         $gopathValue = Resolve-Gopath -GopathConfig $Config.gopath -DevDirSubfolder $Config.devDirSubfolder -LogMessages $LogMessages
         $gopathFull = Initialize-Gopath -GopathValue $gopathValue -LogMessages $LogMessages
 
@@ -333,17 +312,14 @@ function Invoke-GoSetup {
             return $false
         }
 
-        # Update PATH
         $ok = Update-GoPath -PathConfig $Config.path -GopathFull $gopathFull -LogMessages $LogMessages
         $hasFailed = -not $ok
         if ($hasFailed) { $isAllOk = $false }
 
-        # Configure go env
         $ok = Configure-GoEnv -GoEnvConfig $Config.goEnv -GopathFull $gopathFull -LogMessages $LogMessages
         $hasFailed = -not $ok
         if ($hasFailed) { $isAllOk = $false }
 
-        # Save resolved data
         Save-ResolvedData -ScriptFolder "06-install-golang" -Data @{
             golang = @{
                 gopath     = $gopathFull

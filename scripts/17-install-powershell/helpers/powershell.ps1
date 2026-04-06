@@ -30,11 +30,21 @@ function Install-PowerShellLatest {
 
     if ($pwshCmd) {
         $version = & $Config.verifyCommand $Config.versionFlag 2>&1 | Select-Object -First 1
+        $versionStr = "$version".Trim()
+
+        # Check .installed/ tracking
+        $isAlreadyTracked = Test-AlreadyInstalled -Name "powershell" -CurrentVersion $versionStr
+        if ($isAlreadyTracked) {
+            Write-Log ($LogMessages.messages.pwshFound -replace '\{version\}', $version) -Level "info"
+            return $true
+        }
+
         Write-Log ($LogMessages.messages.pwshFound -replace '\{version\}', $version) -Level "success"
+        Save-InstalledRecord -Name "powershell" -Version $versionStr -Method "winget"
 
         Save-ResolvedData -ScriptFolder "17-install-powershell" -Data @{
             powershell = @{
-                version    = "$version".Trim()
+                version    = $versionStr
                 resolvedAt = (Get-Date -Format "o")
                 resolvedBy = $env:USERNAME
             }
@@ -62,7 +72,6 @@ function Install-PowerShellLatest {
         }
     }
 
-    # Refresh PATH after Winget attempt
     $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
     $pwshCmd = Get-Command $Config.verifyCommand -ErrorAction SilentlyContinue
 
@@ -77,18 +86,21 @@ function Install-PowerShellLatest {
             return $false
         }
 
-        # Refresh PATH again
         $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
         $pwshCmd = Get-Command $Config.verifyCommand -ErrorAction SilentlyContinue
     }
 
     if ($pwshCmd) {
         $version = & $Config.verifyCommand $Config.versionFlag 2>&1 | Select-Object -First 1
+        $versionStr = "$version".Trim()
         Write-Log ($LogMessages.messages.pwshInstallSuccess -replace '\{version\}', $version) -Level "success"
+
+        $method = if ($isWingetAvailable) { "winget" } else { "chocolatey" }
+        Save-InstalledRecord -Name "powershell" -Version $versionStr -Method $method
 
         Save-ResolvedData -ScriptFolder "17-install-powershell" -Data @{
             powershell = @{
-                version    = "$version".Trim()
+                version    = $versionStr
                 resolvedAt = (Get-Date -Format "o")
                 resolvedBy = $env:USERNAME
             }

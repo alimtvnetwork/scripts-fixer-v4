@@ -28,11 +28,21 @@ function Install-Winget {
 
     if ($wingetCmd) {
         $version = & winget.exe --version 2>&1
+        $versionStr = "$version".Trim()
+
+        # Check .installed/ tracking
+        $isAlreadyTracked = Test-AlreadyInstalled -Name "winget" -CurrentVersion $versionStr
+        if ($isAlreadyTracked) {
+            Write-Log ($LogMessages.messages.wingetFound -replace '\{version\}', $version) -Level "info"
+            return $true
+        }
+
         Write-Log ($LogMessages.messages.wingetFound -replace '\{version\}', $version) -Level "success"
+        Save-InstalledRecord -Name "winget" -Version $versionStr -Method "system"
 
         Save-ResolvedData -ScriptFolder "14-install-winget" -Data @{
             winget = @{
-                version    = "$version".Trim()
+                version    = $versionStr
                 resolvedAt = (Get-Date -Format "o")
                 resolvedBy = $env:USERNAME
             }
@@ -49,7 +59,6 @@ function Install-Winget {
 
     Write-Log $LogMessages.messages.wingetNotFound -Level "warn"
 
-    # Try via Add-AppxPackage (Microsoft.DesktopAppInstaller)
     try {
         Write-Log ($LogMessages.messages.wingetDownloading -replace '\{url\}', $Config.msStoreUrl) -Level "info"
         $installerPath = Join-Path $env:TEMP "Microsoft.DesktopAppInstaller.msixbundle"
@@ -60,13 +69,13 @@ function Install-Winget {
         Write-Log $LogMessages.messages.wingetInstalling -Level "info"
         Add-AppxPackage -Path $installerPath -ErrorAction Stop
 
-        # Refresh PATH
         $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
 
         $wingetCmd = Get-Command winget.exe -ErrorAction SilentlyContinue
         if ($wingetCmd) {
             $version = & winget.exe --version 2>&1
             Write-Log ($LogMessages.messages.wingetInstallSuccess -replace '\{version\}', $version) -Level "success"
+            Save-InstalledRecord -Name "winget" -Version "$version".Trim() -Method "msix"
 
             Save-ResolvedData -ScriptFolder "14-install-winget" -Data @{
                 winget = @{

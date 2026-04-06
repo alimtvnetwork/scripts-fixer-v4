@@ -16,16 +16,11 @@ if ((Test-Path $_loggingPath) -and -not (Get-Command Write-Log -ErrorAction Sile
 
 
 function Resolve-MingwInstallDir {
-    <#
-    .SYNOPSIS
-        Resolves install directory from config, DEV_DIR, or prompt.
-    #>
     param(
         [PSCustomObject]$InstallDirConfig,
         $LogMessages
     )
 
-    # If orchestrator set DEV_DIR, derive install dir from it
     $hasDevDir = -not [string]::IsNullOrWhiteSpace($env:DEV_DIR)
     if ($hasDevDir) {
         $derived = Join-Path $env:DEV_DIR "mingw-w64"
@@ -54,7 +49,6 @@ function Resolve-MingwInstallDir {
         return $default
     }
 
-    # Skip prompt if orchestrator set DEV_DIR (use default)
     $hasOrchestratorEnv = -not [string]::IsNullOrWhiteSpace($env:SCRIPTS_ROOT_RUN)
     $isPromptMode = $InstallDirConfig.mode -ne "json-only" -and -not $hasOrchestratorEnv
 
@@ -70,10 +64,6 @@ function Resolve-MingwInstallDir {
 }
 
 function Install-Mingw {
-    <#
-    .SYNOPSIS
-        Installs or upgrades MinGW-w64 via Chocolatey.
-    #>
     param(
         [PSCustomObject]$Config,
         $LogMessages
@@ -91,7 +81,6 @@ function Install-Mingw {
         $hasFailed = -not $ok
         if ($hasFailed) { return $false }
 
-        # Refresh PATH so g++ is available in this session
         $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
         $gppCmd = Get-Command g++.exe -ErrorAction SilentlyContinue
         $isStillMissing = -not $gppCmd
@@ -99,23 +88,34 @@ function Install-Mingw {
             Write-Log $LogMessages.messages.mingwNotInPath -Level "warn"
             return $false
         }
+
+        $version = & g++.exe --version 2>&1 | Select-Object -First 1
+        Write-Log ($LogMessages.messages.mingwVersion -replace '\{version\}', $version) -Level "success"
+        Save-InstalledRecord -Name "mingw" -Version "$version".Trim()
+        return $true
     } else {
+        $version = & g++.exe --version 2>&1 | Select-Object -First 1
+
+        # Check .installed/ tracking
+        $isAlreadyTracked = Test-AlreadyInstalled -Name "mingw" -CurrentVersion "$version".Trim()
+        if ($isAlreadyTracked) {
+            Write-Log ($LogMessages.messages.mingwAlreadyInstalled -replace '\{version\}', $version) -Level "info"
+            return $true
+        }
+
         Write-Log $LogMessages.messages.mingwAlreadyInstalled -Level "success"
         if ($Config.alwaysUpgradeToLatest) {
             Upgrade-ChocoPackage -PackageName $packageName | Out-Null
         }
-    }
 
-    $version = & g++.exe --version 2>&1 | Select-Object -First 1
-    Write-Log ($LogMessages.messages.mingwVersion -replace '\{version\}', $version) -Level "success"
-    return $true
+        $version = & g++.exe --version 2>&1 | Select-Object -First 1
+        Write-Log ($LogMessages.messages.mingwVersion -replace '\{version\}', $version) -Level "success"
+        Save-InstalledRecord -Name "mingw" -Version "$version".Trim()
+        return $true
+    }
 }
 
 function Test-MingwCommands {
-    <#
-    .SYNOPSIS
-        Verifies that required commands (g++, gcc, mingw32-make) are in PATH.
-    #>
     param(
         [string[]]$Commands,
         $LogMessages
@@ -128,7 +128,6 @@ function Test-MingwCommands {
         $found = Get-Command "$cmd.exe" -ErrorAction SilentlyContinue
         $isMissing = -not $found
         if ($isMissing) {
-            # Try without .exe
             $found = Get-Command $cmd -ErrorAction SilentlyContinue
             $isMissing = -not $found
         }
@@ -144,10 +143,6 @@ function Test-MingwCommands {
 }
 
 function Update-MingwPath {
-    <#
-    .SYNOPSIS
-        Adds MinGW bin directory to user PATH if configured.
-    #>
     param(
         [PSCustomObject]$PathConfig,
         $LogMessages
@@ -159,7 +154,6 @@ function Update-MingwPath {
         return $true
     }
 
-    # Find the g++ location and derive the bin directory
     $gppCmd = Get-Command g++.exe -ErrorAction SilentlyContinue
     $hasGpp = [bool]$gppCmd
     if ($hasGpp) {
@@ -175,10 +169,6 @@ function Update-MingwPath {
 }
 
 function Invoke-MingwSetup {
-    <#
-    .SYNOPSIS
-        Full MinGW setup: install, verify, PATH.
-    #>
     param(
         [PSCustomObject]$Config,
         [string]$ScriptDir,
@@ -188,7 +178,6 @@ function Invoke-MingwSetup {
 
     $isAllOk = $true
 
-    # Install/upgrade
     $isNotConfigureOnly = $Command -ne "configure"
     if ($isNotConfigureOnly) {
         $ok = Install-Mingw -Config $Config -LogMessages $LogMessages
@@ -199,21 +188,17 @@ function Invoke-MingwSetup {
         }
     }
 
-    # Configure (skip if command is "install" only)
     $isNotInstallOnly = $Command -ne "install"
     if ($isNotInstallOnly) {
-        # Verify commands
         $verifyCommands = if ($Config.verifyCommands) { $Config.verifyCommands } else { @("g++", "gcc", "mingw32-make") }
         $ok = Test-MingwCommands -Commands $verifyCommands -LogMessages $LogMessages
         $hasFailed = -not $ok
         if ($hasFailed) { $isAllOk = $false }
 
-        # Update PATH
         $ok = Update-MingwPath -PathConfig $Config.path -LogMessages $LogMessages
         $hasFailed = -not $ok
         if ($hasFailed) { $isAllOk = $false }
 
-        # Save resolved data
         $gppVersion = ""
         $gppCmd = Get-Command g++.exe -ErrorAction SilentlyContinue
         $hasGpp = [bool]$gppCmd

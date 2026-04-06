@@ -45,11 +45,23 @@ function Install-Database {
             $version = & $DbConfig.verifyCommand $DbConfig.versionFlag 2>&1 | Select-Object -First 1
         } catch { $version = "(version check failed)" }
 
+        $versionStr = "$version".Trim()
+
+        # Check .installed/ tracking -- skip if version matches
+        $isAlreadyTracked = Test-AlreadyInstalled -Name $DbKey -CurrentVersion $versionStr
+        if ($isAlreadyTracked) {
+            Write-Log ($LogMessages.messages.found -replace '\{name\}', $name -replace '\{version\}', $version) -Level "info"
+            return $true
+        }
+
         Write-Log ($LogMessages.messages.found -replace '\{name\}', $name -replace '\{version\}', $version) -Level "success"
+
+        $method = if ($DbConfig.installMethod -eq "dotnet-tool") { "dotnet-tool" } else { "chocolatey" }
+        Save-InstalledRecord -Name $DbKey -Version $versionStr -Method $method
 
         Save-ResolvedData -ScriptFolder "databases" -Data @{
             $DbKey = @{
-                version    = "$version".Trim()
+                version    = $versionStr
                 resolvedAt = (Get-Date -Format "o")
                 resolvedBy = $env:USERNAME
             }
@@ -61,7 +73,7 @@ function Install-Database {
     Write-Log ($LogMessages.messages.notFound -replace '\{name\}', $name) -Level "warn"
     Write-Log ($LogMessages.messages.installing -replace '\{name\}', $name) -Level "info"
 
-    # Build install args (system default -- custom directory is Chocolatey Business only)
+    # Build install args
     $chocoArgs = @()
 
     # Install via appropriate method
@@ -102,11 +114,15 @@ function Install-Database {
             $version = & $DbConfig.verifyCommand $DbConfig.versionFlag 2>&1 | Select-Object -First 1
         } catch { $version = "(version check failed)" }
 
+        $versionStr = "$version".Trim()
         Write-Log ($LogMessages.messages.installSuccess -replace '\{name\}', $name -replace '\{version\}', $version) -Level "success"
+
+        $method = if ($isDotnetTool) { "dotnet-tool" } else { "chocolatey" }
+        Save-InstalledRecord -Name $DbKey -Version $versionStr -Method $method
 
         Save-ResolvedData -ScriptFolder "databases" -Data @{
             $DbKey = @{
-                version    = "$version".Trim()
+                version    = $versionStr
                 resolvedAt = (Get-Date -Format "o")
                 resolvedBy = $env:USERNAME
             }

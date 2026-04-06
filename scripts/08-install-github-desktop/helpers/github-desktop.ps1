@@ -28,6 +28,16 @@ function Install-GitHubDesktop {
     }
 
     if ($ghDesktop) {
+        # Get version from choco list
+        $chocoVersion = (choco list --local-only --exact $packageName 2>&1 | Select-String $packageName) -replace ".*$packageName\s*", "" | ForEach-Object { $_.Trim() }
+
+        # Check .installed/ tracking
+        $isAlreadyTracked = $chocoVersion -and (Test-AlreadyInstalled -Name "github-desktop" -CurrentVersion $chocoVersion)
+        if ($isAlreadyTracked) {
+            Write-Log $LogMessages.messages.ghDesktopAlreadyInstalled -Level "info"
+            return
+        }
+
         Write-Log $LogMessages.messages.ghDesktopAlreadyInstalled -Level "info"
 
         if ($Config.alwaysUpgradeToLatest) {
@@ -35,10 +45,16 @@ function Install-GitHubDesktop {
             Upgrade-ChocoPackage -PackageName $packageName
             Write-Log $LogMessages.messages.ghDesktopUpgradeSuccess -Level "success"
         }
+
+        $newVersion = (choco list --local-only --exact $packageName 2>&1 | Select-String $packageName) -replace ".*$packageName\s*", "" | ForEach-Object { $_.Trim() }
+        if ($newVersion) { Save-InstalledRecord -Name "github-desktop" -Version $newVersion }
     }
     else {
         Write-Log $LogMessages.messages.ghDesktopNotFound -Level "warn"
         Install-ChocoPackage -PackageName $packageName
         Write-Log $LogMessages.messages.ghDesktopInstallSuccess -Level "success"
+
+        $newVersion = (choco list --local-only --exact $packageName 2>&1 | Select-String $packageName) -replace ".*$packageName\s*", "" | ForEach-Object { $_.Trim() }
+        if ($newVersion) { Save-InstalledRecord -Name "github-desktop" -Version $newVersion }
     }
 }

@@ -30,11 +30,21 @@ function Install-Php {
 
     if ($phpCmd) {
         $version = & $Config.verifyCommand $Config.versionFlag 2>&1 | Select-Object -First 1
+        $versionStr = "$version".Trim()
+
+        # Check .installed/ tracking
+        $isAlreadyTracked = Test-AlreadyInstalled -Name "php" -CurrentVersion $versionStr
+        if ($isAlreadyTracked) {
+            Write-Log ($LogMessages.messages.phpFound -replace '\{version\}', $version) -Level "info"
+            return $true
+        }
+
         Write-Log ($LogMessages.messages.phpFound -replace '\{version\}', $version) -Level "success"
+        Save-InstalledRecord -Name "php" -Version $versionStr
 
         Save-ResolvedData -ScriptFolder "16-install-php" -Data @{
             php = @{
-                version    = "$version".Trim()
+                version    = $versionStr
                 resolvedAt = (Get-Date -Format "o")
                 resolvedBy = $env:USERNAME
             }
@@ -53,17 +63,18 @@ function Install-Php {
         return $false
     }
 
-    # Refresh PATH
     $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
 
     $phpCmd = Get-Command $Config.verifyCommand -ErrorAction SilentlyContinue
     if ($phpCmd) {
         $version = & $Config.verifyCommand $Config.versionFlag 2>&1 | Select-Object -First 1
+        $versionStr = "$version".Trim()
         Write-Log ($LogMessages.messages.phpInstallSuccess -replace '\{version\}', $version) -Level "success"
+        Save-InstalledRecord -Name "php" -Version $versionStr
 
         Save-ResolvedData -ScriptFolder "16-install-php" -Data @{
             php = @{
-                version    = "$version".Trim()
+                version    = $versionStr
                 resolvedAt = (Get-Date -Format "o")
                 resolvedBy = $env:USERNAME
             }
