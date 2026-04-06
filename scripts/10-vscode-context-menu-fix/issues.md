@@ -99,3 +99,65 @@ Applied to both script 10 (VS Code context menu) and script 31 (PowerShell conte
 **How to write better code:**
 - For registry writes with complex string values, prefer .NET `[Microsoft.Win32.Registry]` over `reg.exe` -- it avoids all quoting/escaping issues.
 - Reserve `reg.exe` only for simple values without embedded quotes or `%` variables.
+
+---
+
+## Issue 4: "No valid VS Code executable found" after Chocolatey install
+
+**Error:**
+```json
+{
+    "message": "File exists at path: False",
+    "level": "fail"
+},
+{
+    "message": "No valid VS Code executable found for either type",
+    "level": "fail"
+}
+```
+
+**Root cause:**
+`Resolve-VsCodePath` only checked two hardcoded paths from `config.json`:
+
+1. **User install:** `%LOCALAPPDATA%\Programs\Microsoft VS Code\Code.exe`
+2. **System install:** `C:\Program Files\Microsoft VS Code\Code.exe`
+
+When VS Code was installed via **Chocolatey** (script 01), the executable may not exist at either of these paths. Chocolatey can install VS Code to its own `chocolatey\lib\` directory or create shims in `chocolatey\bin\`. In this scenario, both config paths returned `False` and the script failed immediately with no further detection.
+
+**Why it happened:**
+- Script 01 installs VS Code via `choco install vscode`, which may place the executable at a Chocolatey-managed location.
+- The config.json paths only cover the standard Microsoft installer locations (user-install via `.exe` installer, or system-wide via admin MSI).
+- There was no fallback detection after the two config paths failed.
+
+**Fix:**
+Added a 4-tier fallback chain in `Resolve-VsCodePath`:
+
+```
+1. .resolved/ cache          (instant, if previous run found it)
+2. Config paths (user/system) (standard Microsoft installer locations)
+3. Chocolatey paths           (shim in choco\bin\, or exe in choco\lib\)
+4. Get-Command / where.exe    (PATH-based discovery as last resort)
+```
+
+```powershell
+# Chocolatey shim detection
+$chocoShimDir = Join-Path $env:ProgramData "chocolatey\bin"
+$chocoShimExe = Join-Path $chocoShimDir "Code.exe"
+if (Test-Path $chocoShimExe) { return $chocoShimExe }
+
+# Chocolatey lib recursive search
+$chocoLibDir = Join-Path $env:ProgramData "chocolatey\lib\vscode"
+$foundExe = Get-ChildItem -Path $chocoLibDir -Filter "Code.exe" -Recurse | Select-Object -First 1
+if ($foundExe) { return $foundExe.FullName }
+
+# PATH-based discovery
+$cmdResult = Get-Command "code" -ErrorAction SilentlyContinue
+if ($cmdResult) { return $cmdResult.Source }
+```
+
+Once found, the resolved path is cached in `.resolved/10-vscode-context-menu-fix/resolved.json` so subsequent runs skip detection entirely.
+
+**How to write better code:**
+- Never rely on only hardcoded paths for tools that can be installed by multiple methods (MSI, user installer, Chocolatey, winget, scoop).
+- Build a fallback chain: config paths -> package manager paths -> PATH discovery -> give up.
+- Cache the first successful result so detection is instant on repeat runs.
