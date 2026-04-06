@@ -70,6 +70,13 @@
     "helpExamplesLabel": "  Examples:",
     "helpExampleItem": "    {example}",
     "helpDescription": "  {description}",
-    "adminTip": "  Tip: Right-click PowerShell -> 'Run as Administrator'"
+    "adminTip": "  Tip: Right-click PowerShell -> 'Run as Administrator'",
+    "symlinkSourceNotFound": "Could not resolve install directory for {name} -- symlink skipped",
+    "symlinkParentCreated": "Created databases directory: {path}",
+    "symlinkAlreadyCorrect": "Symlink for {name} already correct: {path}",
+    "symlinkRemovedStale": "Removed stale symlink for {name}",
+    "symlinkRealDirExists": "Real directory already exists at {path} for {name} -- symlink skipped",
+    "symlinkCreated": "Symlink created: {link} -> {target} ({name})",
+    "symlinkFailed": "Failed to create symlink for {name}: {error}"
   }
 }

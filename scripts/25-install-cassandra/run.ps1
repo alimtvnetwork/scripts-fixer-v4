@@ -18,6 +18,7 @@ $sharedDir  = Join-Path (Split-Path -Parent $scriptDir) "shared"
 . (Join-Path $sharedDir "help.ps1")
 . (Join-Path $sharedDir "choco-utils.ps1")
 . (Join-Path $sharedDir "dev-dir.ps1")
+. (Join-Path $sharedDir "symlink-utils.ps1")
 
 # -- Dot-source script helper -------------------------------------------------
 . (Join-Path $scriptDir "helpers\cassandra.ps1")
@@ -59,6 +60,11 @@ $env:DEV_DIR = $devDir
 
 # -- Install -------------------------------------------------------------------
 $ok = Install-Cassandra -DbConfig $config.database -LogMessages $logMessages 
+
+# -- Create symlink to dev directory ------------------------------------------
+if ($ok) {
+    New-DbSymlink -Name ($config.database.chocoPackage) -VerifyCommand ($config.database.verifyCommand) -DevDir $devDir
+}
 
 $isSuccess = $ok -eq $true
 if ($isSuccess) {

@@ -4,6 +4,28 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.5.0] -- 2026-04-06
+
+**Database symlink support -- install to E:\dev\databases via directory junctions**
+
+### Added
+
+- `scripts/shared/symlink-utils.ps1` with `Resolve-DbInstallDir` and `New-DbSymlink` functions
+- Directory junction creation from `E:\dev\databases\<name>` to actual Chocolatey install paths
+- 7 new symlink log messages in `shared/log-messages.json`
+- All 12 database `run.ps1` files now call `New-DbSymlink` after successful install
+- `databases/run.ps1` orchestrator dot-sources `symlink-utils.ps1`
+
+### Changed
+
+- `installMode: "devDir"` config option now actually creates junctions to the dev directory
+
+### Fixed
+
+- Databases previously installed to system default locations ignoring `devDir` config -- now symlinked to `E:\dev\databases\<name>`
+
+---
+
 ## [v0.4.1] -- 2026-04-07
 
 **Crash-safe error logging, VS Code/pwsh detection fallbacks, and full-path error diagnostics**
