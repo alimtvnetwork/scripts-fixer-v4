@@ -68,7 +68,7 @@ function Resolve-VsCodePath {
     Write-Log ($logMsgs.messages.expandedPath -replace '\{path\}', $exePath) -Level "info"
 
     $isPreferredFound = Test-Path $exePath
-    Write-Log (($logMsgs.messages.fileExistsAtPath -replace '\{result\}', $isPreferredFound)) -Level $(if ($isPreferredFound) { "success" } else { "warn" })
+    Write-Log ((($logMsgs.messages.fileExistsAtPath -replace '\{path\}', $exePath) -replace '\{result\}', $isPreferredFound)) -Level $(if ($isPreferredFound) { "success" } else { "error" })
 
     if ($isPreferredFound) { return $exePath }
 
