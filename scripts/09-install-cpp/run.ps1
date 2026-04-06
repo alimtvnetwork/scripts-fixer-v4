@@ -36,7 +36,7 @@ if ($Help -or $Command -eq "--help") {
 }
 
 # -- Banner --------------------------------------------------------------------
-Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
+Write-Banner -Title $logMessages.scriptName
 
 # -- Initialize logging --------------------------------------------------------
 Initialize-Logging -ScriptName $logMessages.scriptName
