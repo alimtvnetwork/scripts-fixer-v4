@@ -78,10 +78,14 @@ function Invoke-Questionnaire {
     $hasOverride = -not [string]::IsNullOrWhiteSpace($Config.devDir.override)
     if ($hasOverride) { $defaultDevDir = $Config.devDir.override }
 
-    Write-Host "  Dev directory (tools, configs, data will be stored here)" -ForegroundColor Yellow
-    $devDirInput = Read-Host "  Path (default: $defaultDevDir)"
-    $isDefaultDevDir = [string]::IsNullOrWhiteSpace($devDirInput)
-    if ($isDefaultDevDir) { $devDirInput = $defaultDevDir }
+    if ($UseDefaults) {
+        $devDirInput = $defaultDevDir
+    } else {
+        Write-Host "  Dev directory (tools, configs, data will be stored here)" -ForegroundColor Yellow
+        $devDirInput = Read-Host "  Path (default: $defaultDevDir)"
+        $isDefaultDevDir = [string]::IsNullOrWhiteSpace($devDirInput)
+        if ($isDefaultDevDir) { $devDirInput = $defaultDevDir }
+    }
     $env:DEV_DIR = $devDirInput
     Write-Log "Dev directory: $devDirInput" -Level "success"
 
