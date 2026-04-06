@@ -100,6 +100,25 @@ Set-Content -Path $versionFile -Value $newData -Encoding UTF8
 
 Write-Host "[ OK ] scripts/version.json: $currentVersion -> $newVersion" -ForegroundColor Green
 
+# ── Update CHANGELOG badge in readme.md ──────────────────────────────────────
+
+$readmeFile = Join-Path $PSScriptRoot "readme.md"
+$isReadmePresent = Test-Path $readmeFile
+if ($isReadmePresent) {
+    $readmeContent = Get-Content $readmeFile -Raw
+    $badgePattern = "Changelog-v[\d\.]+-(orange|blue|green|red|yellow)"
+    $badgeReplacement = "Changelog-v$newVersion-orange"
+    $updatedReadme = $readmeContent -replace $badgePattern, $badgeReplacement
+    $isReadmeChanged = $updatedReadme -ne $readmeContent
+    if ($isReadmeChanged) {
+        Set-Content -Path $readmeFile -Value $updatedReadme -Encoding UTF8
+        Write-Host "[ OK ] readme.md: Changelog badge -> v$newVersion" -ForegroundColor Green
+    }
+    else {
+        Write-Host "[ SKIP ] readme.md: No Changelog badge found to update." -ForegroundColor Yellow
+    }
+}
+
 # ── Done ─────────────────────────────────────────────────────────────────────
 
 Write-Host ""

@@ -39,7 +39,8 @@ When no parameter is provided, the script prints usage help and exits.
 4. Validate format (must be `N.N.N`)
 5. Skip if new version equals current version
 6. Write updated version to `scripts/version.json`
-7. Display confirmation
+7. Update Changelog badge version in `readme.md` (if badge exists)
+8. Display confirmation
 
 ---
 
