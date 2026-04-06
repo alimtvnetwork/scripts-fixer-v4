@@ -4,6 +4,30 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.5.1] -- 2026-04-06
+
+**Drive override flag, audit --Fix for broken symlinks, and new spec docs**
+
+### Added
+
+- `-Drive` flag on `databases/run.ps1` -- override auto-detected drive (e.g. `.\run.ps1 -Drive F`)
+- `-Fix` flag on `audit/run.ps1` -- removes broken junctions and recreates them automatically
+- `driveOverride` log message in `databases/log-messages.json`
+- Audit fix log messages (`symlinkFixRemoved`, `symlinkFixCreated`, `symlinkFixSkipped`, `symlinkFixMissing`) in `audit/log-messages.json`
+- `spec/shared/dev-dir.md` -- smart drive selection, 10 GB threshold, `Test-DriveQualified` / `Find-BestDevDrive` / `Resolve-SmartDevDir` docs
+- `spec/shared/symlink-utils.md` -- `Resolve-DbInstallDir` and `New-DbSymlink` function docs
+
+### Changed
+
+- `audit/helpers/checks.ps1` `Test-VerifySymlinks` now accepts `-Fix` to repair broken and missing junctions
+- `audit/run.ps1` dot-sources `symlink-utils.ps1` and passes `-Fix` through
+
+### Fixed
+
+- Broken or stale database junctions can now be auto-repaired instead of requiring manual cleanup
+
+---
+
 ## [v0.5.0] -- 2026-04-06
 
 **Smart drive detection, database symlinks, and dynamic dev directory resolution**
