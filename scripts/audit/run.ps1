@@ -92,7 +92,7 @@ if ($checks.staleRefsPowerShell) {
 }
 
 if ($checks.verifySymlinks) {
-    [void]$allResults.Add((Test-VerifySymlinks -RepoRoot $repoRoot -LogMessages $logMessages))
+    [void]$allResults.Add((Test-VerifySymlinks -RepoRoot $repoRoot -LogMessages $logMessages -Fix:$Fix))
 }
 
 # -- Summary ------------------------------------------------------------------

@@ -329,7 +329,8 @@ function Test-StaleRefsInPowerShell {
 function Test-VerifySymlinks {
     param(
         [string]$RepoRoot,
-        $LogMessages
+        $LogMessages,
+        [switch]$Fix
     )
 
     $issues = @()
