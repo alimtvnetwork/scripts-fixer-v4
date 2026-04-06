@@ -133,21 +133,21 @@ else {
 
 ## Scripts Using Tracking
 
-| Script | Tracking Name(s) |
-|--------|-------------------|
-| 01 - VS Code | `vscode-stable`, `vscode-insiders` |
-| 02 - Package Managers | `chocolatey` |
-| 03 - Node.js | `nodejs`, `yarn`, `bun` |
-| 04 - pnpm | `pnpm` |
-| 05 - Python | `python` |
-| 06 - Go | `golang` |
-| 07 - Git | `git`, `git-lfs`, `github-cli` |
-| 08 - GitHub Desktop | `github-desktop` |
-| 09 - C++ | `mingw` |
-| 14 - Winget | `winget` |
-| 16 - PHP | `php` |
-| 17 - PowerShell | `powershell` |
-| databases | `mysql`, `mariadb`, `postgresql`, `sqlite`, `mongodb`, `couchdb`, `redis`, `cassandra`, `neo4j`, `elasticsearch`, `duckdb`, `litedb` |
+| Script | Tracking Name(s) | `Save-InstalledError` |
+|--------|-------------------|-----------------------|
+| 01 - VS Code | `vscode-stable`, `vscode-insiders` | ✅ |
+| 02 - Package Managers | `chocolatey` | ✅ |
+| 03 - Node.js | `nodejs`, `yarn`, `bun` | ✅ |
+| 04 - pnpm | `pnpm` | ✅ |
+| 05 - Python | `python` | ✅ |
+| 06 - Go | `golang` | ✅ |
+| 07 - Git | `git`, `git-lfs`, `github-cli` | ✅ |
+| 08 - GitHub Desktop | `github-desktop` | ✅ |
+| 09 - C++ | `mingw` | ✅ |
+| 14 - Winget | `winget` | ✅ |
+| 16 - PHP | `php` | ✅ |
+| 17 - PowerShell | `powershell` | ✅ |
+| databases | `mysql`, `mariadb`, `postgresql`, `sqlite`, `mongodb`, `couchdb`, `redis`, `cassandra`, `neo4j`, `elasticsearch`, `duckdb`, `litedb` | ✅ |
 
 ---
 
