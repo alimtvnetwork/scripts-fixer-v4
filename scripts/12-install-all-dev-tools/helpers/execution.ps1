@@ -23,6 +23,9 @@ function Invoke-ScriptSequence {
     $skipList = if ($Skip) { $Skip -split ',' | ForEach-Object { $_.Trim() } } else { @() }
     $results  = New-Object System.Collections.ArrayList
 
+    # Signal child scripts that the orchestrator is driving execution
+    $env:SCRIPTS_ROOT_RUN = "1"
+
     foreach ($script in $ScriptList) {
         $id   = $script.Id
         $name = $script.Name
