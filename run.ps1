@@ -487,7 +487,8 @@ if ($isMissingParam) {
 }
 
 # ── Delegate to single script ────────────────────────────────────────
-$scriptArgs = @{}
+$isScriptArgsUndefined = -not (Test-Path variable:scriptArgs) -or $null -eq $scriptArgs
+if ($isScriptArgsUndefined) { $scriptArgs = @{} }
 if ($Merge) { $scriptArgs["Merge"] = $true }
 
 $result = Invoke-ScriptById -ScriptId $I -ExtraArgs $scriptArgs
