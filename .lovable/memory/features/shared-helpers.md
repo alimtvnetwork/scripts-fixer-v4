@@ -7,7 +7,7 @@ type: feature
 
 | File | Functions | Purpose |
 |------|-----------|---------|
-| `logging.ps1` | `Write-Log`, `Write-Banner`, `Initialize-Logging`, `Save-LogFile`, `Import-JsonConfig` | Console output with status badges, centralised JSON log collection to `scripts/logs/`, JSON loading |
+| `logging.ps1` | `Write-Log`, `Write-Banner`, `Initialize-Logging`, `Save-LogFile`, `Import-JsonConfig` | Console output with status badges, centralised JSON log collection to `scripts/logs/`, JSON loading. `Write-Banner` auto-reads `scripts/version.json` for the project version. |
 | `json-utils.ps1` | `Backup-File`, `ConvertTo-OrderedHashtable`, `Merge-JsonDeep` | File backups, PSCustomObject-to-hashtable conversion, recursive JSON merge |
 | `resolved.ps1` | `Get-ResolvedDir`, `Save-ResolvedData` | Persist runtime state to `.resolved/` folder |
 | `cleanup.ps1` | `Clear-ResolvedData` | Wipe .resolved/ contents (all or per-edition) for fresh detection |
