@@ -128,17 +128,16 @@ function Initialize-Logging {
         [string]$ScriptName
     )
 
-    # Resolve scripts/logs/ directory (always at scripts root)
+    # Resolve .logs/ directory at project root (parent of scripts/)
     $scriptsRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-    # If PSScriptRoot is already scripts/shared, go up one level
     $isSharedDir = (Split-Path -Leaf $PSScriptRoot) -eq "shared"
     if ($isSharedDir) {
         $scriptsRoot = Split-Path -Parent $PSScriptRoot
     }
+    $projectRoot = Split-Path -Parent $scriptsRoot
+    $logsDir = Join-Path $projectRoot ".logs"
 
-    $logsDir = Join-Path $scriptsRoot "logs"
-
-    # Create logs dir if missing
+    # Create .logs dir if missing
     $isLogsDirMissing = -not (Test-Path $logsDir)
     if ($isLogsDirMissing) {
         New-Item -Path $logsDir -ItemType Directory -Force | Out-Null
