@@ -72,7 +72,7 @@ function Resolve-VsCodePath {
 
     if ($isPreferredFound) { return $exePath }
 
-    # Fallback
+    # Fallback to other config type (user <-> system)
     $fallbackType = if ($PreferredType -eq "user") { "system" } else { "user" }
     Write-Log ($logMsgs.messages.tryingFallback -replace '\{type\}', $fallbackType) -Level "warn"
 
@@ -82,9 +82,56 @@ function Resolve-VsCodePath {
     Write-Log ($logMsgs.messages.expandedPath -replace '\{path\}', $fallbackExe) -Level "info"
 
     $isFallbackFound = Test-Path $fallbackExe
-    Write-Log (($logMsgs.messages.fileExistsAtPath -replace '\{result\}', $isFallbackFound)) -Level $(if ($isFallbackFound) { "success" } else { "error" })
+    Write-Log (($logMsgs.messages.fileExistsAtPath -replace '\{result\}', $isFallbackFound)) -Level $(if ($isFallbackFound) { "success" } else { "warn" })
 
     if ($isFallbackFound) { return $fallbackExe }
+
+    # Fallback: Chocolatey shim path (choco installs often end up here)
+    Write-Log "Config paths not found -- trying Chocolatey shim detection..." -Level "info"
+    $chocoExeName = if ($EditionName -eq "insiders") { "Code - Insiders.exe" } else { "Code.exe" }
+    $chocoShimDir = Join-Path $env:ProgramData "chocolatey\bin"
+    $chocoShimExe = Join-Path $chocoShimDir $chocoExeName
+    $isChocoShimFound = Test-Path $chocoShimExe
+    if ($isChocoShimFound) {
+        Write-Log "Found Chocolatey shim: $chocoShimExe" -Level "success"
+        return $chocoShimExe
+    }
+
+    # Fallback: search common Chocolatey install directories
+    $chocoLibBase = Join-Path $env:ProgramData "chocolatey\lib"
+    $chocoPackage = if ($EditionName -eq "insiders") { "vscode-insiders" } else { "vscode" }
+    $chocoLibDir  = Join-Path $chocoLibBase $chocoPackage
+    if (Test-Path $chocoLibDir) {
+        $foundExe = Get-ChildItem -Path $chocoLibDir -Filter $chocoExeName -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+        $isChocoLibFound = $null -ne $foundExe
+        if ($isChocoLibFound) {
+            Write-Log "Found in Chocolatey lib: $($foundExe.FullName)" -Level "success"
+            return $foundExe.FullName
+        }
+    }
+
+    # Fallback: Get-Command (PATH-based discovery)
+    Write-Log "Chocolatey paths not found -- trying PATH discovery via Get-Command..." -Level "info"
+    $cmdName = if ($EditionName -eq "insiders") { "Code - Insiders" } else { "code" }
+    $cmdResult = Get-Command $cmdName -ErrorAction SilentlyContinue
+    $isCmdFound = $null -ne $cmdResult
+    if ($isCmdFound) {
+        $discoveredPath = $cmdResult.Source
+        Write-Log "Found via Get-Command: $discoveredPath" -Level "success"
+        return $discoveredPath
+    }
+
+    # Fallback: where.exe (broader search than Get-Command)
+    Write-Log "Get-Command failed -- trying where.exe..." -Level "info"
+    $whereExeName = if ($EditionName -eq "insiders") { "Code - Insiders.exe" } else { "Code.exe" }
+    try {
+        $wherePath = (where.exe $whereExeName 2>$null | Select-Object -First 1)
+        $isWhereFound = $wherePath -and (Test-Path $wherePath)
+        if ($isWhereFound) {
+            Write-Log "Found via where.exe: $wherePath" -Level "success"
+            return $wherePath
+        }
+    } catch { }
 
     Write-Log $logMsgs.messages.noExeFound -Level "error"
     return $null
