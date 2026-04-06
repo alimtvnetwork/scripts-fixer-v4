@@ -50,6 +50,26 @@ are stored in environment variables so child scripts skip their own prompts.
 | Dev directory path | `$env:DEV_DIR` | Custom path or default (E:\dev) |
 | VS Code editions | `$env:VSCODE_EDITIONS` | stable / insiders / stable,insiders |
 | VS Code settings sync | `$env:VSCODE_SYNC_MODE` | overwrite / merge / skip |
+| Git user.name | `$env:GIT_USER_NAME` | Full name (auto-detected if already set) |
+| Git user.email | `$env:GIT_USER_EMAIL` | Email (auto-detected if already set) |
+
+The orchestrator also sets `$env:SCRIPTS_ROOT_RUN = "1"` so child scripts
+know they are running under Script 12 and should use defaults instead of
+prompting.
+
+## Environment Variable Injection
+
+Child scripts check these env vars and skip their own `Read-Host` prompts
+when values are already set by the questionnaire:
+
+| Env Var | Consumed By | Effect |
+|---------|-------------|--------|
+| `$env:DEV_DIR` | `shared/dev-dir.ps1`, `06-golang` | Skips dev-directory prompt, sets GOPATH |
+| `$env:VSCODE_EDITIONS` | `01-install-vscode` | Skips edition selection prompt |
+| `$env:VSCODE_SYNC_MODE` | `11-vscode-settings-sync` | Skips sync-mode prompt (overwrite/merge/skip) |
+| `$env:GIT_USER_NAME` | `07-install-git` | Skips user.name prompt |
+| `$env:GIT_USER_EMAIL` | `07-install-git` | Skips user.email prompt |
+| `$env:SCRIPTS_ROOT_RUN` | `09-cpp`, `15-windows-tweaks` | Uses defaults, skips confirmations |
 
 ### Step 3: Unattended Execution
 
