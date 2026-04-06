@@ -194,14 +194,18 @@ function Save-LogFile {
     $isOverallFailure = $Status -eq "fail"
     $shouldWriteErrorLog = $hasErrors -or $isOverallFailure
     if ($shouldWriteErrorLog) {
+        $errorOnly = @($script:_LogErrors | Where-Object { $_.level -eq "fail" })
+        $warnOnly  = @($script:_LogErrors | Where-Object { $_.level -eq "warn" })
         $errorData = @{
             scriptName    = $script:_LogName
             overallStatus = $Status
             startTime     = $script:_LogStart.ToString("o")
             endTime       = $endTime.ToString("o")
             duration      = [math]::Round($duration, 2)
-            errorCount    = $script:_LogErrors.Count
-            errors        = @($script:_LogErrors)
+            errorCount    = $errorOnly.Count
+            warnCount     = $warnOnly.Count
+            errors        = $errorOnly
+            warnings      = $warnOnly
         }
 
         $errorPath = Join-Path $script:_LogsDir "$($script:_LogName)-error.json"
