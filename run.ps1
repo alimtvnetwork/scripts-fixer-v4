@@ -152,6 +152,7 @@ function Show-RootHelp {
     Write-Host "    settings-sync        VSCode settings sync            11"
     Write-Host "    all-dev, all         Interactive dev tools menu      12"
     Write-Host "    audit                Audit mode                      13"
+    Write-Host "    health, healthcheck  Health check (audit + report)   13"
     Write-Host "    winget               Winget package manager          14"
     Write-Host "    tweaks               Windows tweaks                  15"
     Write-Host "    php                  PHP                             16"
