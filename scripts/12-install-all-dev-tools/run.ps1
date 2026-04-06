@@ -44,6 +44,8 @@ Write-Banner -Title $logMessages.scriptName
 # -- Initialize logging --------------------------------------------------------
 Initialize-Logging -ScriptName $logMessages.scriptName
 
+try {
+
 # -- Git pull ------------------------------------------------------------------
 Invoke-GitPull
 
@@ -82,7 +84,6 @@ if ($hasFilter -or $All -or $DryRun -or $Defaults) {
     # Dry run
     if ($DryRun) {
         Show-DryRun -ScriptList $scriptList -LogMessages $logMessages
-        Save-LogFile -Status "ok"
         return
     }
 
@@ -97,7 +98,6 @@ if ($hasFilter -or $All -or $DryRun -or $Defaults) {
         defaults  = [bool]$Defaults
         timestamp = (Get-Date -Format "o")
     }
-    Save-LogFile -Status "ok"
     return
 }
 
@@ -166,4 +166,11 @@ while ($true) {
     Write-Log $logMessages.messages.menuLoopBack -Level "info"
 }
 
-Save-LogFile -Status "ok"
+} catch {
+    Write-Log "Unhandled error: $_" -Level "error"
+    Write-Log "Stack: $($_.ScriptStackTrace)" -Level "error"
+} finally {
+    # -- Save log (always runs, even on crash) --
+    $hasAnyErrors = $script:_LogErrors.Count -gt 0
+    Save-LogFile -Status $(if ($hasAnyErrors) { "fail" } else { "ok" })
+}

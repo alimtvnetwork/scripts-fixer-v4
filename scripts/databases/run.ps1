@@ -45,6 +45,8 @@ Write-Banner -Title $logMessages.scriptName
 # -- Initialize logging --------------------------------------------------------
 Initialize-Logging -ScriptName $logMessages.scriptName
 
+try {
+
 # -- Git pull ------------------------------------------------------------------
 Invoke-GitPull
 
@@ -185,5 +187,11 @@ if ($selectedKeys.Count -gt 0 -and ($All -or $hasOnly)) {
 Write-Host ""
 Write-Log $logMessages.messages.setupComplete -Level "success"
 
-# -- Save log ------------------------------------------------------------------
-Save-LogFile -Status "ok"
+} catch {
+    Write-Log "Unhandled error: $_" -Level "error"
+    Write-Log "Stack: $($_.ScriptStackTrace)" -Level "error"
+} finally {
+    # -- Save log (always runs, even on crash) --
+    $hasAnyErrors = $script:_LogErrors.Count -gt 0
+    Save-LogFile -Status $(if ($hasAnyErrors) { "fail" } else { "ok" })
+}
