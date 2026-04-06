@@ -35,20 +35,23 @@
     "done": "Database installation complete.",
     "completedWithWarnings": "Completed with some warnings -- check output above.",
     "setupComplete": "Database setup complete.",
-    "loopBack": "Returning to menu -- select more databases or press Q to exit."
+    "loopBack": "Returning to menu -- select more databases or press Q to exit.",
+    "driveOverride": "Using drive override: {drive}"
   },
   "help": {
     "commands": {
       ".\\ run.ps1": "Interactive menu -- pick databases to install",
       ".\\ run.ps1 -All": "Install all enabled databases",
       ".\\ run.ps1 -Only mysql,redis": "Install specific databases only",
-      ".\\ run.ps1 -Skip cassandra,neo4j": "Skip specific databases"
+      ".\\ run.ps1 -Skip cassandra,neo4j": "Skip specific databases",
+      ".\\ run.ps1 -Drive F": "Override auto-detected drive (installs to F:\\dev)"
     },
     "examples": [
       ".\\run.ps1",
       ".\\run.ps1 -All",
       ".\\run.ps1 -Only mysql,postgresql,redis",
       ".\\run.ps1 -Skip cassandra,couchdb",
+      ".\\run.ps1 -Drive F -All",
       ".\\run.ps1 -Help"
     ]
   }
