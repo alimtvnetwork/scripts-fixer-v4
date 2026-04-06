@@ -7,6 +7,7 @@ param(
     [switch]$All,
     [string]$Skip,
     [string]$Only,
+    [string]$Drive,
     [switch]$DryRun,
     [switch]$Help
 )
@@ -60,7 +61,14 @@ if ($isNotAdmin) {
 }
 
 # -- Resolve dev directory -----------------------------------------------------
-$devDir = Resolve-DevDir -Config $config.devDir
+$hasDriveOverride = -not [string]::IsNullOrWhiteSpace($Drive)
+if ($hasDriveOverride) {
+    $driveLetter = $Drive.TrimEnd(':', '\').Substring(0, 1).ToUpper()
+    $devDir = "${driveLetter}:\dev"
+    Write-Log ($logMessages.messages.driveOverride -replace '\{drive\}', "${driveLetter}:") -Level "info"
+} else {
+    $devDir = Resolve-DevDir -Config $config.devDir
+}
 Initialize-DevDir -Path $devDir
 $env:DEV_DIR = $devDir
 
