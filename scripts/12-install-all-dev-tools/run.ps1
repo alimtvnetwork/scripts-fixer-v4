@@ -128,7 +128,7 @@ while ($true) {
     }
 
     # ── Step 2: Front-load all questions ──────────────────────────────────────
-    Invoke-Questionnaire -Mode $mode -Config $config -LogMessages $logMessages
+    Invoke-Questionnaire -Mode $mode -Config $config -LogMessages $logMessages -UseDefaults:$Defaults
 
     # Dev dir is now set in $env:DEV_DIR by the questionnaire
     $devDir = $env:DEV_DIR

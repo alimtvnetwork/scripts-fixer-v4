@@ -59,11 +59,13 @@ function Invoke-Questionnaire {
     .SYNOPSIS
         Asks all configuration questions upfront based on what's going to be installed.
         Stores answers in environment variables so child scripts skip their own prompts.
+        When -UseDefaults is set, all questions are answered with defaults automatically.
     #>
     param(
         [string]$Mode,
         $Config,
-        $LogMessages
+        $LogMessages,
+        [switch]$UseDefaults
     )
 
     Write-Host ""
