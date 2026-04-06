@@ -5,6 +5,7 @@ Project includes PowerShell utility scripts alongside the React web app.
 User prefers structured script projects: external JSON configs, spec docs, suggestions folder, colorful logging.
 Script 12 uses front-loaded questionnaire: ask all questions first, then run unattended.
 DB installs use system default path (no --install-directory, Chocolatey Business only).
+All scripts read version from single `scripts/version.json` — Write-Banner auto-loads it.
 
 ## Memories
 - [Script structure](mem://preferences/script-structure) — How the user wants scripts organized with configs, specs, and suggestions
