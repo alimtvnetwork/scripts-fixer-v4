@@ -154,9 +154,10 @@ is true:
 | Condition | Description |
 |-----------|-------------|
 | Any `fail`-level event | At least one `Write-Log -Level "error"` call was made during execution |
+| Any `warn`-level event | At least one `Write-Log -Level "warn"` call was made during execution |
 | Overall status is `"fail"` | `Save-LogFile -Status "fail"` was called (script-level failure) |
 
-If neither condition is met, no error file is created.
+If none of these conditions are met, no error file is created.
 
 ---
 
