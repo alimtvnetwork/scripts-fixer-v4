@@ -32,13 +32,16 @@ function Show-QuickMenu {
     Write-Host "All Dev Tools + All Databases" -NoNewline
     Write-Host " (everything above + MySQL, PostgreSQL, MongoDB, etc.)" -ForegroundColor DarkGray
     Write-Host "    [3] " -NoNewline -ForegroundColor Yellow
+    Write-Host "All Databases Only" -NoNewline
+    Write-Host " (MySQL, MariaDB, PostgreSQL, SQLite, MongoDB, Redis, etc.)" -ForegroundColor DarkGray
+    Write-Host "    [4] " -NoNewline -ForegroundColor Yellow
     Write-Host "Custom" -NoNewline
     Write-Host " (pick individual tools from the full list)" -ForegroundColor DarkGray
     Write-Host "    [Q] " -NoNewline -ForegroundColor Yellow
     Write-Host "Quit"
     Write-Host ""
 
-    $choice = Read-Host "  Choose [1/2/3/Q] (default: 1)"
+    $choice = Read-Host "  Choose [1/2/3/4/Q] (default: 1)"
     $choice = $choice.Trim().ToUpper()
 
     $isQuit = $choice -eq "Q"
@@ -47,7 +50,10 @@ function Show-QuickMenu {
     $isAllDevDb = $choice -eq "2"
     if ($isAllDevDb) { return "alldev+db" }
 
-    $isCustom = $choice -eq "3"
+    $isAllDb = $choice -eq "3"
+    if ($isAllDb) { return "alldb" }
+
+    $isCustom = $choice -eq "4"
     if ($isCustom) { return "custom" }
 
     # Default: 1 = alldev
