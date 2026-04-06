@@ -119,6 +119,7 @@ The root `run.ps1` is the **single entry point** for all scripts. It handles git
 ```powershell
 .\run.ps1                           # Show help (after git pull)
 .\run.ps1 -I <number>               # Run a specific script
+.\run.ps1 -I <number> -D            # Run with all default answers (skip prompts)
 .\run.ps1 -I <number> -Clean        # Wipe cache, then run
 .\run.ps1 -CleanOnly                # Wipe all cached data
 ```
