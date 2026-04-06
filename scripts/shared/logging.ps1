@@ -87,6 +87,18 @@ function Write-Banner {
 
     # New-style: -Title and -Version params
     if ($Title) {
+        # Always read version from the central scripts/version.json
+        $versionFilePath = Join-Path (Split-Path -Parent $PSScriptRoot) "version.json"
+        $isShared = (Split-Path -Leaf $PSScriptRoot) -eq "shared"
+        if ($isShared) {
+            $versionFilePath = Join-Path (Split-Path -Parent $PSScriptRoot) "version.json"
+        }
+        $hasVersionFile = Test-Path $versionFilePath
+        if ($hasVersionFile) {
+            $versionData = Get-Content $versionFilePath -Raw | ConvertFrom-Json
+            $Version = $versionData.version
+        }
+
         $header = if ($Version) { "$Title -- v$Version" } else { $Title }
         $border = "-" * ([Math]::Max($header.Length + 6, 60))
         $Lines = @($border, "  $header", $border)
