@@ -56,7 +56,20 @@ function Write-Log {
     }
 
     Write-Host "  $badge " -ForegroundColor $colors[$Status] -NoNewline
-    Write-Host $Message
+
+    # Highlight version numbers in a distinct color
+    $versionPattern = '(v?\d+\.\d+[\.\d]*[a-zA-Z0-9\-\.]*)'
+    $parts = [regex]::Split($Message, $versionPattern)
+    foreach ($part in $parts) {
+        $isVersion = [regex]::IsMatch($part, "^$versionPattern$")
+        if ($isVersion) {
+            Write-Host $part -ForegroundColor White -NoNewline
+        }
+        else {
+            Write-Host $part -NoNewline
+        }
+    }
+    Write-Host ""
 
     # ── Record structured event ──────────────────────────────────────────
     $event = @{
